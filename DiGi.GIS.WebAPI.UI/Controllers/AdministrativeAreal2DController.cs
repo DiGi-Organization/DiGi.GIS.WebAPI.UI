@@ -170,7 +170,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype");
                 urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)administrativeArealType_Child);
                 urlBuilder = urlBuilder.AddParameter("parentId", administrativeAreal2DReference.Id);
-                urlBuilder = urlBuilder.AddParameter("uniquecode", true);
+                // A subdivision shares its municipality's code, so unique-code filtering would collapse them to one.
+                urlBuilder = urlBuilder.AddParameter("uniquecode", administrativeArealType_Child != AdministrativeArealType.Subdivision);
 
                 administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder.ToString(), cancellationToken);
             }
@@ -249,7 +250,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/administrativeareal2D/administrativeareal2Dreferencesbyadministrativearealtype");
                 urlBuilder = urlBuilder.AddParameter("administrativearealtype", (int)administrativeArealType_Child);
                 urlBuilder = urlBuilder.AddParameter("parentId", administrativeAreal2DReference.Id);
-                urlBuilder = urlBuilder.AddParameter("uniquecode", true);
+                // A subdivision shares its municipality's code, so unique-code filtering would collapse them to one.
+                urlBuilder = urlBuilder.AddParameter("uniquecode", administrativeArealType_Child != AdministrativeArealType.Subdivision);
 
                 administrativeAreal2DReferences = await httpClient.ItemsAsync<PostgreSQL.Classes.AdministrativeAreal2DReference>(urlBuilder.ToString(), cancellationToken);
             }
