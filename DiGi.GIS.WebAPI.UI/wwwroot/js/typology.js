@@ -2057,15 +2057,9 @@ const digiTypology = (function () {
     }
 
     // Load in the Selected Area card: flushes the debounced definition save (so the view never reads a
-    // stale state), then opens the view for the selected area.
+    // stale state), then opens the view for the selected area in a new tab, keeping this page open
+    // beside it (#53, B5). The view reads the definition from localStorage.
     function loadAreaView() {
-        saveNow();
-        window.location.href = areaViewUrl();
-    }
-
-    // Opens the area view in a new tab and keeps this page open beside it (#53, B5). The definition is
-    // flushed first; the view reads it from localStorage.
-    function openAreaViewInNewTab() {
         saveNow();
         window.open(areaViewUrl(), '_blank', 'noopener');
     }
@@ -2089,13 +2083,6 @@ const digiTypology = (function () {
         if (loadButton !== null) {
             loadButton.addEventListener('click', function () {
                 ensureSelectedArea({ opener: loadButton, title: 'Load Area' }, loadAreaView);
-            });
-        }
-
-        const loadNewTabButton = document.getElementById('typology-load-new-tab-button');
-        if (loadNewTabButton !== null) {
-            loadNewTabButton.addEventListener('click', function () {
-                ensureSelectedArea({ opener: loadNewTabButton, title: 'Load Area' }, openAreaViewInNewTab);
             });
         }
     }
