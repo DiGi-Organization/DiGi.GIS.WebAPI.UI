@@ -27,6 +27,22 @@
     </script>
 </head>
 <body class="gis-app-body">
+    @* Remember the header/footer collapse across pages, tabs and windows. localStorage is per origin,
+       so it survives new tabs and windows on the same domain. Applied as early as possible - before the
+       <header> is parsed - so a returning visitor sees the collapsed layout on the first frame: no
+       transition, no flash. This only reads; the toggle at the bottom of the body is the only writer. *@
+    <script>
+        (function () {
+            'use strict';
+            try {
+                if (window.localStorage.getItem('gis-layout-collapsed') === 'true') {
+                    document.body.classList.add('gis-layout-collapsed');
+                }
+            } catch (error) {
+                // Blocked or private storage: keep the default (visible) layout.
+            }
+        })();
+    </script>
     @{
         string currentPath = Context.Request.Path.Value ?? "";
 
@@ -181,7 +197,13 @@
                 return;
             }
             layoutToggle.addEventListener('click', function () {
-                document.body.classList.toggle('gis-layout-collapsed');
+                // classList.toggle returns the new state - persist it in the same step.
+                var collapsed = document.body.classList.toggle('gis-layout-collapsed');
+                try {
+                    window.localStorage.setItem('gis-layout-collapsed', collapsed ? 'true' : 'false');
+                } catch (error) {
+                    // A blocked store only loses the preference; the UI still toggles.
+                }
                 
                 // Trigger window resize event to adjust 3D viewports dynamically
                 window.dispatchEvent(new Event('resize'));
