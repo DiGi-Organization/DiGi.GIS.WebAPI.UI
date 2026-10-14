@@ -76,6 +76,73 @@ async function loadAllOrtoCoverages(ids) {
 }
 
 /**
+ * Collects the orto-coverage row ids from a set of table rows.
+ * Each row exposes its id via a `span[id^="text-coverage-"]` element.
+ *
+ * @param {Array<HTMLElement>} rows - The table row elements to scan.
+ * @returns {Array<number>} The administrative area reference ids found in the rows.
+ */
+function collectCoverageIds(rows) {
+    const ids = [];
+    rows.forEach(row => {
+        const span = row.querySelector('span[id^="text-coverage-"]');
+        if (span) {
+            const id = parseInt(span.id.replace('text-coverage-', ''), 10);
+            if (!isNaN(id)) ids.push(id);
+        }
+    });
+    return ids;
+}
+
+/**
+ * Initializes client-side table paging (reveal more rows on demand).
+ * Shared by the Building2D and administrative-areal reference tables.
+ * Exposes revealNext and revealAll functions globally.
+ *
+ * @param {number} initialLimit - Initial record count shown.
+ * @param {number} totalRecords - Total record count.
+ * @param {Object} [options] - Optional pager configuration.
+ * @param {string} [options.tableSelector='#mainBuildingsTable'] - CSS selector for the paginated table.
+ * @param {Function} [options.onRowsRevealed] - Called with the newly revealed row elements after each reveal.
+ */
+window.initTablePager = function (initialLimit, totalRecords, options) {
+    const tableSelector = (options && options.tableSelector) || '#mainBuildingsTable';
+    const onRowsRevealed = (options && options.onRowsRevealed) || null;
+    let displayedCount = initialLimit;
+
+    window.revealNext = function (batchSize) {
+        const hiddenRows = Array.from(document.querySelectorAll(tableSelector + ' tbody tr.row-hidden'));
+        const toShow = Math.min(batchSize, hiddenRows.length);
+        const newlyRevealed = [];
+
+        for (let i = 0; i < toShow; i++) {
+            hiddenRows[i].classList.remove('row-hidden');
+            newlyRevealed.push(hiddenRows[i]);
+            displayedCount++;
+        }
+        updateUI();
+        if (onRowsRevealed && newlyRevealed.length) onRowsRevealed(newlyRevealed);
+    };
+
+    window.revealAll = function () {
+        const hiddenRows = Array.from(document.querySelectorAll(tableSelector + ' tbody tr.row-hidden'));
+        hiddenRows.forEach(r => r.classList.remove('row-hidden'));
+        displayedCount = totalRecords;
+        updateUI();
+        if (onRowsRevealed && hiddenRows.length) onRowsRevealed(hiddenRows);
+    };
+
+    function updateUI() {
+        const shownVal = document.getElementById('shownVal');
+        if (shownVal) shownVal.innerText = displayedCount;
+        if (displayedCount >= totalRecords) {
+            const btns = document.getElementById('paginationButtons');
+            if (btns) btns.style.display = 'none';
+        }
+    }
+};
+
+/**
  * Displays a theme-consistent modal dialog (warning or error) for display area validations.
  *
  * @param {Object} options - Configuration options for the dialog.

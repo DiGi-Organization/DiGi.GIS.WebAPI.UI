@@ -56,13 +56,25 @@
                         const htmlResult = await response.text();
                         container.innerHTML = htmlResult;
 
-                        // 1. Collect all IDs from the rendered spans
-                        const spans = container.querySelectorAll('span[id^="text-coverage-"]');
-                        const ids = Array.from(spans).map(span => parseInt(span.id.replace('text-coverage-', '')));
+                        // Initialize the reveal-more pager (shared with Building2D, gis-common.js).
+                        // The partial hides the rows beyond its own `initialLimit`; here we simply read
+                        // how many rows are actually visible so the threshold stays a single source of truth
+                        // in _AdministrativeAreal2DReferences.cshtml.
+                        const totalRows = container.querySelectorAll('#adminArealTable tbody tr').length;
+                        const visibleRows = Array.from(container.querySelectorAll('#adminArealTable tbody tr:not(.row-hidden)'));
+                        initTablePager(visibleRows.length, totalRows, {
+                            tableSelector: '#adminArealTable',
+                            onRowsRevealed: function (rows) {
+                                // Extend the coverage request to the newly revealed rows only.
+                                const revealedIds = collectCoverageIds(rows);
+                                if (revealedIds.length > 0) loadAllOrtoCoverages(revealedIds);
+                            }
+                        });
 
-                        // 2. Perform the Bulk Update
-                        if (ids.length > 0) {
-                            await loadAllOrtoCoverages(ids);
+                        // Orto coverage is requested only for the rows currently visible.
+                        const visibleIds = collectCoverageIds(visibleRows);
+                        if (visibleIds.length > 0) {
+                            await loadAllOrtoCoverages(visibleIds);
                         }
 
                     } catch (error) {

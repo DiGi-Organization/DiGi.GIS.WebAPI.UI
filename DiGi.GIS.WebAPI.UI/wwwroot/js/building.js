@@ -1,5 +1,7 @@
 /**
- * Building 2D Feature logic (Paging, AJAX details loading, SVG visualization)
+ * Building 2D Feature logic (AJAX details loading, SVG visualization).
+ * Table paging (initTablePager, revealNext, revealAll) lives in gis-common.js so the
+ * administrative-areal tables can share it.
  */
 
 /**
@@ -10,45 +12,6 @@ function getResolvedUrl(path) {
     const cleanBase = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     return `${cleanBase}${path.startsWith('/') ? path : '/' + path}`;
 }
-
-/**
- * Initializes table pagination for building references.
- * Exposes revealNext and revealAll functions globally.
- *
- * @param {number} initialLimit - Initial record count shown.
- * @param {number} totalRecords - Total record count.
- */
-window.initTablePager = function (initialLimit, totalRecords) {
-    let displayedCount = initialLimit;
-
-    window.revealNext = function (batchSize) {
-        const hiddenRows = document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden');
-        const toShow = Math.min(batchSize, hiddenRows.length);
-
-        for (let i = 0; i < toShow; i++) {
-            hiddenRows[i].classList.remove('row-hidden');
-            displayedCount++;
-        }
-        updateUI();
-    };
-
-    window.revealAll = function () {
-        document.querySelectorAll('#mainBuildingsTable tbody tr.row-hidden').forEach(r => {
-            r.classList.remove('row-hidden');
-        });
-        displayedCount = totalRecords;
-        updateUI();
-    };
-
-    function updateUI() {
-        const shownVal = document.getElementById('shownVal');
-        if (shownVal) shownVal.innerText = displayedCount;
-        if (displayedCount >= totalRecords) {
-            const btns = document.getElementById('paginationButtons');
-            if (btns) btns.style.display = 'none';
-        }
-    }
-};
 
 /**
  * Loads building details via AJAX and executes any scripts inside the returned HTML content.

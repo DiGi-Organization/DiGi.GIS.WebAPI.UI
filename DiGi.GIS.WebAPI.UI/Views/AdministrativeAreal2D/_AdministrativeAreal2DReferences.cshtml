@@ -17,10 +17,26 @@
         .Select(group => group.First())
         .OrderBy(area => area.Name)
         .ToList();
+
+    // Paging threshold: result sets with more than this many items use the reveal-more pager
+    // (rows beyond the limit start hidden and are revealed with the +100 / All buttons).
+    int initialLimit = 500;
 }
 
 <div class="gis-table-container margin-large">
-    <table class="gis-table">
+    @if (administrativeAreal2DReferences.Count > initialLimit)
+    {
+        <div class="controls-row">
+            <span id="pagingStatus" class="paging-status">
+                Total: <b>@administrativeAreal2DReferences.Count</b> (<span id="shownVal">@Math.Min(administrativeAreal2DReferences.Count, initialLimit)</span>)
+            </span>
+            <div id="paginationButtons">
+                <button type="button" class="btn-buildings btn-active btn-pager" onclick="revealNext(100)">+100</button>
+                <button type="button" class="btn-buildings btn-pager btn-pager-all" onclick="revealAll()">All</button>
+            </div>
+        </div>
+    }
+    <table class="gis-table" id="adminArealTable">
         <thead>
             <tr>
                 <th>#</th>
@@ -34,7 +50,7 @@
             @for (int i = 0; i < administrativeAreal2DReferences.Count; i++)
             {
                 AdministrativeAreal2DReference administrativeAreal2DReference = administrativeAreal2DReferences[i];
-                <tr>
+                <tr class="@(i >= initialLimit ? "row-hidden" : "")">
                     <td class="index-column">@(i + 1)</td>
                     <td class="fw-medium">@administrativeAreal2DReference.Name</td>
                     <td>
