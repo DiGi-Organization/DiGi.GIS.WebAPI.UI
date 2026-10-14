@@ -6,7 +6,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 {
     /// <summary>
     /// Represents the annual solar radiation received by one external surface (a wall or a roof) of a building, shaded by the building itself and by its neighbours.
-    /// <para>Irradiation values are per square metre of the surface, over one EPW year. The beam component reaches only the unshaded part of the surface. Sky diffuse and ground-reflected radiation (isotropic sky) reach the surface in proportion to the part of its sky and of its ground not blocked by the building itself or by its neighbours (<see cref="SkyVisibility"/>, <see cref="GroundVisibility"/>); blocked parts contribute nothing, reflections between buildings are ignored (ZiolkowskiJakub/DiGi.Solar#15).</para>
+    /// <para>Irradiation values are per square metre of the surface, over one EPW year. The beam component reaches only the unshaded part of the surface. Sky diffuse and ground-reflected radiation (isotropic sky) reach the surface in proportion to the part of its sky and of its ground not blocked by the building itself or by its neighbours (<see cref="SkyVisibility"/>, <see cref="GroundVisibility"/>); blocked parts contribute nothing, reflections between buildings are ignored (DiGi-Organization/DiGi.Solar#15).</para>
     /// <para>Instances are plain carriers of already-computed values. Use <see cref="Create.SurfaceSolarRadiationResults(Solar.Classes.ShadingModel?, System.Collections.Generic.IDictionary{string, Geometry.Spatial.Classes.Vector3D}?, EPW.Classes.EPWFile?, Solar.Classes.ShadingSolverOptions?, System.Action{string}?)"/> to calculate them.</para>
     /// </summary>
     public class SurfaceSolarRadiationResult : SerializableResult

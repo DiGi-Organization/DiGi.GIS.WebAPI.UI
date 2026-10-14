@@ -47,7 +47,7 @@ webApplicationBuilder.Services.AddCors(options =>
 webApplicationBuilder.Services.AddHttpClient();
 
 // One gate for every solar radiation solve on this host: a solve already uses every core, so solves
-// queue instead of running side by side (ZiolkowskiJakub/DiGi.Solar#7). Keyed, so that nothing else
+// queue instead of running side by side (DiGi-Organization/DiGi.Solar#7). Keyed, so that nothing else
 // resolving a SemaphoreSlim receives it; the background jobs (issue #60) share it with the requests.
 webApplicationBuilder.Services.AddKeyedSingleton(DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey, new SemaphoreSlim(DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount, DiGi.GIS.WebAPI.UI.Constants.Default.SolarConcurrentSolveCount));
 

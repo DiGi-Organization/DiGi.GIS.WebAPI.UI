@@ -43,7 +43,7 @@ const digiTypology = (function () {
     const state = {
         availableColumns: [],
         // The ordered grouping chain — its order is the grouping order the solver consumes
-        // (ZiolkowskiJakub/DiGi.Gis#5). The level shape follows the DiGi.Typology.Visual document
+        // (DiGi-Organization/DiGi.Gis#5). The level shape follows the DiGi.Typology.Visual document
         // model: ruleType is one of the rule class names above (null until chosen), ranges are plain
         // { min, max, color } rows, uniqueValueColors are { value, color } rows, and there is no
         // per-level fallback appearance. Both row lists survive a rule-type switch so nothing typed
@@ -270,7 +270,7 @@ const digiTypology = (function () {
         generatedRangeCount = Math.min(Math.max(Math.round(parsed), generatedRangeCountMin), generatedRangeCountMax);
     }
 
-    // Validation of the intervals the solver walks by Min (ZiolkowskiJakub/DiGi.Gis#5 §4.5.3): both
+    // Validation of the intervals the solver walks by Min (DiGi-Organization/DiGi.Gis#5 §4.5.3): both
     // bounds present (whole numbers on an integer rule), Min <= Max, and every row starting where or
     // after the previous valid row ends — a shared boundary is not an overlap, the solver hands it to
     // the later row ([min, max) for every row another one follows on, [min, max] for the last). Returns
@@ -867,7 +867,7 @@ const digiTypology = (function () {
             }
             // A row without usable numeric bounds is dropped: Number(null) is 0, which would file the
             // bucket's mass at zero instead of skipping the row. The upstream JSON may answer null for
-            // rangeStart or rangeEnd — an all-NULL partition 500s today (ZiolkowskiJakub/DiGi.PostgreSQL#6),
+            // rangeStart or rangeEnd — an all-NULL partition 500s today (DiGi-Organization/DiGi.PostgreSQL#6),
             // and a fixed upstream must not turn the absence of values into a value of zero here.
             const count = bucket.count;
             const start = bucket.rangeStart;

@@ -13,7 +13,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <summary>
         /// Asynchronously resolves which county polygon parts a plan position can be filed under.
         /// <para>Used where a building is known by its reference and a point but not by its county: the reference alone does not say which county partition holds it (the building details page, the Building Viewer opened by reference).</para>
-        /// <para>Every part of the county the point falls in is returned, not just the part covering the point. A county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which need not be the part its own coordinates fall in (ZiolkowskiJakub/DiGi.GIS.PostgreSQL#64).</para>
+        /// <para>Every part of the county the point falls in is returned, not just the part covering the point. A county whose territory is disconnected is stored as one row per part and the building is filed under one of them, which need not be the part its own coordinates fall in (DiGi-Organization/DiGi.GIS.PostgreSQL#64).</para>
         /// </summary>
         /// <param name="httpClient">The HTTP client used for the requests. This value can be null.</param>
         /// <param name="x">The X coordinate, in PL-1992 (EPSG:2180) metres. This value can be null.</param>

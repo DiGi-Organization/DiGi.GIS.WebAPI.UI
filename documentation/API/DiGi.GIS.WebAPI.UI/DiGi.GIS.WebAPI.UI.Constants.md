@@ -346,7 +346,7 @@ public const double DisplayRadiusMax = 1500;
 
 URI of the GIS Web API endpoint answering the EPW weather file of the station serving a location \(`x`, `y`\), the weather the solar radiation calculation integrates over one year\.
 
-The station differs by location, and so does the file's quality: for Warsaw Ursynów it serves IWEC `WARSAW`, whose snow depth is a filler value, and elsewhere IMGW `Warszawa Okecie`, whose albedo is all missing (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).
+The station differs by location, and so does the file's quality: for Warsaw Ursynów it serves IWEC `WARSAW`, whose snow depth is a filler value, and elsewhere IMGW `Warszawa Okecie`, whose albedo is all missing (DiGi-Organization/DiGi.Solar#7, comment 5831808537).
 
 ```csharp
 public const string EPWFileItemUri = "https://api.digiproject.uk/gis/epwfile/item";
@@ -559,7 +559,7 @@ public const double PolygonReductionFactor_Voivodeship = 0.001;
 
 The angular tolerance, in radians, below which the solar radiation calculation groups sun directions into one shading solve \(`ShadingSolverOptions.AngleTolerance`\); 2°, twice the solver default\.
 
-Measured over a full EPW year (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537): it halves the direction groups (615 → 295) and the solve time, and changes the annual per-surface irradiation by at most 2.06 %. #7 measured on a 16-thread machine, not on this host; the relative saving holds on any machine.
+Measured over a full EPW year (DiGi-Organization/DiGi.Solar#7, comment 5831808537): it halves the direction groups (615 → 295) and the solve time, and changes the annual per-surface irradiation by at most 2.06 %. #7 measured on a 16-thread machine, not on this host; the relative saving holds on any machine.
 
 ```csharp
 public const double SolarAngleTolerance = 0.0349066;
@@ -574,7 +574,7 @@ public const double SolarAngleTolerance = 0.0349066;
 
 The ceiling on the number of shading\-only triangles \(neighbours and the analysed building's own non\-receiving components\) one synchronous solar radiation request solves against; above it the request is refused with a 413\.
 
-A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger surroundings are calculated as background jobs, up to [SolarJobCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobCasterTriangleCountMax') (DiGi.GIS.WebAPI.UI#60).
+A 50 m radius in central Warsaw gave 8 600–10 700 caster triangles (DiGi-Organization/DiGi.Solar#7, comment 5831808537), which the ceiling still admits at the default radius. On this host, a 4-core Intel N150 (DiGi.GIS.WebAPI.UI#59), casters cost more than on the 16-thread machine #7 measured: 25 receivers among 8 600 caster triangles took 42 s against 23 s for 28 receivers among a few. Larger surroundings are calculated as background jobs, up to [SolarJobCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobCasterTriangleCountMax') (DiGi.GIS.WebAPI.UI#60).
 
 ```csharp
 public const int SolarCasterTriangleCountMax = 12000;
@@ -589,7 +589,7 @@ public const int SolarCasterTriangleCountMax = 12000;
 
 The number of solar radiation solves that may run at the same time on this host; further requests and background jobs wait for the gate registered under [SolarSolveGateKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateKey'), a request for at most [SolarSolveGateWaitSeconds](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolveGateWaitSeconds 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSolveGateWaitSeconds')\.
 
-One solve already uses every core: two parallel solves took 38.9 s each against 23.0 s for one on the 16-thread machine #7 measured, so a second request waits less on average when queued (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537). This host has 4 cores, which makes the case for one slot stronger.
+One solve already uses every core: two parallel solves took 38.9 s each against 23.0 s for one on the 16-thread machine #7 measured, so a second request waits less on average when queued (DiGi-Organization/DiGi.Solar#7, comment 5831808537). This host has 4 cores, which makes the case for one slot stronger.
 
 ```csharp
 public const int SolarConcurrentSolveCount = 1;
@@ -604,7 +604,7 @@ public const int SolarConcurrentSolveCount = 1;
 
 The irradiation, in kWh/m² per year, at the top of the colour ramp of the Building Viewer's "Solar radiation" panel; higher values take the top colour\.
 
-Fixed rather than fitted to each building so that two buildings read the same colour for the same irradiation. The best roofs of the measured Warsaw buildings received 997–1 041 kWh/m² against an annual global horizontal irradiation of 978–999 kWh/m² (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).
+Fixed rather than fitted to each building so that two buildings read the same colour for the same irradiation. The best roofs of the measured Warsaw buildings received 997–1 041 kWh/m² against an annual global horizontal irradiation of 978–999 kWh/m² (DiGi-Organization/DiGi.Solar#7, comment 5831808537).
 
 ```csharp
 public const double SolarIrradiationScaleMax = 1200;
@@ -662,7 +662,7 @@ public const int SolarJobQueueLengthMax = 2;
 
 The ceiling on the number of receiving surfaces \(external walls and roofs\) of the building one background solar radiation job calculates; above it the job is refused with a 413\.
 
-Measured on this host, a 4-core Intel N150 with 16 GB (DiGi.GIS.WebAPI.UI#62): the 320-receiver block B3 of ZiolkowskiJakub/DiGi.Solar#7 took 1 441 351 ms and 1 369 242 ms at a 50 m radius (10 733 caster triangles) and 1 996 178 ms at 100 m (30 519 caster triangles), 4.28–4.50 s per receiver at 50 m. The provisional ceiling targeted about 15 minutes per job at the 1.7 s per receiver [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') measured with; B3 refuted it, and 400 receivers takes about 29 minutes at 50 m and 42 minutes at 100 m. 400 is kept because it still admits B3, the 320-receiver block the background jobs exist for, and [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') is correspondingly shorter.
+Measured on this host, a 4-core Intel N150 with 16 GB (DiGi.GIS.WebAPI.UI#62): the 320-receiver block B3 of DiGi-Organization/DiGi.Solar#7 took 1 441 351 ms and 1 369 242 ms at a 50 m radius (10 733 caster triangles) and 1 996 178 ms at 100 m (30 519 caster triangles), 4.28–4.50 s per receiver at 50 m. The provisional ceiling targeted about 15 minutes per job at the 1.7 s per receiver [SolarReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReceiverCountMax') measured with; B3 refuted it, and 400 receivers takes about 29 minutes at 50 m and 42 minutes at 100 m. 400 is kept because it still admits B3, the 320-receiver block the background jobs exist for, and [SolarJobQueueLengthMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobQueueLengthMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobQueueLengthMax') is correspondingly shorter.
 
 ```csharp
 public const int SolarJobReceiverCountMax = 400;
@@ -705,7 +705,7 @@ public const int SolarJobRetryAfterSeconds = 300;
 
 The ceiling on the number of receiving surfaces \(external walls and roofs\) of the building one synchronous solar radiation request calculates; above it the request is refused with a 413\.
 
-Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. ZiolkowskiJakub/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of `SolarController` (`logs\log-yyyyMMdd.txt`). Larger buildings are calculated as background jobs, up to [SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax') (DiGi.GIS.WebAPI.UI#60).
+Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. DiGi-Organization/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of `SolarController` (`logs\log-yyyyMMdd.txt`). Larger buildings are calculated as background jobs, up to [SolarJobReceiverCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarJobReceiverCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarJobReceiverCountMax') (DiGi.GIS.WebAPI.UI#60).
 
 ```csharp
 public const int SolarReceiverCountMax = 30;
@@ -765,7 +765,7 @@ public const int SolarSolveGateWaitSeconds = 30;
 
 The default neighbour radius, in metres, of a solar radiation request, measured from the edge of the analysed building's footprint: every building within it casts shade\.
 
-Going from 50 to 200 m changed the shading loss of the three measured buildings by at most 0.1 point while the solve time rose by 10–125 % (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).
+Going from 50 to 200 m changed the shading loss of the three measured buildings by at most 0.1 point while the solve time rose by 10–125 % (DiGi-Organization/DiGi.Solar#7, comment 5831808537).
 
 ```csharp
 public const double SolarSurroundingRadius = 50;
@@ -780,7 +780,7 @@ public const double SolarSurroundingRadius = 50;
 
 The upper bound, in metres, of the neighbour radius a solar radiation request may ask for; a larger one is refused with a 400\.
 
-Headroom above [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius') for tall distant casters in low winter sun, which the measured buildings do not cover; 200 m cost up to twice the solve time for no measured gain (ZiolkowskiJakub/DiGi.Solar#7, comment 5831808537).
+Headroom above [SolarSurroundingRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarSurroundingRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarSurroundingRadius') for tall distant casters in low winter sun, which the measured buildings do not cover; 200 m cost up to twice the solve time for no measured gain (DiGi-Organization/DiGi.Solar#7, comment 5831808537).
 
 ```csharp
 public const double SolarSurroundingRadiusMax = 100;
