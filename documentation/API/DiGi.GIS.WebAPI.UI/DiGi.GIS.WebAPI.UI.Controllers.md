@@ -2652,6 +2652,35 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') that renders the view, or a 400 Bad Request response when the identifier or the area type is missing\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ChooseRepresentativeAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.ChooseRepresentativeAsync\(TypologyRepresentativeParameter, CancellationToken\) Method
+
+Chooses the representative building of a typology node: the real building most typical of the node over the parameters of the definition's levels, with the dimensions of the synthetic archetype derived from it\.
+
+The node's buildings come with the request, as the area view already holds them from the solve, so the area is not solved again. Their building data is read by reference from the GIS Web API, grouped by county part ([DiGi\.GIS\.WebAPI\.UI\.Query\.BuildingDataTableByReferencesAsync\(System\.Net\.Http\.HttpClient,System\.Collections\.Generic\.IEnumerable\{System\.ValueTuple\{System\.String,System\.Int32\}\},System\.Collections\.Generic\.List\{System\.String\},System\.Int32,System\.Threading\.CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.webapi.ui.query.buildingdatatablebyreferencesasync#digi-gis-webapi-ui-query-buildingdatatablebyreferencesasync(system-net-http-httpclient-system-collections-generic-ienumerable{system-valuetuple{system-string-system-int32}}-system-collections-generic-list{system-string}-system-int32-system-threading-cancellationtoken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.BuildingDataTableByReferencesAsync\(System\.Net\.Http\.HttpClient,System\.Collections\.Generic\.IEnumerable\{System\.ValueTuple\{System\.String,System\.Int32\}\},System\.Collections\.Generic\.List\{System\.String\},System\.Int32,System\.Threading\.CancellationToken\)')). The choice is made by [TypologyRepresentativeViewModel\(this Table, TypologyDefinitionParameter, IEnumerable&lt;Column&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.TypologyRepresentativeViewModel(thisDiGi.Core.IO.Table.Classes.Table,DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.TypologyRepresentativeViewModel\(this DiGi\.Core\.IO\.Table\.Classes\.Table, DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter, System\.Collections\.Generic\.IEnumerable\<DiGi\.PostgreSQL\.Table\.Classes\.Column\>\)'): the medoid over the definition's columns, the modal category first.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> ChooseRepresentativeAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter? typologyRepresentativeParameter, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ChooseRepresentativeAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter,System.Threading.CancellationToken).typologyRepresentativeParameter'></a>
+
+`typologyRepresentativeParameter` [TypologyRepresentativeParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyRepresentativeParameter')
+
+The request body: the definition the node was solved with and the node's buildings\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ChooseRepresentativeAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the representative, a 400 Bad Request response for a request without a definition or buildings or with a rejected definition, a 404 Not Found response when no building of the node carries the data to be chosen, a 413 Payload Too Large response above [RepresentativeBuildingCeiling](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.RepresentativeBuildingCeiling 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.RepresentativeBuildingCeiling') buildings, or a 503 Service Unavailable response when the column catalog or the building data cannot be read\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.ExportDefinitionAsync(DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Threading.CancellationToken)'></a>
 
 ## TypologyController\.ExportDefinitionAsync\(TypologyDefinitionParameter, CancellationToken\) Method
@@ -2858,6 +2887,53 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of bucket rows, a 204 No Content response for the upstream's empty result, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the column identifier is blank\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## TypologyController\.GetRepresentativeGLBAsync\(Nullable\<long\>, Nullable\<int\>, Nullable\<double\>, Nullable\<int\>, CancellationToken\) Method
+
+Streams the synthetic archetype of a typology node as a binary glTF \(\.glb\) payload: the footprint of its real representative scaled to the given floor area, with the given storeys \([Building2D\(this Building2D, double, ushort\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort) 'DiGi\.GIS\.WebAPI\.UI\.Create\.Building2D\(this DiGi\.GIS\.Classes\.Building2D, double, ushort\)')\), extruded into a building model at elevation 0\.
+
+Stateless: everything the archetype is built from travels in the query, as `POST /typology/representative` answered it. There is no terrain and no surroundings, because the archetype stands nowhere.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetRepresentativeGLBAsync(System.Nullable<long> id, System.Nullable<int> countyId, System.Nullable<double> floorArea, System.Nullable<int> storeys, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).id'></a>
+
+`id` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The database identifier of the real representative\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part the real representative is filed under\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).floorArea'></a>
+
+`floorArea` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The archetype's footprint area in square metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).storeys'></a>
+
+`storeys` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The archetype's storeys\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file, a 400 Bad Request response for a missing or invalid parameter, or no content when the representative or its model cannot be built\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetUniqueValuesAsync(string,System.Nullable_int_,System.Threading.CancellationToken)'></a>
 
 ## TypologyController\.GetUniqueValuesAsync\(string, Nullable\<int\>, CancellationToken\) Method
@@ -2892,6 +2968,45 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') containing the upstream JSON array of primitive values, a 204 No Content response for the upstream's empty result, a 502 Bad Gateway response when the upstream answers a failure, a 503 Service Unavailable response when it answers nothing at all, or a 400 Bad Request response when the column identifier is blank\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.RepresentativeView(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_)'></a>
+
+## TypologyController\.RepresentativeView\(Nullable\<long\>, Nullable\<int\>, Nullable\<double\>, Nullable\<int\>\) Method
+
+Renders the 3D viewer for the synthetic archetype of a typology node, loading its geometry from [GetRepresentativeGLBAsync\(Nullable&lt;long&gt;, Nullable&lt;int&gt;, Nullable&lt;double&gt;, Nullable&lt;int&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.TypologyController.GetRepresentativeGLBAsync(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.TypologyController\.GetRepresentativeGLBAsync\(System\.Nullable\<long\>, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<int\>, System\.Threading\.CancellationToken\)')\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult RepresentativeView(System.Nullable<long> id, System.Nullable<int> countyId, System.Nullable<double> floorArea, System.Nullable<int> storeys);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.RepresentativeView(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).id'></a>
+
+`id` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The database identifier of the real representative\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.RepresentativeView(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part the real representative is filed under\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.RepresentativeView(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).floorArea'></a>
+
+`floorArea` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The archetype's footprint area in square metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.RepresentativeView(System.Nullable_long_,System.Nullable_int_,System.Nullable_double_,System.Nullable_int_).storeys'></a>
+
+`storeys` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The archetype's storeys\.
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') rendering the glTF scene view, or a 400 Bad Request response for a missing or invalid parameter\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.TypologyController.SolveBuildingsAsync(DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter,System.Threading.CancellationToken)'></a>
 

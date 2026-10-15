@@ -22,6 +22,16 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string DatabaseIdUniqueId = "database_id";
 
         /// <summary>
+        /// The name of the building data table's floor area column: the footprint area calculated from the building's geometry, in square metres. The synthetic representative is scaled to the median of it.
+        /// </summary>
+        public const string FloorAreaName = "Floor area";
+
+        /// <summary>
+        /// The unique identifier (projection slug) of the <see cref="FloorAreaName"/> column.
+        /// </summary>
+        public const string FloorAreaUniqueId = "floor_area";
+
+        /// <summary>
         /// The name of the building data table's internal point X column, read by the clip when the area is below county level.
         /// </summary>
         public const string InternalPointXName = "Internal Point X";
@@ -50,5 +60,15 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// The unique identifier (projection slug) of the <see cref="ReferenceName"/> column.
         /// </summary>
         public const string ReferenceUniqueId = "reference";
+
+        /// <summary>
+        /// The name of the building data table's storeys column: the number of storeys the cadastral record gives the building. The synthetic representative takes the rounded median of it.
+        /// </summary>
+        public const string StoreysName = "Storeys";
+
+        /// <summary>
+        /// The unique identifier (projection slug) of the <see cref="StoreysName"/> column.
+        /// </summary>
+        public const string StoreysUniqueId = "storeys";
     }
 }

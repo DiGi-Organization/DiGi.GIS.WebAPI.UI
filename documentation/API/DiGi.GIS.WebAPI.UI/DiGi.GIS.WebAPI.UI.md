@@ -77,6 +77,43 @@ public static class Create
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Create
 ### Methods
 
+<a name='DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort)'></a>
+
+## Create\.Building2D\(this Building2D, double, ushort\) Method
+
+Creates a synthetic representative of a typology node from its real representative: the real footprint shape, scaled about its centroid to the given floor area, with the given number of storeys\.
+
+The result is a hybrid archetype - a shape that exists in the node, at the node's typical size. Only floor area and storeys can be carried by the geometry; every other parameter of the node is reported as a median beside it, not built in. The phase and functions are copied from the source, the reference too, so the archetype can be traced back to the building it was derived from; the identifier is new, because it is not that building.
+
+The footprint is scaled by `sqrt(floorArea / area)`, which keeps its proportions and any courtyard (internal edges scale with it). The source is not modified.
+
+```csharp
+public static DiGi.GIS.Classes.Building2D? Building2D(this DiGi.GIS.Classes.Building2D? building2D, double floorArea, ushort storeys);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort).building2D'></a>
+
+`building2D` [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')
+
+The real representative the shape is taken from\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort).floorArea'></a>
+
+`floorArea` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The floor area to scale the footprint to, in square metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort).storeys'></a>
+
+`storeys` [System\.UInt16](https://learn.microsoft.com/en-us/dotnet/api/system.uint16 'System\.UInt16')
+
+The number of storeys of the archetype\.
+
+#### Returns
+[DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')  
+The synthetic building, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the source has no footprint, its area or [floorArea](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort).floorArea 'DiGi\.GIS\.WebAPI\.UI\.Create\.Building2D\(this DiGi\.GIS\.Classes\.Building2D, double, ushort\)\.floorArea') is not a positive finite number, or [storeys](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort).storeys 'DiGi\.GIS\.WebAPI\.UI\.Create\.Building2D\(this DiGi\.GIS\.Classes\.Building2D, double, ushort\)\.storeys') is 0\.
+
 <a name='DiGi.GIS.WebAPI.UI.Create.BuildingViewRange(System.Nullable_double_)'></a>
 
 ## Create\.BuildingViewRange\(Nullable\<double\>\) Method
@@ -881,6 +918,43 @@ The live column catalog of the building data table\. This value can be null\.
 #### Returns
 [TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')  
 The page state, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the document is invalid or the catalog is unavailable\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyRepresentativeViewModel(thisDiGi.Core.IO.Table.Classes.Table,DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_)'></a>
+
+## Create\.TypologyRepresentativeViewModel\(this Table, TypologyDefinitionParameter, IEnumerable\<Column\>\) Method
+
+Chooses the representative of a typology node from its buildings' data, and describes it for the area view\.
+
+The parameters are the definition's levels. A level with the unique-value rule is compared as a category, and any other level (a range rule) as a number ([Representative\(IReadOnlyList&lt;string&gt;, IReadOnlyList&lt;IReadOnlyList&lt;Nullable&lt;double&gt;&gt;&gt;, IReadOnlyList&lt;IReadOnlyList&lt;string&gt;&gt;, int, int\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)')). A level whose column the table does not carry is skipped. The floor area and storeys columns give the synthetic archetype's dimensions as the node's medians, and the storeys median is rounded half away from zero, never below 1.
+
+The table is read through its live enumeration, never through `Rows`, which clones every row it hands out.
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel? TypologyRepresentativeViewModel(this DiGi.Core.IO.Table.Classes.Table? table, DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? typologyDefinitionParameter, System.Collections.Generic.IEnumerable<DiGi.PostgreSQL.Table.Classes.Column>? columns);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyRepresentativeViewModel(thisDiGi.Core.IO.Table.Classes.Table,DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).table'></a>
+
+`table` [DiGi\.Core\.IO\.Table\.Classes\.Table](https://learn.microsoft.com/en-us/dotnet/api/digi.core.io.table.classes.table 'DiGi\.Core\.IO\.Table\.Classes\.Table')
+
+The building data of the node's buildings, carrying the definition's columns plus Reference, County Id, Database Id, Floor area and Storeys\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyRepresentativeViewModel(thisDiGi.Core.IO.Table.Classes.Table,DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).typologyDefinitionParameter'></a>
+
+`typologyDefinitionParameter` [TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
+
+The definition the node was solved with\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Create.TypologyRepresentativeViewModel(thisDiGi.Core.IO.Table.Classes.Table,DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter,System.Collections.Generic.IEnumerable_DiGi.PostgreSQL.Table.Classes.Column_).columns'></a>
+
+`columns` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[DiGi\.PostgreSQL\.Table\.Classes\.Column](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.classes.column 'DiGi\.PostgreSQL\.Table\.Classes\.Column')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The live column catalog, resolving each level's unique identifier to the column name the table is keyed by\. This value can be null\.
+
+#### Returns
+[TypologyRepresentativeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeViewModel')  
+The view model, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when an input is missing, the table carries no reference column or no row, or no building is complete enough to be chosen\.
 
 <a name='DiGi.GIS.WebAPI.UI.Create.UserTokenCookieOptions()'></a>
 
@@ -2359,6 +2433,35 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.Quantile(thisSystem.Collections.Generic.IEnumerable_double_,double)'></a>
+
+## Query\.Quantile\(this IEnumerable\<double\>, double\) Method
+
+Calculates the quantile of a set of values at the given probability, interpolating linearly between the two closest ranks \(the R\-7 / spreadsheet definition, so the 0\.5 quantile is the median\)\.
+
+Non-finite values are ignored, so a missing cell carried as [System\.Double\.NaN](https://learn.microsoft.com/en-us/dotnet/api/system.double.nan 'System\.Double\.NaN') does not shift the result.
+
+```csharp
+public static double Quantile(this System.Collections.Generic.IEnumerable<double>? values, double probability);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Quantile(thisSystem.Collections.Generic.IEnumerable_double_,double).values'></a>
+
+`values` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The values\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Quantile(thisSystem.Collections.Generic.IEnumerable_double_,double).probability'></a>
+
+`probability` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The probability in the range \[0, 1\]: 0\.25 for the first quartile, 0\.5 for the median, 0\.9 for the 90th percentile\.
+
+#### Returns
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')  
+The quantile, or [System\.Double\.NaN](https://learn.microsoft.com/en-us/dotnet/api/system.double.nan 'System\.Double\.NaN') when there is no finite value or the probability is outside \[0, 1\]\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.QueuedCount(thisDiGi.GIS.WebAPI.UI.Classes.SolarJobQueue)'></a>
 
 ## Query\.QueuedCount\(this SolarJobQueue\) Method
@@ -2433,6 +2536,63 @@ The relayed response\. This value can be null\.
 #### Returns
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 The result to answer with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int)'></a>
+
+## Query\.Representative\(IReadOnlyList\<string\>, IReadOnlyList\<IReadOnlyList\<Nullable\<double\>\>\>, IReadOnlyList\<IReadOnlyList\<string\>\>, int, int\) Method
+
+Chooses the most representative row of a group of buildings: the medoid over the group's parameters, which is always a real building\.
+
+The selection runs in four steps.
+
+1. Categorical parameters: only rows carrying the modal value of every categorical column stay eligible. Ties go to the ordinal-first value. A building of an untypical category can then never be chosen, however close its numbers are. Within a typology leaf such a column is constant and filters nothing.
+
+2. Numeric parameters: each one is centred on the group's median and divided by its interquartile range. When the interquartile range is zero, the median absolute deviation is used, and then the full range. A column with no spread at all is dropped, so a parameter the leaf itself pins (a narrow range rule) does not dilute the others. The statistics are taken over the whole group, not only the eligible rows.
+
+3. Candidates: an eligible row with every remaining numeric parameter present. A row missing a value still counts as a neighbour, over the parameters it carries, but cannot be chosen. When no eligible row is complete, any complete row is a candidate.
+
+4. Medoid: the candidate with the smallest sum of distances to every row of the group. The distance between two rows is the mean absolute scaled difference over the parameters both carry. With more than [exactCandidateCount](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).exactCandidateCount 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)\.exactCandidateCount') candidates, only the [sampleCount](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).sampleCount 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)\.sampleCount') nearest the median profile are evaluated, which bounds the cost at sampleCount × row count. Ties are broken by the ordinal reference, then by index, so the choice is deterministic.
+
+Nothing is cached between calls (Coding - General, section 1.20).
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.Classes.Representative? Representative(System.Collections.Generic.IReadOnlyList<string?>? references, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<System.Nullable<double>>>? numericColumns, System.Collections.Generic.IReadOnlyList<System.Collections.Generic.IReadOnlyList<string?>>? categoricalColumns, int exactCandidateCount=2000, int sampleCount=200);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).references'></a>
+
+`references` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The reference of every row; its count is the row count\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).numericColumns'></a>
+
+`numericColumns` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The numeric parameters, one list per parameter holding one value per row \(null when missing\)\. A list whose count differs from the row count is ignored\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).categoricalColumns'></a>
+
+`categoricalColumns` [System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')
+
+The categorical parameters, one list per parameter holding one invariant\-culture text value per row \(null when missing\)\. A list whose count differs from the row count is ignored\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).exactCandidateCount'></a>
+
+`exactCandidateCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of candidates up to which every candidate is evaluated exactly\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).sampleCount'></a>
+
+`sampleCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of candidates nearest the median profile evaluated when there are more than [exactCandidateCount](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int).exactCandidateCount 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)\.exactCandidateCount')\.
+
+#### Returns
+[Representative](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.Representative 'DiGi\.GIS\.WebAPI\.UI\.Classes\.Representative')  
+The chosen row and its typicality figures, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there are no rows or no row is complete\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.ResponseAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,System.Threading.CancellationToken)'></a>
 

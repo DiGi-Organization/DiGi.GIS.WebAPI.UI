@@ -2360,6 +2360,18 @@ h1.gis-title-large {
         r: calc(4px * var(--typology-point-scale));
     }
 
+    /* The selected typology's representative building: wider than the selection ring and dashed, so both read
+       when they mark the same building. */
+    .typology-point-representative {
+        fill: none;
+        stroke: #ffb000;
+        stroke-width: 2;
+        stroke-dasharray: 3 2;
+        vector-effect: non-scaling-stroke;
+        pointer-events: none;
+        r: calc(7px * var(--typology-point-scale));
+    }
+
     .typology-map-label {
         position: absolute;
         padding: 4px 8px;
@@ -2882,6 +2894,33 @@ h1.gis-title-large {
         flex: 1 1 0;
         justify-content: center;
         text-align: center;
+    }
+
+.typology-representative-find {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 8px;
+}
+
+/* The representative's reference reads as text and acts as a link: it selects the building. A reference is one
+   unbroken token, so it wraps anywhere rather than running past the card. */
+.typology-representative-reference {
+    display: block;
+    max-width: 100%;
+    padding: 0;
+    border: none;
+    background: none;
+    color: var(--primary-color);
+    font: inherit;
+    text-align: left;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    cursor: pointer;
+}
+
+    .typology-representative-reference:hover,
+    .typology-representative-reference:focus-visible {
+        text-decoration: underline;
     }
 
 /* The tree card's solve loader (issue #27): .gis-loader is already centred by its own margin, so the

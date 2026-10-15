@@ -1,7 +1,10 @@
 /**
  * Typology area view - right panel (issue #26): the selected typology node's properties, a windowed grid
  * of its buildings with a text filter over the reference, and the info of the building picked from the
- * grid or the map, with links to the existing 2D details page and 3D viewer.
+ * grid or the map, with links to the existing 2D details page and 3D viewer. On demand, the selected node's
+ * representative building (POST /typology/representative - the one request this script makes): the medoid
+ * over the definition's parameters, marked on the map through digiTypologyMap.setRepresentative, with a link
+ * to the synthetic archetype derived from it.
  *
  * A pure renderer of the solve DTO (POST /typology/buildings) and the definition filed in localStorage
  * by the definition page: no request is made per building, the id and county part come from the DTO and
@@ -400,11 +403,181 @@ const digiTypologyInspector = (function () {
         }
     }
 
+    // ----- representative -----
+
+    // The in-flight POST /typology/representative, aborted when the selection moves on, so a slow answer for a
+    // previous typology can never fill the card of the current one.
+    let representativeRequest = null;
+
+    function formatDistance(value) {
+        return typeof value === 'number' && isFinite(value) ? value.toFixed(2) + ' IQR' : unknownText;
+    }
+
+    function representativeStatus(text) {
+        setText('typology-representative-status', text);
+        setHidden('typology-representative-status', text === '');
+    }
+
+    // Back to the card's idle state for the current selection: the button when a typology is selected, the
+    // empty line otherwise. The map's representative ring goes with it.
+    function resetRepresentative() {
+        if (representativeRequest !== null) {
+            representativeRequest.abort();
+            representativeRequest = null;
+        }
+
+        setHidden('typology-representative-loader', true);
+        setHidden('typology-representative', true);
+        representativeStatus('');
+        setHidden('typology-representative-empty', selectedKey !== null);
+        setHidden('typology-representative-find', selectedKey === null);
+
+        const button = element('typology-representative-find');
+        if (button !== null) {
+            button.disabled = selectedKey === null || scoped.length === 0;
+        }
+
+        if (typeof digiTypologyMap !== 'undefined') {
+            digiTypologyMap.clearRepresentative();
+        }
+    }
+
+    function fillRepresentative(model) {
+        const reference = String(model.reference);
+        const countyId = typeof model.countyId === 'number' ? model.countyId : 0;
+        const id = typeof model.id === 'number' ? model.id : 0;
+
+        const referenceButton = element('typology-representative-reference');
+        if (referenceButton !== null) {
+            referenceButton.textContent = reference;
+            referenceButton.setAttribute('data-reference', reference);
+            referenceButton.setAttribute('data-county-id', String(countyId));
+        }
+
+        setText('typology-representative-mean', formatDistance(model.meanDistance));
+        setText('typology-representative-p90', formatDistance(model.percentile90Distance));
+
+        const container = element('typology-representative-parameters');
+        if (container !== null) {
+            const parameters = Array.isArray(model.parameters) ? model.parameters : [];
+            let html = '';
+            for (let i = 0; i < parameters.length; i++) {
+                const parameter = parameters[i];
+                const value = parameter.value === null || parameter.value === undefined ? unknownText : String(parameter.value);
+                const typical = parameter.typical === null || parameter.typical === undefined ? unknownText : String(parameter.typical);
+                html += typologyRow(parameter.name || 'Level ' + (i + 1), value + ' (' + (parameter.isNumeric ? 'median ' : 'most common ') + typical + ')');
+            }
+            container.innerHTML = html;
+        }
+
+        const hasArchetype = id > 0 && typeof model.syntheticFloorArea === 'number' && typeof model.syntheticStoreys === 'number';
+        setText('typology-representative-archetype-size', hasArchetype ? formatMetre(model.syntheticFloorArea) + ' m² × ' + model.syntheticStoreys + ' storey' + (model.syntheticStoreys === 1 ? '' : 's') : unknownText);
+
+        // Why the choice may read odd: nothing varied to choose by, or only a short list nearest the median was weighed.
+        const notes = [];
+        if (model.parameterCount === 0) {
+            notes.push('No numeric parameter varies within this typology, so the first building by reference stands for it.');
+        }
+        if (model.sampled) {
+            notes.push('Chosen among the buildings nearest the median of ' + formatCount(model.candidateCount) + ' candidates.');
+        }
+        setText('typology-representative-note', notes.join(' '));
+        setHidden('typology-representative-note', notes.length === 0);
+
+        const modelLink = element('typology-representative-model');
+        if (modelLink !== null) {
+            modelLink.hidden = !(id > 0);
+            modelLink.href = id > 0 ? baseUrl() + '/buildingmodel/buildingmodelbyid?id=' + id + (countyId > 0 ? '&countyid=' + countyId : '') : '';
+        }
+
+        const archetypeLink = element('typology-representative-archetype');
+        if (archetypeLink !== null) {
+            archetypeLink.hidden = !hasArchetype;
+            archetypeLink.href = hasArchetype
+                ? baseUrl() + '/typology/representative/view?id=' + id + (countyId > 0 ? '&countyid=' + countyId : '') + '&floorarea=' + model.syntheticFloorArea + '&storeys=' + model.syntheticStoreys
+                : '';
+        }
+
+        setHidden('typology-representative', false);
+
+        if (typeof digiTypologyMap !== 'undefined') {
+            digiTypologyMap.setRepresentative(reference, countyId);
+        }
+    }
+
+    // Sends the selected typology's buildings - the grid's scope, unfiltered - with the definition, and fills the
+    // card with the answer. 400/404/413 answer a JSON array of messages, shown as they are.
+    function findRepresentative() {
+        if (selectedKey === null || scoped.length === 0 || definition === null) {
+            return;
+        }
+
+        resetRepresentative();
+
+        const key = selectedKey;
+        const items = new Array(scoped.length);
+        for (let i = 0; i < scoped.length; i++) {
+            const building = buildings[scoped[i]];
+            items[i] = { reference: building.reference, id: building.id, countyId: building.countyId };
+        }
+
+        setHidden('typology-representative-find', true);
+        setText('typology-representative-loader-text', 'Choosing among ' + formatCount(items.length) + ' buildings…');
+        setHidden('typology-representative-loader', false);
+
+        const request = new AbortController();
+        representativeRequest = request;
+
+        fetch(baseUrl() + '/typology/representative', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ definition: definition, buildings: items }),
+            signal: request.signal
+        })
+            .then(function (response) {
+                return response.json().then(
+                    function (body) { return { ok: response.ok, status: response.status, body: body }; },
+                    function () { return { ok: response.ok, status: response.status, body: null }; }
+                );
+            })
+            .then(function (result) {
+                if (representativeRequest !== request || selectedKey !== key) {
+                    return;
+                }
+                representativeRequest = null;
+                setHidden('typology-representative-loader', true);
+                setHidden('typology-representative-find', false);
+
+                if (result.ok && result.body !== null && typeof result.body === 'object') {
+                    fillRepresentative(result.body);
+                    return;
+                }
+
+                const messages = Array.isArray(result.body) && result.body.length > 0
+                    ? result.body.map(String)
+                    : ['The representative could not be chosen (HTTP ' + result.status + ').'];
+                representativeStatus(messages.join(' '));
+            })
+            .catch(function (error) {
+                if (error !== null && error !== undefined && error.name === 'AbortError') {
+                    return;
+                }
+                if (representativeRequest !== request) {
+                    return;
+                }
+                representativeRequest = null;
+                setHidden('typology-representative-loader', true);
+                setHidden('typology-representative-find', false);
+                representativeStatus('The representative service is unavailable.');
+            });
+    }
+
     // ----- selection -----
 
     function applySelection(path) {
         if (path === null) {
             selectedKey = null;
+            resetRepresentative();
             clearInspector();
             setFilterEnabled(false);
             scopeGrid(null);
@@ -431,6 +604,9 @@ const digiTypologyInspector = (function () {
         // Open before scoping: the window is sized from the grid's height, which is 0 while the panel is collapsed.
         openPanel();
         scopeGrid(key);
+
+        // After scoping: the button is enabled only for a typology that lists buildings.
+        resetRepresentative();
     }
 
     // A dot click on the map: the building's bucket becomes the tree selection when it is outside the
@@ -542,6 +718,27 @@ const digiTypologyInspector = (function () {
                     filterTerm = filter.value.trim().toLowerCase();
                     applyFilter();
                 }, filterDebounceMs);
+            });
+        }
+
+        const find = element('typology-representative-find');
+        if (find !== null) {
+            find.addEventListener('click', findRepresentative);
+        }
+
+        // The representative's reference selects it like a grid row would: the row, the card and the map marker.
+        const representativeReference = element('typology-representative-reference');
+        if (representativeReference !== null) {
+            representativeReference.addEventListener('click', function () {
+                const reference = representativeReference.getAttribute('data-reference');
+                if (reference === null) {
+                    return;
+                }
+                const index = indexOf(reference, parseInt(representativeReference.getAttribute('data-county-id'), 10));
+                if (index !== undefined) {
+                    selectBuildingByIndex(index);
+                    ensureVisible(focusPosition);
+                }
             });
         }
 

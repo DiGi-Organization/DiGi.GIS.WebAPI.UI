@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -12,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Nodes;
 using DiGi.Typology.Visual;
+using DiGi.GLTF.Analytical;
 
 namespace DiGi.GIS.WebAPI.UI.Controllers
 {
@@ -539,6 +541,187 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     : $"The area is above the {Constants.Default.BuildingSolveCeiling} buildings a solve classifies. Select a smaller area.";
                 return StatusCode(StatusCodes.Status413PayloadTooLarge, new List<string>() { message });
             }
+        }
+
+        /// <summary>
+        /// Chooses the representative building of a typology node: the real building most typical of the node over the parameters of the definition's levels, with the dimensions of the synthetic archetype derived from it.
+        /// <para>The node's buildings come with the request, as the area view already holds them from the solve, so the area is not solved again. Their building data is read by reference from the GIS Web API, grouped by county part (<see cref="Query.BuildingDataTableByReferencesAsync"/>). The choice is made by <see cref="Create.TypologyRepresentativeViewModel"/>: the medoid over the definition's columns, the modal category first.</para>
+        /// </summary>
+        /// <param name="typologyRepresentativeParameter">The request body: the definition the node was solved with and the node's buildings.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> containing the representative, a 400 Bad Request response for a request without a definition or buildings or with a rejected definition, a 404 Not Found response when no building of the node carries the data to be chosen, a 413 Payload Too Large response above <see cref="Constants.Default.RepresentativeBuildingCeiling"/> buildings, or a 503 Service Unavailable response when the column catalog or the building data cannot be read.</returns>
+        [HttpPost("representative")]
+        public async Task<IActionResult> ChooseRepresentativeAsync([FromBody] Classes.TypologyRepresentativeParameter? typologyRepresentativeParameter, CancellationToken cancellationToken = default)
+        {
+            Classes.TypologyDefinitionParameter? definition = typologyRepresentativeParameter?.Definition;
+            if (definition is null)
+            {
+                return BadRequest(new List<string>() { "The request carries no definition." });
+            }
+
+            List<Classes.TypologyRepresentativeBuildingParameter>? buildings = typologyRepresentativeParameter?.Buildings?.FindAll(x => !string.IsNullOrWhiteSpace(x?.Reference));
+            if (buildings is null || buildings.Count == 0)
+            {
+                return BadRequest(new List<string>() { "The request carries no buildings." });
+            }
+
+            if (buildings.Count > Constants.Default.RepresentativeBuildingCeiling)
+            {
+                return StatusCode(StatusCodes.Status413PayloadTooLarge, new List<string>() { $"The typology holds {buildings.Count} buildings; a representative is chosen from at most {Constants.Default.RepresentativeBuildingCeiling}. Select a narrower typology." });
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            List<DiGi.PostgreSQL.Table.Classes.Column>? columns = await httpClient.BuildingDataColumnsAsync(cancellationToken);
+            if (columns is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            List<string> errors = Query.TypologyDefinitionErrors(definition, columns);
+            if (errors.Count != 0)
+            {
+                return BadRequest(errors);
+            }
+
+            // The definition's columns, Reference and Database Id, plus the two columns the synthetic archetype is sized by.
+            List<string> columnUniqueIds = Query.TypologySolveColumnUniqueIds(definition, columns, false);
+            foreach (string columnUniqueId in new[] { Constants.BuildingData.FloorAreaUniqueId, Constants.BuildingData.StoreysUniqueId })
+            {
+                if (!columnUniqueIds.Contains(columnUniqueId))
+                {
+                    columnUniqueIds.Add(columnUniqueId);
+                }
+            }
+
+            DiGi.Core.IO.Table.Classes.Table? table = await httpClient.BuildingDataTableByReferencesAsync(buildings.ConvertAll(x => (x.Reference!, x.CountyId)), columnUniqueIds, cancellationToken: cancellationToken);
+            if (table is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            ViewModels.TypologyRepresentativeViewModel? viewModel = table.TypologyRepresentativeViewModel(definition, columns);
+            if (viewModel is null)
+            {
+                return NotFound(new List<string>() { "No building of the typology carries the data a representative is chosen by." });
+            }
+
+            this.logger.LogInformation("Typology representative: {Reference} (county part {CountyId}) of {BuildingCount} building(s), {ParameterCount} varying parameter(s), mean distance {MeanDistance}.", viewModel.Reference, viewModel.CountyId, viewModel.BuildingCount, viewModel.ParameterCount, viewModel.MeanDistance);
+
+            return Ok(viewModel);
+        }
+
+        /// <summary>
+        /// Streams the synthetic archetype of a typology node as a binary glTF (.glb) payload: the footprint of its real representative scaled to the given floor area, with the given storeys (<see cref="Create.Building2D(GIS.Classes.Building2D?, double, ushort)"/>), extruded into a building model at elevation 0.
+        /// <para>Stateless: everything the archetype is built from travels in the query, as <c>POST /typology/representative</c> answered it. There is no terrain and no surroundings, because the archetype stands nowhere.</para>
+        /// </summary>
+        /// <param name="id">The database identifier of the real representative.</param>
+        /// <param name="countyId">The county part the real representative is filed under.</param>
+        /// <param name="floorArea">The archetype's footprint area in square metres.</param>
+        /// <param name="storeys">The archetype's storeys.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A <see cref="Task{IActionResult}"/> holding the .glb file, a 400 Bad Request response for a missing or invalid parameter, or no content when the representative or its model cannot be built.</returns>
+        [HttpGet("representative/glb")]
+        public async Task<IActionResult> GetRepresentativeGLBAsync([FromQuery(Name = "id")] long? id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "floorarea")] double? floorArea, [FromQuery(Name = "storeys")] int? storeys, CancellationToken cancellationToken = default)
+        {
+            string? error = ArchetypeError(id, floorArea, storeys);
+            if (error is not null)
+            {
+                return BadRequest(error);
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2D/itembyid");
+            urlBuilder = urlBuilder.AddParameter("id", id!.Value);
+            if (countyId.HasValue && countyId.Value > 0)
+            {
+                urlBuilder = urlBuilder.AddParameter("countyid", countyId.Value);
+            }
+
+            GIS.Classes.Building2D? building2D = await httpClient.ItemAsync<GIS.Classes.Building2D>(urlBuilder.ToString(), cancellationToken);
+
+            GIS.Classes.Building2D? building2D_Archetype = building2D.Building2D(floorArea!.Value, (ushort)storeys!.Value);
+            if (building2D_Archetype is null)
+            {
+                return NoContent();
+            }
+
+            DiGi.Analytical.Building.Classes.BuildingModel? buildingModel = GIS.Analytical.Create.BuildingModel(building2D_Archetype);
+
+            List<DiGi.GLTF.Classes.GLTFNode>? gLTFNodes = buildingModel.ToGLTF_GLTFNodes();
+            if (buildingModel is null || gLTFNodes is null || gLTFNodes.Count == 0)
+            {
+                return NoContent();
+            }
+
+            string name = ArchetypeName(id.Value);
+
+            // The building centre as the local origin, as the 3D viewer's own building payload does.
+            DiGi.Geometry.Planar.Classes.Point2D? center = buildingModel.TerrainCircle(0, 0)?.Center;
+
+            DiGi.GLTF.Classes.GLTFScene? gLTFScene = GLTF.Create.GLTFScene(gLTFNodes, name, referencePointOverride: center is null ? null : new DiGi.Geometry.Spatial.Classes.Point3D(center.X, center.Y, 0));
+            byte[]? bytes = gLTFScene is null ? null : GLTF.Convert.ToSystem_Bytes(gLTFScene, true);
+            if (bytes is null || bytes.Length == 0)
+            {
+                return NoContent();
+            }
+
+            return File(bytes, "model/gltf-binary", $"{name}.glb");
+        }
+
+        /// <summary>
+        /// Renders the 3D viewer for the synthetic archetype of a typology node, loading its geometry from <see cref="GetRepresentativeGLBAsync"/>.
+        /// </summary>
+        /// <param name="id">The database identifier of the real representative.</param>
+        /// <param name="countyId">The county part the real representative is filed under.</param>
+        /// <param name="floorArea">The archetype's footprint area in square metres.</param>
+        /// <param name="storeys">The archetype's storeys.</param>
+        /// <returns>An <see cref="IActionResult"/> rendering the glTF scene view, or a 400 Bad Request response for a missing or invalid parameter.</returns>
+        [HttpGet("representative/view")]
+        public IActionResult RepresentativeView([FromQuery(Name = "id")] long? id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "floorarea")] double? floorArea, [FromQuery(Name = "storeys")] int? storeys)
+        {
+            string? error = ArchetypeError(id, floorArea, storeys);
+            if (error is not null)
+            {
+                return BadRequest(error);
+            }
+
+            string gLBUrl = "~/typology/representative/glb?id=" + id!.Value.ToString(CultureInfo.InvariantCulture)
+                + (countyId.HasValue && countyId.Value > 0 ? "&countyid=" + countyId.Value.ToString(CultureInfo.InvariantCulture) : string.Empty)
+                + "&floorarea=" + floorArea!.Value.ToString("R", CultureInfo.InvariantCulture)
+                + "&storeys=" + storeys!.Value.ToString(CultureInfo.InvariantCulture);
+
+            // The title must not start with "BuildingModel ": the viewer reads that prefix as a real building and offers its details.
+            GLTFSceneViewModel gLTFSceneViewModel = new(ArchetypeName(id.Value), gLBUrl, viewRange: Create.BuildingViewRange(null));
+
+            return View("~/Views/GLTF/GLTFSceneView.cshtml", gLTFSceneViewModel);
+        }
+
+        // The archetype query's one validation, shared by the payload and the page: null when valid.
+        private static string? ArchetypeError(long? id, double? floorArea, int? storeys)
+        {
+            if (id is null || id.Value <= 0)
+            {
+                return "The representative's identifier is missing or invalid.";
+            }
+
+            if (floorArea is null || !double.IsFinite(floorArea.Value) || floorArea.Value <= 0)
+            {
+                return "The floor area must be a positive number of square metres.";
+            }
+
+            if (storeys is null || storeys.Value < 1 || storeys.Value > ushort.MaxValue)
+            {
+                return "The storeys must be a positive whole number.";
+            }
+
+            return null;
+        }
+
+        private static string ArchetypeName(long id)
+        {
+            return $"Synthetic archetype of building {id.ToString(CultureInfo.InvariantCulture)}";
         }
     }
 }

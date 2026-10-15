@@ -2061,6 +2061,340 @@ public string? UniqueId { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel'></a>
+
+## TypologyRepresentativeParameterViewModel Class
+
+One parameter of a typology node's representative: the representative's value beside the node's typical value\.
+
+The values are rendered on the server with the invariant culture: numbers with at most two decimals, categories as their text. The typical value is the median for a numeric parameter and the modal value for a categorical one.
+
+```csharp
+public class TypologyRepresentativeParameterViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyRepresentativeParameterViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.TypologyRepresentativeParameterViewModel(string,bool,string,string)'></a>
+
+## TypologyRepresentativeParameterViewModel\(string, bool, string, string\) Constructor
+
+Initializes a new instance of the [TypologyRepresentativeParameterViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeParameterViewModel') class\.
+
+```csharp
+public TypologyRepresentativeParameterViewModel(string? name, bool isNumeric, string? value, string? typical);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.TypologyRepresentativeParameterViewModel(string,bool,string,string).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The display name of the parameter's column\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.TypologyRepresentativeParameterViewModel(string,bool,string,string).isNumeric'></a>
+
+`isNumeric` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the parameter was compared as a number\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.TypologyRepresentativeParameterViewModel(string,bool,string,string).value'></a>
+
+`value` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The representative's value, or null when it carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.TypologyRepresentativeParameterViewModel(string,bool,string,string).typical'></a>
+
+`typical` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The node's median \(numeric\) or modal \(categorical\) value, or null when no building carries one\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.IsNumeric'></a>
+
+## TypologyRepresentativeParameterViewModel\.IsNumeric Property
+
+Gets a value indicating whether the parameter was compared as a number\.
+
+```csharp
+public bool IsNumeric { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.Name'></a>
+
+## TypologyRepresentativeParameterViewModel\.Name Property
+
+Gets the display name of the parameter's column\.
+
+```csharp
+public string? Name { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.Typical'></a>
+
+## TypologyRepresentativeParameterViewModel\.Typical Property
+
+Gets the node's median \(numeric\) or modal \(categorical\) value, or null when no building carries one\.
+
+```csharp
+public string? Typical { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel.Value'></a>
+
+## TypologyRepresentativeParameterViewModel\.Value Property
+
+Gets the representative's value, or null when it carries none\.
+
+```csharp
+public string? Value { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel'></a>
+
+## TypologyRepresentativeViewModel Class
+
+The answer of `POST /typology/representative`: the real building chosen to stand for a typology node, how typical it is, and the dimensions of the synthetic archetype derived from it\.
+
+The real representative is the medoid over the definition's parameters ([Representative\(IReadOnlyList&lt;string&gt;, IReadOnlyList&lt;IReadOnlyList&lt;Nullable&lt;double&gt;&gt;&gt;, IReadOnlyList&lt;IReadOnlyList&lt;string&gt;&gt;, int, int\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)')). The synthetic archetype is that building's footprint scaled to the node's median floor area, with the node's median storeys ([Building2D\(this Building2D, double, ushort\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.Building2D(thisDiGi.GIS.Classes.Building2D,double,ushort) 'DiGi\.GIS\.WebAPI\.UI\.Create\.Building2D\(this DiGi\.GIS\.Classes\.Building2D, double, ushort\)')). It is rendered on demand by `GET /typology/representative/view` from [Id](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.Id 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeViewModel\.Id'), [CountyId](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.CountyId 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeViewModel\.CountyId'), [SyntheticFloorArea](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.SyntheticFloorArea 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeViewModel\.SyntheticFloorArea') and [SyntheticStoreys](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.SyntheticStoreys 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeViewModel\.SyntheticStoreys'), so nothing is kept on the server between the two requests.
+
+```csharp
+public class TypologyRepresentativeViewModel
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyRepresentativeViewModel
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_)'></a>
+
+## TypologyRepresentativeViewModel\(string, long, int, int, Representative, List\<TypologyRepresentativeParameterViewModel\>, Nullable\<double\>, Nullable\<int\>\) Constructor
+
+Initializes a new instance of the [TypologyRepresentativeViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeViewModel') class\.
+
+```csharp
+public TypologyRepresentativeViewModel(string reference, long id, int countyId, int buildingCount, DiGi.GIS.WebAPI.UI.Classes.Representative representative, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel> parameters, System.Nullable<double> syntheticFloorArea, System.Nullable<int> syntheticStoreys);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The representative's reference key\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).id'></a>
+
+`id` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+The representative's database identifier, or 0 when unknown\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).countyId'></a>
+
+`countyId` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The county part the representative is filed under\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).buildingCount'></a>
+
+`buildingCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of the node's buildings whose parameters were read\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).representative'></a>
+
+`representative` [Representative](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.Representative 'DiGi\.GIS\.WebAPI\.UI\.Classes\.Representative')
+
+The selection's typicality figures\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).parameters'></a>
+
+`parameters` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyRepresentativeParameterViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeParameterViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+The representative's value beside the node's typical value, one entry per definition level\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).syntheticFloorArea'></a>
+
+`syntheticFloorArea` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The node's median floor area in square metres, or null when no building carries one\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.TypologyRepresentativeViewModel(string,long,int,int,DiGi.GIS.WebAPI.UI.Classes.Representative,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel_,System.Nullable_double_,System.Nullable_int_).syntheticStoreys'></a>
+
+`syntheticStoreys` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The node's rounded median storeys, or null when no building carries one\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.BuildingCount'></a>
+
+## TypologyRepresentativeViewModel\.BuildingCount Property
+
+Gets the number of the node's buildings whose parameters were read\.
+
+```csharp
+public int BuildingCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.CandidateCount'></a>
+
+## TypologyRepresentativeViewModel\.CandidateCount Property
+
+Gets the number of buildings that were eligible to be chosen\.
+
+```csharp
+public int CandidateCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.CountyId'></a>
+
+## TypologyRepresentativeViewModel\.CountyId Property
+
+Gets the county part the representative is filed under\.
+
+```csharp
+public int CountyId { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.Id'></a>
+
+## TypologyRepresentativeViewModel\.Id Property
+
+Gets the representative's database identifier, or 0 when unknown\.
+
+```csharp
+public long Id { get; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.MeanDistance'></a>
+
+## TypologyRepresentativeViewModel\.MeanDistance Property
+
+Gets the mean distance from the representative to the node's other buildings, in interquartile ranges per parameter\.
+
+```csharp
+public double MeanDistance { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.ParameterCount'></a>
+
+## TypologyRepresentativeViewModel\.ParameterCount Property
+
+Gets the number of numeric parameters that varied within the node and took part in the choice\.
+
+```csharp
+public int ParameterCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.Parameters'></a>
+
+## TypologyRepresentativeViewModel\.Parameters Property
+
+Gets the representative's value beside the node's typical value, one entry per definition level\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel> Parameters { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyRepresentativeParameterViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeParameterViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.TypologyRepresentativeParameterViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.Percentile90Distance'></a>
+
+## TypologyRepresentativeViewModel\.Percentile90Distance Property
+
+Gets the 90th percentile of the distances from the representative to the node's other buildings\.
+
+```csharp
+public double Percentile90Distance { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.Reference'></a>
+
+## TypologyRepresentativeViewModel\.Reference Property
+
+Gets the representative's reference key\.
+
+```csharp
+public string Reference { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.Sampled'></a>
+
+## TypologyRepresentativeViewModel\.Sampled Property
+
+Gets a value indicating whether the candidates were narrowed to those nearest the median profile before the exact choice\.
+
+```csharp
+public bool Sampled { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.SyntheticFloorArea'></a>
+
+## TypologyRepresentativeViewModel\.SyntheticFloorArea Property
+
+Gets the node's median floor area in square metres \- the synthetic archetype's footprint area \- or null when no building carries one\.
+
+```csharp
+public System.Nullable<double> SyntheticFloorArea { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyRepresentativeViewModel.SyntheticStoreys'></a>
+
+## TypologyRepresentativeViewModel\.SyntheticStoreys Property
+
+Gets the node's rounded median storeys \- the synthetic archetype's storeys \- or null when no building carries one\.
+
+```csharp
+public System.Nullable<int> SyntheticStoreys { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.TypologyTreeNodeViewModel'></a>
 
 ## TypologyTreeNodeViewModel Class

@@ -336,6 +336,147 @@ public System.Nullable<short> Year { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative'></a>
+
+## Representative Class
+
+The building chosen to stand for a group of buildings, and how typical it is of the group\.
+
+Built by [Representative\(IReadOnlyList&lt;string&gt;, IReadOnlyList&lt;IReadOnlyList&lt;Nullable&lt;double&gt;&gt;&gt;, IReadOnlyList&lt;IReadOnlyList&lt;string&gt;&gt;, int, int\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)'), which does the selection; the constructor only assigns the values. Distances are mean per-parameter L1 distances in robust scale units: each parameter is centred on the group's median and divided by its interquartile range, so 1 means "one interquartile range apart on an average parameter".
+
+```csharp
+public class Representative
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Representative
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double)'></a>
+
+## Representative\(int, int, int, bool, double, double\) Constructor
+
+Initializes a new instance of the [Representative](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.Representative 'DiGi\.GIS\.WebAPI\.UI\.Classes\.Representative') class\.
+
+```csharp
+public Representative(int index, int parameterCount, int candidateCount, bool sampled, double meanDistance, double percentile90Distance);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double).index'></a>
+
+`index` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The index of the chosen row in the input the selection was made from\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double).parameterCount'></a>
+
+`parameterCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of numeric parameters that varied within the group and took part in the distance\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double).candidateCount'></a>
+
+`candidateCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The number of rows that were eligible to be chosen\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double).sampled'></a>
+
+`sampled` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the candidates were narrowed to those nearest the median profile before the exact evaluation\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double).meanDistance'></a>
+
+`meanDistance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The mean distance from the chosen row to every other row of the group\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Representative(int,int,int,bool,double,double).percentile90Distance'></a>
+
+`percentile90Distance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+The 90th percentile of the distances from the chosen row to every other row of the group\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.CandidateCount'></a>
+
+## Representative\.CandidateCount Property
+
+Gets the number of rows that were eligible to be chosen\.
+
+```csharp
+public int CandidateCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Index'></a>
+
+## Representative\.Index Property
+
+Gets the index of the chosen row in the input the selection was made from\.
+
+```csharp
+public int Index { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.MeanDistance'></a>
+
+## Representative\.MeanDistance Property
+
+Gets the mean distance from the chosen row to every other row of the group\.
+
+```csharp
+public double MeanDistance { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.ParameterCount'></a>
+
+## Representative\.ParameterCount Property
+
+Gets the number of numeric parameters that varied within the group and took part in the distance\.
+
+```csharp
+public int ParameterCount { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Percentile90Distance'></a>
+
+## Representative\.Percentile90Distance Property
+
+Gets the 90th percentile of the distances from the chosen row to every other row of the group\.
+
+```csharp
+public double Percentile90Distance { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.Representative.Sampled'></a>
+
+## Representative\.Sampled Property
+
+Gets a value indicating whether the candidates were narrowed to those nearest the median profile before the exact evaluation\.
+
+```csharp
+public bool Sampled { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob'></a>
 
 ## SolarJob Class
@@ -1267,6 +1408,99 @@ public DiGi.PostgreSQL.Table.Enums.HistogramBucketing HistogramBucketing { get; 
 
 #### Property Value
 [DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing](https://learn.microsoft.com/en-us/dotnet/api/digi.postgresql.table.enums.histogrambucketing 'DiGi\.PostgreSQL\.Table\.Enums\.HistogramBucketing')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeBuildingParameter'></a>
+
+## TypologyRepresentativeBuildingParameter Class
+
+One building of a [TypologyRepresentativeParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyRepresentativeParameter'): the identity the solve answered for it\.
+
+```csharp
+public class TypologyRepresentativeBuildingParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyRepresentativeBuildingParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeBuildingParameter.CountyId'></a>
+
+## TypologyRepresentativeBuildingParameter\.CountyId Property
+
+Gets or sets the county part identifier the building is filed under, or 0 when unknown\.
+
+```csharp
+public int CountyId { get; set; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeBuildingParameter.Id'></a>
+
+## TypologyRepresentativeBuildingParameter\.Id Property
+
+Gets or sets the building's database identifier, or 0 when unknown\.
+
+```csharp
+public long Id { get; set; }
+```
+
+#### Property Value
+[System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeBuildingParameter.Reference'></a>
+
+## TypologyRepresentativeBuildingParameter\.Reference Property
+
+Gets or sets the building reference key, unique within its county part\.
+
+```csharp
+public string? Reference { get; set; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter'></a>
+
+## TypologyRepresentativeParameter Class
+
+The request body of `POST /typology/representative`: the Typology definition the node was solved with, and the node's buildings\.
+
+The area view already holds the node's buildings from the solve, so they are sent rather than solved again. The definition names the parameters the representative is chosen by - the columns of its levels.
+
+```csharp
+public class TypologyRepresentativeParameter
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → TypologyRepresentativeParameter
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter.Buildings'></a>
+
+## TypologyRepresentativeParameter\.Buildings Property
+
+Gets or sets the buildings of the node\.
+
+```csharp
+public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeBuildingParameter>? Buildings { get; set; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[TypologyRepresentativeBuildingParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeBuildingParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyRepresentativeBuildingParameter')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.TypologyRepresentativeParameter.Definition'></a>
+
+## TypologyRepresentativeParameter\.Definition Property
+
+Gets or sets the Typology definition page state the node was solved with\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter? Definition { get; set; }
+```
+
+#### Property Value
+[TypologyDefinitionParameter](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.TypologyDefinitionParameter 'DiGi\.GIS\.WebAPI\.UI\.Classes\.TypologyDefinitionParameter')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.TypologySolveParameter'></a>
 

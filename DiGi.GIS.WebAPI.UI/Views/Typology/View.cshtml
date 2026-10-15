@@ -104,9 +104,9 @@
             @* Right resizer *@
             <div id="typology-resizer" class="typology-resizer" role="separator" aria-orientation="vertical" aria-label="Resize right panel"></div>
 
-            @* Right side panel (closed by default; issue #26). Three cards filled by wwwroot/js/typology-inspector.js:
-               the selected typology node's properties, the windowed grid of its buildings, and the info of the
-               building picked from the grid or the map. The inspector opens the panel on the first tree selection
+            @* Right side panel (closed by default; issue #26). Four cards filled by wwwroot/js/typology-inspector.js:
+               the selected typology node's properties, its representative building, the windowed grid of its
+               buildings, and the info of the building picked from the grid or the map. The inspector opens the panel on the first tree selection
                and closes it when the selection clears. *@
             <aside id="typology-side-panel" class="typology-side-panel">
                 <div class="gis-card gltf-card typology-inspector-card">
@@ -123,6 +123,37 @@
                             <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Share</dt><dd id="typology-inspector-share" class="typology-area-value"></dd></div>
                         </dl>
                         <p id="typology-inspector-description" class="typology-muted typology-inspector-description" hidden></p>
+                    </div>
+                </div>
+
+                @* Representative: on demand, the real building most typical of the selected typology over the
+                   definition's parameters (POST /typology/representative), its values beside the typology's
+                   typical ones, and the synthetic archetype derived from it. Filled by typology-inspector.js;
+                   cleared on every selection change. *@
+                <div class="gis-card gltf-card typology-representative-card">
+                    <h3 class="typology-card-title"><span>Representative</span></h3>
+                    <p id="typology-representative-empty" class="typology-muted">Select a typology in the tree to find its representative building.</p>
+                    <button type="button" id="typology-representative-find" class="gis-button typology-representative-find" hidden>Find representative</button>
+                    <div id="typology-representative-loader" class="typology-tree-loader" hidden>
+                        <div class="gis-loader"></div>
+                        <p class="gis-loader-text" id="typology-representative-loader-text"></p>
+                    </div>
+                    <p id="typology-representative-status" class="typology-muted" hidden></p>
+                    <div id="typology-representative" class="typology-building" hidden>
+                        <dl class="typology-area-list">
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Reference</dt><dd class="typology-area-value typology-mono"><button type="button" id="typology-representative-reference" class="typology-representative-reference" title="Select the building in the list and on the map"></button></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Mean distance</dt><dd id="typology-representative-mean" class="typology-area-value" title="Mean distance to the typology's other buildings, in interquartile ranges per parameter"></dd></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">90th percentile</dt><dd id="typology-representative-p90" class="typology-area-value" title="90th percentile of the distances to the typology's other buildings, in interquartile ranges per parameter"></dd></div>
+                            @* One row per definition level: the representative's value, then the typology's median
+                               (numeric) or most common value (categorical) in brackets. *@
+                            <div id="typology-representative-parameters"></div>
+                            <div class="typology-area-item"><dt class="typology-area-label typology-info-label">Archetype</dt><dd id="typology-representative-archetype-size" class="typology-area-value" title="Median floor area and storeys of the typology: the synthetic archetype's size"></dd></div>
+                        </dl>
+                        <p id="typology-representative-note" class="typology-muted" hidden></p>
+                        <div class="typology-building-links">
+                            <a id="typology-representative-model" class="gis-button" target="_blank" rel="noopener" hidden>3D Viewer</a>
+                            <a id="typology-representative-archetype" class="gis-button" target="_blank" rel="noopener" hidden>Synthetic archetype</a>
+                        </div>
                     </div>
                 </div>
 

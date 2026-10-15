@@ -57,6 +57,32 @@ public const string DatabaseIdUniqueId = "database_id";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.FloorAreaName'></a>
+
+## BuildingData\.FloorAreaName Field
+
+The name of the building data table's floor area column: the footprint area calculated from the building's geometry, in square metres\. The synthetic representative is scaled to the median of it\.
+
+```csharp
+public const string FloorAreaName = "Floor area";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.FloorAreaUniqueId'></a>
+
+## BuildingData\.FloorAreaUniqueId Field
+
+The unique identifier \(projection slug\) of the [FloorAreaName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.BuildingData.FloorAreaName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.BuildingData\.FloorAreaName') column\.
+
+```csharp
+public const string FloorAreaUniqueId = "floor_area";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.InternalPointXName'></a>
 
 ## BuildingData\.InternalPointXName Field
@@ -135,6 +161,32 @@ public const string ReferenceUniqueId = "reference";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.StoreysName'></a>
+
+## BuildingData\.StoreysName Field
+
+The name of the building data table's storeys column: the number of storeys the cadastral record gives the building\. The synthetic representative takes the rounded median of it\.
+
+```csharp
+public const string StoreysName = "Storeys";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.BuildingData.StoreysUniqueId'></a>
+
+## BuildingData\.StoreysUniqueId Field
+
+The unique identifier \(projection slug\) of the [StoreysName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.BuildingData.StoreysName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.BuildingData\.StoreysName') column\.
+
+```csharp
+public const string StoreysUniqueId = "storeys";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default'></a>
 
 ## Default Class
@@ -201,6 +253,32 @@ public const int BuildingDataPageSize = 10000;
 
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataReferenceBatchSize'></a>
+
+## Default\.BuildingDataReferenceBatchSize Field
+
+The number of references asked of [BuildingDataTableByReferencesUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableByReferencesUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingDataTableByReferencesUri') per request\. It must not exceed the upstream cap \(`referenceCount_Maximum` of the GIS Web API's `BuildingDataController`\), which refuses a larger request with a 400\.
+
+```csharp
+public const int BuildingDataReferenceBatchSize = 10000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableByReferencesUri'></a>
+
+## Default\.BuildingDataTableByReferencesUri Field
+
+URI of the GIS Web API endpoint answering the building data rows of the given references within one county part, used to read the parameters of a typology node's buildings when its representative is chosen\.
+
+```csharp
+public const string BuildingDataTableByReferencesUri = "https://api.digiproject.uk/gis/BuildingData/tablebybuildingdatabyreferencesparameter";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingDataTableUri'></a>
 
@@ -552,6 +630,45 @@ public const double PolygonReductionFactor_Voivodeship = 0.001;
 
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.RepresentativeBuildingCeiling'></a>
+
+## Default\.RepresentativeBuildingCeiling Field
+
+The ceiling on the number of buildings a typology node may hold for its representative to be chosen\. A larger node is refused with a 413: the request carries every reference and the parameters are re\-read for each, so the root of a county\-wide solve is out of reach by design\. The representative of so broad a group means little anyway\.
+
+```csharp
+public const int RepresentativeBuildingCeiling = 50000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.RepresentativeExactCandidateCount'></a>
+
+## Default\.RepresentativeExactCandidateCount Field
+
+The number of candidates up to which [Representative\(IReadOnlyList&lt;string&gt;, IReadOnlyList&lt;IReadOnlyList&lt;Nullable&lt;double&gt;&gt;&gt;, IReadOnlyList&lt;IReadOnlyList&lt;string&gt;&gt;, int, int\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)') evaluates every candidate exactly\. The cost is candidates × buildings distance evaluations, so 2 000 candidates in a 2 000\-building leaf is 4 million\.
+
+```csharp
+public const int RepresentativeExactCandidateCount = 2000;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.RepresentativeSampleCount'></a>
+
+## Default\.RepresentativeSampleCount Field
+
+The number of candidates nearest the median profile that [Representative\(IReadOnlyList&lt;string&gt;, IReadOnlyList&lt;IReadOnlyList&lt;Nullable&lt;double&gt;&gt;&gt;, IReadOnlyList&lt;IReadOnlyList&lt;string&gt;&gt;, int, int\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Representative(System.Collections.Generic.IReadOnlyList_string_,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_System.Nullable_double___,System.Collections.Generic.IReadOnlyList_System.Collections.Generic.IReadOnlyList_string__,int,int) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Representative\(System\.Collections\.Generic\.IReadOnlyList\<string\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<System\.Nullable\<double\>\>\>, System\.Collections\.Generic\.IReadOnlyList\<System\.Collections\.Generic\.IReadOnlyList\<string\>\>, int, int\)') evaluates exactly when there are more than [RepresentativeExactCandidateCount](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.RepresentativeExactCandidateCount 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.RepresentativeExactCandidateCount')\. The medoid lies close to the median profile, so a short list nearest it keeps the medoid and bounds the cost at this many × the building count\.
+
+```csharp
+public const int RepresentativeSampleCount = 200;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarAngleTolerance'></a>
 

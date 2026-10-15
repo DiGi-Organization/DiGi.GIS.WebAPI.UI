@@ -67,6 +67,31 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const int BuildingSolveCeiling = 200_000;
 
         /// <summary>
+        /// URI of the GIS Web API endpoint answering the building data rows of the given references within one county part, used to read the parameters of a typology node's buildings when its representative is chosen.
+        /// </summary>
+        public const string BuildingDataTableByReferencesUri = GISWebAPIUri + "/gis/BuildingData/tablebybuildingdatabyreferencesparameter";
+
+        /// <summary>
+        /// The number of references asked of <see cref="BuildingDataTableByReferencesUri"/> per request. It must not exceed the upstream cap (<c>referenceCount_Maximum</c> of the GIS Web API's <c>BuildingDataController</c>), which refuses a larger request with a 400.
+        /// </summary>
+        public const int BuildingDataReferenceBatchSize = 10000;
+
+        /// <summary>
+        /// The ceiling on the number of buildings a typology node may hold for its representative to be chosen. A larger node is refused with a 413: the request carries every reference and the parameters are re-read for each, so the root of a county-wide solve is out of reach by design. The representative of so broad a group means little anyway.
+        /// </summary>
+        public const int RepresentativeBuildingCeiling = 50_000;
+
+        /// <summary>
+        /// The number of candidates up to which <see cref="Query.Representative"/> evaluates every candidate exactly. The cost is candidates × buildings distance evaluations, so 2 000 candidates in a 2 000-building leaf is 4 million.
+        /// </summary>
+        public const int RepresentativeExactCandidateCount = 2000;
+
+        /// <summary>
+        /// The number of candidates nearest the median profile that <see cref="Query.Representative"/> evaluates exactly when there are more than <see cref="RepresentativeExactCandidateCount"/>. The medoid lies close to the median profile, so a short list nearest it keeps the medoid and bounds the cost at this many × the building count.
+        /// </summary>
+        public const int RepresentativeSampleCount = 200;
+
+        /// <summary>
         /// Base URI of the DiGi.Communication.WebAPI extension (hosted by the generic DiGi.WebAPI.WindowsService) used in production.
         /// </summary>
         public const string CommunicationWebAPIUri = "https://api.digiproject.uk";

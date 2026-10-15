@@ -69,6 +69,7 @@ const digiTypologyMap = (function () {
     let buildingsByKey = new Map();
     let selectedPath = null;
     let selectedBuildingKey = null;
+    let representativeKey = null;
 
     // The dot layer, built once per (centroids, fit): the projected positions in viewBox units, then either
     // one <circle> per centroid (SVG mode) or the centroid indices of each group and a hit-test grid (canvas).
@@ -528,18 +529,25 @@ const digiTypologyMap = (function () {
         if (layer === null) {
             return;
         }
-        const entry = selectedBuildingKey === null ? null : pointOfKey(selectedBuildingKey);
-        if (entry === null) {
-            layer.replaceChildren();
-            return;
+        // The representative's ring first, so the selection ring paints over it when both mark one building.
+        const rings = [];
+        appendRing(representativeKey, 'typology-point-representative');
+        appendRing(selectedBuildingKey, 'typology-point-marker');
+        layer.replaceChildren.apply(layer, rings);
+
+        function appendRing(key, className) {
+            const entry = key === null ? null : pointOfKey(key);
+            if (entry === null) {
+                return;
+            }
+            const point = project(entry.x, entry.y);
+            const ring = document.createElementNS(svgNamespace, 'circle');
+            ring.setAttribute('class', className);
+            ring.setAttribute('cx', point.x.toFixed(2));
+            ring.setAttribute('cy', point.y.toFixed(2));
+            ring.setAttribute('r', markerRadius);
+            rings.push(ring);
         }
-        const point = project(entry.x, entry.y);
-        const ring = document.createElementNS(svgNamespace, 'circle');
-        ring.setAttribute('class', 'typology-point-marker');
-        ring.setAttribute('cx', point.x.toFixed(2));
-        ring.setAttribute('cy', point.y.toFixed(2));
-        ring.setAttribute('r', markerRadius);
-        layer.replaceChildren(ring);
     }
 
     function pointOfKey(key) {
@@ -567,6 +575,31 @@ const digiTypologyMap = (function () {
 
     function clearBuilding() {
         selectedBuildingKey = null;
+        renderMarker();
+    }
+
+    // Marks a typology's representative with its own ring and, when the view is zoomed in and the building lies
+    // outside it, pans the view to centre it - the zoom is kept.
+    function setRepresentative(reference, countyId) {
+        const key = buildingKey(reference, countyId);
+        representativeKey = centroidsByKey.has(key) ? key : null;
+        renderMarker();
+
+        const entry = representativeKey === null || scaleParameters === null ? null : pointOfKey(representativeKey);
+        if (entry === null) {
+            return;
+        }
+        const point = project(entry.x, entry.y);
+        if (point.x < view.x || point.x > view.x + view.size || point.y < view.y || point.y > view.y + view.size) {
+            view.x = point.x - view.size / 2;
+            view.y = point.y - view.size / 2;
+            clampView();
+            applyView();
+        }
+    }
+
+    function clearRepresentative() {
+        representativeKey = null;
         renderMarker();
     }
 
@@ -839,6 +872,8 @@ const digiTypologyMap = (function () {
         setSelection: setSelection,
         selectBuilding: selectBuilding,
         clearBuilding: clearBuilding,
+        setRepresentative: setRepresentative,
+        clearRepresentative: clearRepresentative,
         pointOf: pointOf
     };
 })();
