@@ -477,6 +477,179 @@ public bool Sampled { get; }
 #### Property Value
 [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries'></a>
+
+## SolarHourSeries Class
+
+Holds the hourly weather and sun of one site, shared by every receiving surface of a building: one element per weather hour, in weather order\.
+
+Both the solve and the rebuild of a stored result aggregate through it ([SurfaceSolarRadiation\(this SolarHourSeries, string, double, Vector3D, double, double, IList&lt;double&gt;\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SurfaceSolarRadiation(thisDiGi.GIS.WebAPI.UI.Classes.SolarHourSeries,string,double,DiGi.Geometry.Spatial.Classes.Vector3D,double,double,System.Collections.Generic.IList_double_) 'DiGi\.GIS\.WebAPI\.UI\.Create\.SurfaceSolarRadiation\(this DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarHourSeries, string, double, DiGi\.Geometry\.Spatial\.Classes\.Vector3D, double, double, System\.Collections\.Generic\.IList\<double\>\)')), so the two read every hour identically. Built by [SolarHourSeries\(this Weather, Coordinates, UTC\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Create.SolarHourSeries(thisDiGi.Weather.Classes.Weather,DiGi.Core.Classes.Coordinates,DiGi.Core.Enums.UTC) 'DiGi\.GIS\.WebAPI\.UI\.Create\.SolarHourSeries\(this DiGi\.Weather\.Classes\.Weather, DiGi\.Core\.Classes\.Coordinates, DiGi\.Core\.Enums\.UTC\)').
+
+```csharp
+public class SolarHourSeries
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarHourSeries
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[])'></a>
+
+## SolarHourSeries\(DateTime\[\], Vector3D\[\], bool\[\], double\[\], double\[\], double\[\], double\[\]\) Constructor
+
+Initializes a new instance of the [SolarHourSeries](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarHourSeries') class\. The arrays are kept, not copied, and must have one common length\.
+
+```csharp
+public SolarHourSeries(System.DateTime[] dateTimes, DiGi.Geometry.Spatial.Classes.Vector3D?[] sunDirections, bool[] sunUps, double[] globalHorizontalRadiations, double[] directNormalRadiations, double[] diffuseHorizontalRadiations, double[] albedos);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).dateTimes'></a>
+
+`dateTimes` [System\.DateTime](https://learn.microsoft.com/en-us/dotnet/api/system.datetime 'System\.DateTime')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The mid\-hour reference time of each hour\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).sunDirections'></a>
+
+`sunDirections` [DiGi\.Geometry\.Spatial\.Classes\.Vector3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.vector3d 'DiGi\.Geometry\.Spatial\.Classes\.Vector3D')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The sun direction of each hour, night included\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).sunUps'></a>
+
+`sunUps` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+Whether the sun is up in each hour\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).globalHorizontalRadiations'></a>
+
+`globalHorizontalRadiations` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The global horizontal radiation of each hour, in Wh/m²\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).directNormalRadiations'></a>
+
+`directNormalRadiations` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The direct normal radiation of each hour, in Wh/m²\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).diffuseHorizontalRadiations'></a>
+
+`diffuseHorizontalRadiations` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The diffuse horizontal radiation of each hour, in Wh/m²\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SolarHourSeries(System.DateTime[],DiGi.Geometry.Spatial.Classes.Vector3D[],bool[],double[],double[],double[],double[]).albedos'></a>
+
+`albedos` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The albedo of each hour, the default substituted for a missing reading\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.Albedos'></a>
+
+## SolarHourSeries\.Albedos Property
+
+Gets the albedo of each hour\.
+
+```csharp
+public double[] Albedos { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.Count'></a>
+
+## SolarHourSeries\.Count Property
+
+Gets the number of hours\.
+
+```csharp
+public int Count { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.DateTimes'></a>
+
+## SolarHourSeries\.DateTimes Property
+
+Gets the mid\-hour reference time of each hour\.
+
+```csharp
+public System.DateTime[] DateTimes { get; }
+```
+
+#### Property Value
+[System\.DateTime](https://learn.microsoft.com/en-us/dotnet/api/system.datetime 'System\.DateTime')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.DiffuseHorizontalRadiations'></a>
+
+## SolarHourSeries\.DiffuseHorizontalRadiations Property
+
+Gets the diffuse horizontal radiation of each hour, in Wh/m²\.
+
+```csharp
+public double[] DiffuseHorizontalRadiations { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.DirectNormalRadiations'></a>
+
+## SolarHourSeries\.DirectNormalRadiations Property
+
+Gets the direct normal radiation of each hour, in Wh/m²\.
+
+```csharp
+public double[] DirectNormalRadiations { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.GlobalHorizontalRadiations'></a>
+
+## SolarHourSeries\.GlobalHorizontalRadiations Property
+
+Gets the global horizontal radiation of each hour, in Wh/m²\.
+
+```csharp
+public double[] GlobalHorizontalRadiations { get; }
+```
+
+#### Property Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SunDirections'></a>
+
+## SolarHourSeries\.SunDirections Property
+
+Gets the sun direction of each hour, night included: a night hour still needs one for its irradiance, whose beam is zeroed by passing no direct radiation\.
+
+```csharp
+public DiGi.Geometry.Spatial.Classes.Vector3D?[] SunDirections { get; }
+```
+
+#### Property Value
+[DiGi\.Geometry\.Spatial\.Classes\.Vector3D](https://learn.microsoft.com/en-us/dotnet/api/digi.geometry.spatial.classes.vector3d 'DiGi\.Geometry\.Spatial\.Classes\.Vector3D')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarHourSeries.SunUps'></a>
+
+## SolarHourSeries\.SunUps Property
+
+Gets whether the sun is up in each hour\.
+
+```csharp
+public bool[] SunUps { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob'></a>
 
 ## SolarJob Class
@@ -492,70 +665,76 @@ public class SolarJob
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarJob
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__)'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__)'></a>
 
-## SolarJob\(Guid, long, Nullable\<int\>, double, int, BuildingModel, string, string, Func\<List\<SurfaceSolarRadiationResult\>\>\) Constructor
+## SolarJob\(Guid, long, Nullable\<int\>, double, int, BuildingModel, string, string, Func\<List\<SurfaceSolarRadiationResult\>\>, Func\<CancellationToken,Task\<bool\>\>\) Constructor
 
 Initializes a new instance of the [SolarJob](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarJob 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarJob') class in the [Queued](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus.Queued 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus\.Queued') state\.
 
 ```csharp
-public SolarJob(System.Guid id, long buildingModelId, System.Nullable<int> countyId, double radius, int receiverCount, DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, string? stationName, string? stationUrl, System.Func<System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>?>? calculation);
+public SolarJob(System.Guid id, long buildingModelId, System.Nullable<int> countyId, double radius, int receiverCount, DiGi.Analytical.Building.Classes.BuildingModel? buildingModel, string? stationName, string? stationUrl, System.Func<System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult>?>? calculation, System.Func<System.Threading.CancellationToken,System.Threading.Tasks.Task<bool>>? storage=null);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).id'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).id'></a>
 
 `id` [System\.Guid](https://learn.microsoft.com/en-us/dotnet/api/system.guid 'System\.Guid')
 
 The unique identifier of the job\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).buildingModelId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).buildingModelId'></a>
 
 `buildingModelId` [System\.Int64](https://learn.microsoft.com/en-us/dotnet/api/system.int64 'System\.Int64')
 
 The unique identifier of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).countyId'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).countyId'></a>
 
 `countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 The optional unique identifier of the county associated with the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).radius'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).radius'></a>
 
 `radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
 The neighbour radius in metres\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).receiverCount'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).receiverCount'></a>
 
 `receiverCount` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 The number of receiving surfaces \(external walls and roofs\) of the building\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).buildingModel'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).buildingModel'></a>
 
 `buildingModel` [DiGi\.Analytical\.Building\.Classes\.BuildingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.classes.buildingmodel 'DiGi\.Analytical\.Building\.Classes\.BuildingModel')
 
 The building, kept to reference the Building Viewer nodes of the results\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).stationName'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).stationName'></a>
 
 `stationName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The name of the EPW weather station the calculation uses, or null when the file names none\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).stationUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).stationUrl'></a>
 
 `stationUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 The application relative URL of the EPW file page of the station, or null\.
 
-<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__).calculation'></a>
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).calculation'></a>
 
 `calculation` [System\.Func&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-1 'System\.Func\`1')[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SurfaceSolarRadiationResult](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SurfaceSolarRadiationResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-1 'System\.Func\`1')
 
 The calculation, prepared with every input it needs; it is released once it has run\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SolarJob(System.Guid,long,System.Nullable_int_,double,int,DiGi.Analytical.Building.Classes.BuildingModel,string,string,System.Func_System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult__,System.Func_System.Threading.CancellationToken,System.Threading.Tasks.Task_bool__).storage'></a>
+
+`storage` [System\.Func&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-2 'System\.Func\`2')[System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')[,](https://learn.microsoft.com/en-us/dotnet/api/system.func-2 'System\.Func\`2')[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-2 'System\.Func\`2')
+
+Stores the calculated result on behalf of the signed\-in visitor once the calculation has completed, answering whether it was stored; null for an anonymous request\. It carries the visitor's token, so it is released once it has run, and on cancellation\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.BuildingModel'></a>
@@ -701,6 +880,32 @@ public int ReceiverCount { get; }
 #### Property Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Saved'></a>
+
+## SolarJob\.Saved Property
+
+Gets a value indicating whether the calculated result was stored; false until the storage step has run, and always false for an anonymous request\.
+
+```csharp
+public bool Saved { get; internal set; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SignedIn'></a>
+
+## SolarJob\.SignedIn Property
+
+Gets a value indicating whether the request carried a user token, so the result was to be stored\.
+
+```csharp
+public bool SignedIn { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.StartedAt'></a>
 
 ## SolarJob\.StartedAt Property
@@ -752,6 +957,19 @@ public DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus Status { get; internal set; }
 
 #### Property Value
 [SolarJobStatus](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarJobStatus')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.Storage'></a>
+
+## SolarJob\.Storage Property
+
+Gets the step storing the result on behalf of the signed\-in visitor, or null once it has run, the job was cancelled, or the request was anonymous\.
+
+```csharp
+public System.Func<System.Threading.CancellationToken,System.Threading.Tasks.Task<bool>>? Storage { get; internal set; }
+```
+
+#### Property Value
+[System\.Func&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-2 'System\.Func\`2')[System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')[,](https://learn.microsoft.com/en-us/dotnet/api/system.func-2 'System\.Func\`2')[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.func-2 'System\.Func\`2')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.SolarJob.SurfaceSolarRadiationResults'></a>
 
@@ -863,6 +1081,107 @@ public System.TimeProvider TimeProvider { get; }
 
 #### Property Value
 [System\.TimeProvider](https://learn.microsoft.com/en-us/dotnet/api/system.timeprovider 'System\.TimeProvider')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin'></a>
+
+## SolarRadiationOrigin Class
+
+Describes where a solar radiation response came from and whether it was stored: what the panel tells the visitor beside the colours\.
+
+```csharp
+public class SolarRadiationOrigin
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarRadiationOrigin
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SolarRadiationOrigin(DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource,System.Nullable_System.DateTimeOffset_,bool,bool)'></a>
+
+## SolarRadiationOrigin\(SolarRadiationSource, Nullable\<DateTimeOffset\>, bool, bool\) Constructor
+
+Initializes a new instance of the [SolarRadiationOrigin](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin 'DiGi\.GIS\.WebAPI\.UI\.Classes\.SolarRadiationOrigin') class\.
+
+```csharp
+public SolarRadiationOrigin(DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource solarRadiationSource, System.Nullable<System.DateTimeOffset> storedAt, bool saved, bool signedIn);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SolarRadiationOrigin(DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource,System.Nullable_System.DateTimeOffset_,bool,bool).solarRadiationSource'></a>
+
+`solarRadiationSource` [SolarRadiationSource](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarRadiationSource')
+
+Where the radiation came from\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SolarRadiationOrigin(DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource,System.Nullable_System.DateTimeOffset_,bool,bool).storedAt'></a>
+
+`storedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+When the stored result was calculated; null for a fresh solve\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SolarRadiationOrigin(DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource,System.Nullable_System.DateTimeOffset_,bool,bool).saved'></a>
+
+`saved` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True when this request stored its result\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SolarRadiationOrigin(DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource,System.Nullable_System.DateTimeOffset_,bool,bool).signedIn'></a>
+
+`signedIn` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True when the request carried a user token, so a result could be stored\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.Saved'></a>
+
+## SolarRadiationOrigin\.Saved Property
+
+Gets a value indicating whether this request stored its result\.
+
+```csharp
+public bool Saved { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SignedIn'></a>
+
+## SolarRadiationOrigin\.SignedIn Property
+
+Gets a value indicating whether the request carried a user token\.
+
+```csharp
+public bool SignedIn { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.SolarRadiationSource'></a>
+
+## SolarRadiationOrigin\.SolarRadiationSource Property
+
+Gets where the radiation came from\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource SolarRadiationSource { get; }
+```
+
+#### Property Value
+[SolarRadiationSource](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarRadiationSource')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.SolarRadiationOrigin.StoredAt'></a>
+
+## SolarRadiationOrigin\.StoredAt Property
+
+Gets when the stored result was calculated, or null\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> StoredAt { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
 <a name='DiGi.GIS.WebAPI.UI.Classes.SurfaceSolarRadiationResult'></a>
 

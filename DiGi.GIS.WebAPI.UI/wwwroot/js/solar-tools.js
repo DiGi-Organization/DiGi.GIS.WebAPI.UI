@@ -7,6 +7,9 @@
 // A building above the synchronous limits (413), or a calculation refused while the solve gate is busy
 // (503), is offered a background job (solar-job.js); its id is kept in the page address (?job=), so a
 // reload resumes it. Clear restores the original colours, properties, lighting and shade.
+// A building with a stored result is answered without a solve (DiGi.GIS.WebAPI.UI#73): the Result row says whether the
+// colours were loaded from storage, recalculated from stored shading for this weather, or calculated - and then saved,
+// offered a sign-in, or not saved (view.source, storedAt, saved, signedIn).
 // Loaded only on pages whose viewer container carries data-solar-view-url.
 
 import { reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
@@ -23,6 +26,7 @@ const resultsCard = document.getElementById('gltf-results-card');
 const resultsSection = document.getElementById('solar-results-section');
 const resultsRadius = document.getElementById('solar-results-radius');
 const resultsStation = document.getElementById('solar-results-station');
+const resultsOrigin = document.getElementById('solar-results-origin');
 const flatCheckbox = document.getElementById('solar-flat-checkbox');
 
 const viewUrl = container?.dataset.solarViewUrl ?? '';
@@ -158,6 +162,28 @@ function formatMeters(value) {
     return `${Number(value).toLocaleString('en-US', { maximumFractionDigits: 1 })} m`;
 }
 
+// Where a view came from (DiGi.GIS.WebAPI.UI#73): a stored result, one rebuilt from stored shading for this weather,
+// or a fresh calculation - saved for a signed-in visitor, offered a sign-in otherwise, or reported as not saved.
+function originText(view) {
+    const source = view?.source ?? view?.Source;
+    const storedAt = view?.storedAt ?? view?.StoredAt;
+    const saved = view?.saved ?? view?.Saved;
+    const signedIn = view?.signedIn ?? view?.SignedIn;
+    const calculatedOn = storedAt ? ` (calculated ${String(storedAt).slice(0, 10)})` : '';
+
+    if (source === 'Stored') {
+        return `Loaded stored result${calculatedOn}`;
+    }
+    if (source === 'Rebuilt') {
+        const station = view?.stationName ?? view?.StationName ?? 'this weather';
+        return saved ? `Recalculated from stored shading for ${station} and saved` : `Recalculated from stored shading for ${station}`;
+    }
+    if (saved) {
+        return 'Calculated and saved';
+    }
+    return signedIn ? 'Calculated (could not be saved)' : 'Calculated — sign in to save this result';
+}
+
 function fillResults(radius, stationName, stationUrl) {
     if (resultsRadius) {
         const requested = Number(container.dataset.solarRadiusRequested);
@@ -207,6 +233,9 @@ function applyView(view) {
 
     setUnlit(true);
     fillResults(view.radius ?? view.Radius, view.stationName ?? view.StationName, view.stationUrl ?? view.StationUrl);
+    if (resultsOrigin) {
+        resultsOrigin.textContent = originText(view);
+    }
 
     if (resultsSection) {
         resultsSection.style.display = '';
@@ -279,7 +308,8 @@ async function runJob(jobId) {
     if (result.view) {
         clearMessage();
         if (applyView(result.view)) {
-            reportStatus('Background calculation completed: solar radiation shown.');
+            const source = result.view.source ?? result.view.Source;
+            reportStatus(source === 'Solved' ? `Background calculation completed: ${originText(result.view)}.` : `${originText(result.view)}.`);
         }
     } else {
         reportStatus(result.message);
@@ -327,7 +357,7 @@ async function calculate() {
 
     if (view) {
         if (applyView(view)) {
-            reportStatus(`Solar radiation calculated in ${formatElapsed(calculationStart)}`);
+            reportStatus(`${originText(view)} in ${formatElapsed(calculationStart)}`);
         }
     } else {
         reportStatus(message);

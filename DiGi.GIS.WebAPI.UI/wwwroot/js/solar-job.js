@@ -70,7 +70,8 @@ export async function cancelSolarJob(jobsUrl, jobId) {
     }
 }
 
-// Runs a background job to its end: posts a new one when jobId is null, otherwise resumes polling it.
+// Runs a background job to its end: posts a new one when jobId is null, otherwise resumes polling it. A building with a
+// stored result is answered by the POST itself (200 with the view), and no job runs.
 // onStatus(text, jobId, completed) receives every state change; completed is true once nothing is left to cancel. Resolves with { view } for the
 // solar radiation view, or with { view: null, message, retry } where retry says whether starting another job makes sense.
 export async function runSolarJob({ jobsUrl, query, jobId, pollSeconds, refusalMessage, onStatus }) {
@@ -82,6 +83,10 @@ export async function runSolarJob({ jobsUrl, query, jobId, pollSeconds, refusalM
             response = await fetch(`${jobsUrl}?${query}`, { method: 'POST' });
         } catch {
             return { view: null, message: 'The background calculation could not be started: the server did not answer.', retry: true };
+        }
+        // 200: the building has a stored result (DiGi.GIS.WebAPI.UI#73); the server answered its view and queued no job.
+        if (response.status === 200) {
+            return { view: await response.json(), message: null, retry: false };
         }
         if (response.status !== 202) {
             // 503: the queue is full; any other refusal (413 above the job limits, 422, ...) will not change on a retry.

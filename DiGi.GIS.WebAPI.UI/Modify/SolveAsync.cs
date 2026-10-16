@@ -70,6 +70,33 @@ namespace DiGi.GIS.WebAPI.UI
                     error = $"{exception.GetType().Name}: {exception.Message}";
                 }
 
+                // The result is stored before the job reads as completed, so its view never reports a save still under
+                // way as failed; the gate is held for that one request. The step carries the visitor's token and is
+                // released here whatever happens, and a failed save never fails the job.
+                Func<CancellationToken, Task<bool>>? storage;
+                lock (solarJobQueue.Lock)
+                {
+                    storage = solarJob.Status == SolarJobStatus.Running ? solarJob.Storage : null;
+                    solarJob.Storage = null;
+                }
+
+                bool saved = false;
+                if (surfaceSolarRadiationResults is not null && storage is not null)
+                {
+                    try
+                    {
+                        saved = await storage(cancellationToken);
+                    }
+                    catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+                    {
+                        throw;
+                    }
+                    catch (Exception exception)
+                    {
+                        log?.Invoke(string.Format(CultureInfo.InvariantCulture, "Solar radiation job {0} for building {1}: the result could not be stored: {2}: {3}", solarJob.Id, solarJob.BuildingModelId, exception.GetType().Name, exception.Message));
+                    }
+                }
+
                 DateTimeOffset finishedAt = solarJobQueue.TimeProvider.GetUtcNow();
 
                 SolarJobStatus solarJobStatus;
@@ -87,6 +114,7 @@ namespace DiGi.GIS.WebAPI.UI
                         {
                             solarJob.Status = SolarJobStatus.Completed;
                             solarJob.SurfaceSolarRadiationResults = surfaceSolarRadiationResults;
+                            solarJob.Saved = saved;
                         }
                     }
 

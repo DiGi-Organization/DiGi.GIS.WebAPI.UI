@@ -19,8 +19,9 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="radius">The neighbour radius the calculation used, in metres.</param>
         /// <param name="stationName">The name of the EPW weather station. This value can be null.</param>
         /// <param name="stationUrl">The application relative URL of the EPW file page of the station. This value can be null.</param>
+        /// <param name="solarRadiationOrigin">Where the results came from and whether they were stored; null for a fresh solve that was not stored.</param>
         /// <returns>The view, or <see langword="null"/> when the building model or the results are null, or no component has a result.</returns>
-        public static ViewModels.SolarRadiationViewModel? SolarRadiationViewModel(this BuildingModel? buildingModel, IEnumerable<SurfaceSolarRadiationResult>? surfaceSolarRadiationResults, IReference? reference, double radius, string? stationName, string? stationUrl)
+        public static ViewModels.SolarRadiationViewModel? SolarRadiationViewModel(this BuildingModel? buildingModel, IEnumerable<SurfaceSolarRadiationResult>? surfaceSolarRadiationResults, IReference? reference, double radius, string? stationName, string? stationUrl, SolarRadiationOrigin? solarRadiationOrigin = null)
         {
             List<IComponent>? components = buildingModel?.GetComponents<IComponent>();
             if (components is null || surfaceSolarRadiationResults is null)
@@ -64,7 +65,7 @@ namespace DiGi.GIS.WebAPI.UI
                 return null;
             }
 
-            return new ViewModels.SolarRadiationViewModel(radius, stationName, stationUrl, solarSurfaceViewModels);
+            return new ViewModels.SolarRadiationViewModel(radius, stationName, stationUrl, solarSurfaceViewModels, (solarRadiationOrigin?.SolarRadiationSource ?? Enums.SolarRadiationSource.Solved).ToString(), solarRadiationOrigin?.StoredAt, solarRadiationOrigin?.Saved ?? false, solarRadiationOrigin?.SignedIn ?? false);
         }
     }
 }

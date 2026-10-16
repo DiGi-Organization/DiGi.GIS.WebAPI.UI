@@ -1,17 +1,12 @@
 using DiGi.Analytical.Building.Classes;
 using DiGi.Analytical.Building.Solar;
 using DiGi.Core.Classes;
-using DiGi.EPW;
 using DiGi.EPW.Classes;
 using DiGi.Geometry.Spatial.Classes;
-using DiGi.Geometry.Spatial.Interfaces;
 using DiGi.GIS.WebAPI.UI.Classes;
 using DiGi.Solar.Classes;
-using DiGi.Solar.Interfaces;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Globalization;
 
 namespace DiGi.GIS.WebAPI.UI
 {
@@ -24,7 +19,7 @@ namespace DiGi.GIS.WebAPI.UI
         /// <param name="buildingModel">The analysed building model, already stamped with its coordinates and time zone (<c>GIS.Analytical.Modify.UpdateBuildingInformation</c>). This value can be null.</param>
         /// <param name="buildingModels_Surrounding">The neighbouring building models casting shade, or null for none. A copy of <paramref name="buildingModel"/> among them is skipped.</param>
         /// <param name="ePWFile">The EPW weather file. This value can be null.</param>
-        /// <param name="shadingSolverOptions">The solver options; its time series is replaced by the EPW hours. Null uses the defaults.</param>
+        /// <param name="shadingSolverOptions">The solver options; its time series is replaced by the reference hours. Null uses the defaults.</param>
         /// <returns>One result per receiving surface, or <see langword="null"/> when the model is null or unstamped (no coordinates), has no external envelope, or the EPW file has no usable hour.</returns>
         public static List<SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults(this BuildingModel? buildingModel, IEnumerable<BuildingModel>? buildingModels_Surrounding, EPWFile? ePWFile, ShadingSolverOptions? shadingSolverOptions)
         {
@@ -45,219 +40,55 @@ namespace DiGi.GIS.WebAPI.UI
         }
 
         /// <summary>
-        /// Solves a shading model over the hours of one EPW year and integrates the irradiation of each receiving surface.
-        /// <para>Every EPW hour with global, direct and diffuse radiation is sampled at its mid-hour instant in the reference year (<see cref="Query.SolarReferenceDateTime(DateTime)"/>). The shading model is solved for those instants with <see cref="ShadingSolver"/>, which writes its results into <paramref name="shadingModel"/>. For each receiver and hour, the irradiance of the surface is <c>Solar.Create.IrradianceResult</c> on its outward normal, and the power is <c>Solar.Create.SolarPowerResult_ByShadingFactor</c> with the solved shading factor: the shadow blocks the beam component. The sky diffuse and ground-reflected components are scaled by the unblocked share of the surface's sky and ground (<c>Solar.Create.ViewFactorResults</c>, the same projection over fixed hemisphere patches), so a wall covered by a neighbour loses them too. An open-sky twin with factor 0 and nothing blocking the view gives <see cref="SurfaceSolarRadiationResult.IrradiationUnshaded"/>.</para>
+        /// Solves a shading model over one EPW year and integrates the irradiation of each receiving surface.
+        /// <para>The solve and the aggregation are <see cref="SurfaceSolarRadiations(ShadingModel?, IDictionary{string, Vector3D}?, Weather.Classes.Weather?, ShadingSolverOptions?, Action{string}?)"/>; this answers its summary values only. Every EPW hour with global, direct and diffuse radiation is aggregated at its mid-hour instant in the reference year (<see cref="Query.SolarReferenceDateTime(DateTime)"/>); the shading model is solved for every hour of that year with <see cref="ShadingSolver"/>, which writes its results into <paramref name="shadingModel"/>. For each receiver and hour, the irradiance of the surface is <c>Solar.Create.IrradianceResult</c> on its outward normal, and the power is <c>Solar.Create.SolarPowerResult_ByShadingFactor</c> with the solved shading factor: the shadow blocks the beam component. The sky diffuse and ground-reflected components are scaled by the unblocked share of the surface's sky and ground (<c>Solar.Create.ViewFactorResults</c>, the same projection over fixed hemisphere patches), so a wall covered by a neighbour loses them too. An open-sky twin with factor 0 and nothing blocking the view gives <see cref="SurfaceSolarRadiationResult.IrradiationUnshaded"/>.</para>
         /// <para>A blocked part of the sky or ground contributes nothing: light reflected by the neighbouring facades and roofs is ignored, which underestimates surfaces in narrow street canyons and courtyards (DiGi-Organization/DiGi.Solar#15).</para>
-        /// <para>Each receiver's shading factors are read out once, without cloning the stored results, by <c>ShadingModel.TryGetShadingFactors</c> (DiGi-Organization/DiGi.Solar#13, DiGi.GIS.WebAPI.UI#63); a stored result with a NaN area has no factor, so its hour is skipped. <c>ShadingModel.TryGetShadingFactor</c> would fetch and scan all of them on every call, 9–75 ms per call on the web UI host (DiGi.GIS.WebAPI.UI#59, comment 5830021444). The sun direction and the albedo depend only on the hour and are computed once per hour.</para>
+        /// <para>Each receiver's shading factors are read out once, without cloning the stored results, by <c>ShadingModel.TryGetShadingFactors</c> (DiGi-Organization/DiGi.Solar#13, DiGi.GIS.WebAPI.UI#63); a stored result with a NaN area has no factor, so its hour is skipped. The sun direction and the albedo depend only on the hour and are computed once per hour.</para>
         /// <para>Snow cover is never assumed: the served EPW files carry either filler snow depth (IWEC WARSAW reports snow for 8 322 hours) or no albedo at all, so the albedo is the file's own value or the 0.2 default.</para>
         /// <para>A receiver without an outward normal in <paramref name="normals"/>, with no area, or that the solver could not assign (no plane or no triangulation) gets no result. A daytime hour missing from a receiver's results is skipped.</para>
         /// </summary>
         /// <param name="shadingModel">The shading model: the receivers and shading-only casters, with coordinates and a time zone. It receives the solver results. This value can be null.</param>
         /// <param name="normals">The outward unit normal of each receiver, keyed by its reference (<see cref="Query.SolarReceiverNormals(BuildingModel?)"/>). This value can be null.</param>
         /// <param name="ePWFile">The EPW weather file. This value can be null.</param>
-        /// <param name="shadingSolverOptions">The solver options; a copy is solved with its time series replaced by the EPW hours, so the caller's instance is left untouched. Null uses the defaults.</param>
+        /// <param name="shadingSolverOptions">The solver options; a copy is solved with its time series replaced by the reference hours, so the caller's instance is left untouched. Null uses the defaults.</param>
         /// <param name="log">Receives one line with the direction groups and the solve, view factor and aggregation times, or null for none.</param>
         /// <returns>One result per receiving surface, or <see langword="null"/> when an input is null, the model has no coordinates, the EPW file has no usable hour, or the solver fails.</returns>
         public static List<SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults(this ShadingModel? shadingModel, IDictionary<string, Vector3D>? normals, EPWFile? ePWFile, ShadingSolverOptions? shadingSolverOptions, Action<string>? log = null)
         {
-            // (0, 0) is the default of an unstamped BuildingInformation, not a location in Poland.
-            Coordinates? coordinates = shadingModel?.Coordinates;
-            if (shadingModel is null || coordinates is null || (coordinates.Latitude == 0 && coordinates.Longitude == 0) || normals is null || ePWFile is null)
+            return SurfaceSolarRadiationResults(shadingModel.SurfaceSolarRadiations(normals, ePWFile, shadingSolverOptions, log));
+        }
+
+        /// <summary>
+        /// Converts surfaces in their stored form - solved, rebuilt or read back - into the results the solar routes answer and the view colours: the summary values, without the shading factors.
+        /// </summary>
+        /// <param name="surfaceSolarRadiations">The surfaces.</param>
+        /// <returns>One result per non-null surface, in order, or null when <paramref name="surfaceSolarRadiations"/> is null.</returns>
+        public static List<SurfaceSolarRadiationResult>? SurfaceSolarRadiationResults(this IEnumerable<GIS.Classes.SurfaceSolarRadiation?>? surfaceSolarRadiations)
+        {
+            if (surfaceSolarRadiations is null)
             {
                 return null;
-            }
-
-            IList<DataRecord>? dataRecords = ePWFile.DataRecords;
-            if (dataRecords is null || dataRecords.Count == 0)
-            {
-                return null;
-            }
-
-            List<DateTime> dateTimes = [];
-            List<double> globalHorizontalRadiations = [];
-            List<double> directNormalRadiations = [];
-            List<double> diffuseHorizontalRadiations = [];
-            List<double> albedos = [];
-
-            HashSet<DateTime> dateTimes_Unique = [];
-            foreach (DataRecord dataRecord in dataRecords)
-            {
-                if (dataRecord is null)
-                {
-                    continue;
-                }
-
-                float? globalHorizontalRadiation = dataRecord.GlobalHorizontalRadiationValue();
-                float? directNormalRadiation = dataRecord.DirectNormalRadiationValue();
-                float? diffuseHorizontalRadiation = dataRecord.DiffuseHorizontalRadiationValue();
-                if (globalHorizontalRadiation is null || directNormalRadiation is null || diffuseHorizontalRadiation is null)
-                {
-                    continue;
-                }
-
-                DateTime? dateTime = dataRecord.DateTime.SolarReferenceDateTime();
-                if (dateTime is null || !dateTimes_Unique.Add(dateTime.Value))
-                {
-                    continue;
-                }
-
-                dateTimes.Add(dateTime.Value);
-                globalHorizontalRadiations.Add(globalHorizontalRadiation.Value);
-                directNormalRadiations.Add(directNormalRadiation.Value);
-                diffuseHorizontalRadiations.Add(diffuseHorizontalRadiation.Value);
-                albedos.Add(Solar.Query.Albedo(dataRecord.AlbedoValue(), false));
-            }
-
-            int count = dateTimes.Count;
-            if (count == 0)
-            {
-                return null;
-            }
-
-            ShadingSolverOptions shadingSolverOptions_Temp = shadingSolverOptions is null ? new() : new(shadingSolverOptions);
-            shadingSolverOptions_Temp.TimeSeries = new DateTimeCollection(dateTimes);
-
-            Stopwatch stopwatch = Stopwatch.StartNew();
-
-            ShadingSolver shadingSolver = new(shadingModel, shadingSolverOptions_Temp);
-            if (!shadingSolver.Solve())
-            {
-                return null;
-            }
-
-            long milliseconds_Solve = stopwatch.ElapsedMilliseconds;
-            stopwatch.Restart();
-
-            // Unblocked share of each receiver's sky and ground; a receiver without one keeps the open view.
-            Dictionary<string, ViewFactorResult> viewFactorResults = [];
-            List<ViewFactorResult>? viewFactorResults_List = Solar.Create.ViewFactorResults(shadingModel, normals, shadingSolverOptions_Temp.Tolerance);
-            if (viewFactorResults_List is not null)
-            {
-                foreach (ViewFactorResult viewFactorResult in viewFactorResults_List)
-                {
-                    if (viewFactorResult.Reference is string reference_ViewFactor)
-                    {
-                        viewFactorResults[reference_ViewFactor] = viewFactorResult;
-                    }
-                }
-            }
-
-            long milliseconds_ViewFactor = stopwatch.ElapsedMilliseconds;
-            stopwatch.Restart();
-
-            // The sun depends only on the hour. The night direction is kept too: the irradiance of a
-            // night hour still needs one, and its beam is zeroed by passing no direct radiation.
-            Vector3D?[] sunDirections = new Vector3D?[count];
-            bool[] sunUps = new bool[count];
-            Dictionary<DateTime, Vector3D> sunDirections_Day = [];
-            for (int i = 0; i < count; i++)
-            {
-                sunDirections[i] = Solar.Query.SunDirection(shadingModel, dateTimes[i], true);
-
-                Vector3D? sunDirection_Day = Solar.Query.SunDirection(shadingModel, dateTimes[i], false);
-                sunUps[i] = sunDirection_Day is not null;
-                if (sunDirection_Day is not null)
-                {
-                    sunDirections_Day[dateTimes[i]] = sunDirection_Day;
-                }
             }
 
             List<SurfaceSolarRadiationResult> result = [];
-
-            List<IShadingElement>? shadingElements = shadingModel.GetShadingElements<IShadingElement>(false);
-            if (shadingElements is not null)
+            foreach (GIS.Classes.SurfaceSolarRadiation? surfaceSolarRadiation in surfaceSolarRadiations)
             {
-                foreach (IShadingElement shadingElement in shadingElements)
+                if (surfaceSolarRadiation is null)
                 {
-                    string? reference = shadingElement?.Reference;
-                    if (reference is null || !normals.TryGetValue(reference, out Vector3D? normal) || normal is null)
-                    {
-                        continue;
-                    }
-
-                    IPolygonalFace3D? polygonalFace3D = shadingElement!.PolygonalFace3D;
-                    double area = polygonalFace3D is null ? double.NaN : polygonalFace3D.GetArea();
-                    if (!double.IsFinite(area) || area <= 0)
-                    {
-                        continue;
-                    }
-
-                    if (!shadingModel.TryGetShadingFactors(shadingElement, out Dictionary<DateTime, double>? shadingFactors) || shadingFactors is null)
-                    {
-                        continue;
-                    }
-
-                    double skyVisibility = 1;
-                    double groundVisibility = 1;
-                    if (viewFactorResults.TryGetValue(reference, out ViewFactorResult? viewFactorResult_Receiver))
-                    {
-                        skyVisibility = viewFactorResult_Receiver.SkyVisibility;
-                        groundVisibility = viewFactorResult_Receiver.GroundVisibility;
-                    }
-
-                    // Energies in Wh: each EPW value is a mean power over one hour.
-                    double beam = 0;
-                    double diffuse = 0;
-                    double ground = 0;
-                    double unshaded = 0;
-
-                    for (int i = 0; i < count; i++)
-                    {
-                        double shadingFactor = 0;
-                        if (sunUps[i])
-                        {
-                            if (!shadingFactors.TryGetValue(dateTimes[i], out double shadingFactor_Solved))
-                            {
-                                continue;
-                            }
-
-                            // A fully shaded receiver can read 1 plus a few ulps.
-                            shadingFactor = Math.Clamp(shadingFactor_Solved, 0, 1);
-                        }
-
-                        IrradianceResult? irradianceResult = Solar.Create.IrradianceResult(normal, sunDirections[i], globalHorizontalRadiations[i], sunUps[i] ? directNormalRadiations[i] : 0, diffuseHorizontalRadiations[i], albedos[i]);
-                        if (irradianceResult is null)
-                        {
-                            continue;
-                        }
-
-                        SolarPowerResult? solarPowerResult = Solar.Create.SolarPowerResult_ByShadingFactor(irradianceResult, area, shadingFactor);
-                        SolarPowerResult? solarPowerResult_Unshaded = Solar.Create.SolarPowerResult_ByShadingFactor(irradianceResult, area, 0);
-                        if (solarPowerResult is null || solarPowerResult_Unshaded is null)
-                        {
-                            continue;
-                        }
-
-                        // The split of SolarPowerResult.Power: the beam reaches the unshaded area only, the diffuse
-                        // and ground-reflected components only the unblocked share of the sky and ground. A blocked
-                        // share contributes 0 - reflections off neighbours are ignored (DiGi.Solar#15). The local
-                        // irradiance result is used because the property clones on every access.
-                        beam += solarPowerResult.UnshadedArea * irradianceResult.Beam;
-                        diffuse += solarPowerResult.TotalArea * irradianceResult.Diffuse * skyVisibility;
-                        ground += solarPowerResult.TotalArea * irradianceResult.Ground * groundVisibility;
-                        unshaded += solarPowerResult_Unshaded.Power;
-                    }
-
-                    double energy = (beam + diffuse + ground) / 1000;
-
-                    result.Add(new SurfaceSolarRadiationResult(
-                        reference,
-                        area,
-                        energy / area,
-                        beam / 1000 / area,
-                        diffuse / 1000 / area,
-                        ground / 1000 / area,
-                        unshaded / 1000 / area,
-                        energy,
-                        skyVisibility,
-                        groundVisibility));
+                    continue;
                 }
-            }
 
-            if (log is not null)
-            {
-                int count_Group = Solar.Query.GroupDirections(sunDirections_Day, shadingSolverOptions_Temp.AngleTolerance)?.Count ?? 0;
-                log(string.Format(CultureInfo.InvariantCulture, "Solar radiation: {0} hours, {1} direction groups, solve {2} ms, view factors {3} ms, aggregation {4} ms.", count, count_Group, milliseconds_Solve, milliseconds_ViewFactor, stopwatch.ElapsedMilliseconds));
+                result.Add(new SurfaceSolarRadiationResult(
+                    surfaceSolarRadiation.Reference,
+                    surfaceSolarRadiation.Area,
+                    surfaceSolarRadiation.Irradiation,
+                    surfaceSolarRadiation.Beam,
+                    surfaceSolarRadiation.Diffuse,
+                    surfaceSolarRadiation.Ground,
+                    surfaceSolarRadiation.IrradiationUnshaded,
+                    surfaceSolarRadiation.Energy,
+                    surfaceSolarRadiation.SkyVisibility,
+                    surfaceSolarRadiation.GroundVisibility));
             }
 
             return result;

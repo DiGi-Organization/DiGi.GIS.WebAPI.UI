@@ -334,6 +334,32 @@ public const double BuildingSearchTolerance = 5;
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolarRadiationSetUri'></a>
+
+## Default\.BuildingSolarRadiationSetUri Field
+
+URI of the GIS Web API endpoint storing the solar radiation of a building on behalf of the signed\-in user \(bearer token; `AllowUpdateSolarRadiationData` on the host\)\.
+
+```csharp
+public const string BuildingSolarRadiationSetUri = "https://api.digiproject.uk/gis/buildingsolarradiation/setsolarradiation";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolarRadiationUri'></a>
+
+## Default\.BuildingSolarRadiationUri Field
+
+URI of the GIS Web API endpoint reading the stored solar radiation of a building model \(`id`, `countyid`, `radius`, `solverversion`, `shadingfactors`\); 204 when nothing is stored \(DiGi\-Organization/DiGi\.GIS\.WebAPI\#67\)\.
+
+```csharp
+public const string BuildingSolarRadiationUri = "https://api.digiproject.uk/gis/buildingsolarradiation/solarradiationbybuildingmodelid";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolveCeiling'></a>
 
 ## Default\.BuildingSolveCeiling Field
@@ -417,6 +443,19 @@ public const double DisplayRadiusMax = 1500;
 
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.EPWFileIdHeaderName'></a>
+
+## Default\.EPWFileIdHeaderName Field
+
+The response header of [EPWFileItemUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.EPWFileItemUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.EPWFileItemUri') carrying the id of the `epw_file` row the body holds, as an invariant integer \(DiGi\-Organization/DiGi\.GIS\.WebAPI\#67\)\. It names the weather source of a stored solar radiation summary; a response without it is solved and shown but neither stored nor reused\.
+
+```csharp
+public const string EPWFileIdHeaderName = "DiGi-EPWFile-Id";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.EPWFileItemUri'></a>
 
@@ -816,6 +855,19 @@ public const int SolarJobRetryAfterSeconds = 300;
 #### Field Value
 [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarRadiusDecimals'></a>
+
+## Default\.SolarRadiusDecimals Field
+
+The precision, in decimal places, to which the neighbour radius is rounded before it is solved, looked up and stored: one, so 0\.1 m\. The radius is part of the stored key and compared exactly, so it is rounded once \([SolarRadiusKey\(double\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.SolarRadiusKey(double) 'DiGi\.GIS\.WebAPI\.UI\.Query\.SolarRadiusKey\(double\)')\) and every layer then uses the same value\.
+
+```csharp
+public const int SolarRadiusDecimals = 1;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarReceiverCountMax'></a>
 
 ## Default\.SolarReceiverCountMax Field
@@ -826,6 +878,19 @@ Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central
 
 ```csharp
 public const int SolarReceiverCountMax = 30;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarReferenceHourCount'></a>
+
+## Default\.SolarReferenceHourCount Field
+
+The number of hours of the solar reference year \([SolarReferenceYear](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarReferenceYear 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarReferenceYear'), 365 days\): the length of every surface's stored shading factors, index = hour of the year\.
+
+```csharp
+public const int SolarReferenceHourCount = 8760;
 ```
 
 #### Field Value
@@ -871,6 +936,19 @@ A background job holds the gate for up to about 29 minutes at the [SolarJobRecei
 
 ```csharp
 public const int SolarSolveGateWaitSeconds = 30;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.SolarSolverVersion'></a>
+
+## Default\.SolarSolverVersion Field
+
+The version of the solar radiation solve \- the shading solver, `SolarController.SolarShadingSolverOptions()` and the hourly aggregation \- that stored results are keyed by\. Bump it whenever any of them changes: every result stored under an older version is then a miss and is solved again \(DiGi\.GIS\.WebAPI\.UI\#73\)\.
+
+```csharp
+public const int SolarSolverVersion = 1;
 ```
 
 #### Field Value

@@ -29,6 +29,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
     /// Solar calculations for the 3D viewers: the sun position for the Lighting panel, and the annual solar radiation on the external walls and roofs of one building, calculated on this host's CPU with DiGi.Solar over one EPW year, with the building itself and its neighbours casting shade.
     /// <para>The radiation is shown by the "Solar radiation" panel of the Building Viewer (DiGi.GIS.WebAPI.UI#66): <see cref="GetViewByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/> and <see cref="GetJobView(Guid)"/> answer a <see cref="SolarRadiationViewModel"/> that recolours the receiving surfaces of the scene already loaded, so no scene of its own is streamed.</para>
     /// <para>The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, <see cref="Constants.Default.SolarSurroundingRadiusMax"/>], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above <see cref="Constants.Default.SolarReceiverCountMax"/> receiving surfaces or <see cref="Constants.Default.SolarCasterTriangleCountMax"/> caster triangles, 502 when the neighbours cannot be read, 503 with <c>Retry-After</c> when the solve gate stays busy for <see cref="Constants.Default.SolarSolveGateWaitSeconds"/> seconds, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.</para>
+    /// <para><b>Stored results</b> (DiGi.GIS.WebAPI.UI#73): before any neighbour is fetched, the routes read the result stored for the building model, the rounded radius (<see cref="Query.SolarRadiusKey(double)"/>) and <see cref="Constants.Default.SolarSolverVersion"/>. A summary stored for the same EPW file is answered as it is; one for another weather source is rebuilt from its stored shading factors; either way nothing is solved and no ceiling applies, and the job route answers 200 with the view instead of queuing a job. Otherwise the building is solved as before and, when the request carries the <see cref="Constants.Default.UserTokenCookieName"/> cookie, its result is stored on behalf of that user; a failed save is logged and never fails the response. The view says which of these happened (<see cref="SolarRadiationViewModel.Source"/>, <see cref="SolarRadiationViewModel.Saved"/>).</para>
     /// <para>Buildings above those ceilings are calculated as background jobs (<c>solar/jobs</c>, DiGi.GIS.WebAPI.UI#60): the POST runs the same checks with the job ceilings (<see cref="Constants.Default.SolarJobReceiverCountMax"/>, <see cref="Constants.Default.SolarJobCasterTriangleCountMax"/>), queues the prepared calculation and answers 202, or 503 with <c>Retry-After</c> when <see cref="Constants.Default.SolarJobQueueLengthMax"/> jobs are already waiting. The job routes answer 404 for an unknown or expired job and 409 for results of a job that has not completed.</para>
     /// </summary>
     [Route("[controller]")]
@@ -70,7 +71,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpGet("radiationbybuildingmodelid")]
         public async Task<IActionResult> GetRadiationByBuildingModelIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
-            return await SolveAsync(id, countyId, radius, (buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center) =>
+            return await SolveAsync(id, countyId, radius, (buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center, solarRadiationOrigin) =>
             {
                 return Content(Core.Convert.ToSystem_String(surfaceSolarRadiationResults) ?? "[]", "application/json");
             }, cancellationToken);
@@ -87,9 +88,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpGet("viewbybuildingmodelid")]
         public async Task<IActionResult> GetViewByBuildingModelIdAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
-            return await SolveAsync(id, countyId, radius, (buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center) =>
+            return await SolveAsync(id, countyId, radius, (buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center, solarRadiationOrigin) =>
             {
-                return ViewResult(buildingModel, surfaceSolarRadiationResults, countyId, radius_Value, StationName(ePWFile), StationUrl(center));
+                return ViewResult(buildingModel, surfaceSolarRadiationResults, countyId, radius_Value, StationName(ePWFile), StationUrl(center), solarRadiationOrigin);
             }, cancellationToken);
         }
 
@@ -104,8 +105,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         [HttpPost("jobs")]
         public async Task<IActionResult> PostJobAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
-            double radius_Value = radius ?? Constants.Default.SolarSurroundingRadius;
-            if (!IsValidRadius(radius_Value))
+            double radius_Requested = radius ?? Constants.Default.SolarSurroundingRadius;
+            double radius_Value = Query.SolarRadiusKey(radius_Requested);
+            if (!IsValidRadius(radius_Requested) || !IsValidRadius(radius_Value))
             {
                 return RadiusBadRequest();
             }
@@ -117,10 +119,31 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return QueueFull();
             }
 
-            return await PrepareAsync(id, countyId, radius_Value, true, (buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount) =>
+            // A stored result is answered at once, 200 with its view, and no job is queued.
+            return await PrepareAsync(id, countyId, radius_Value, true, (buildingModel, surfaceSolarRadiationResults, ePWFile, center, solarRadiationOrigin) =>
             {
-                // The calculation holds its inputs until it has run; nothing is shared with another job.
-                SolarJob solarJob = new(Guid.NewGuid(), id, countyId, radius_Value, normals.Count, buildingModel, StationName(ePWFile), StationUrl(center), () => shadingModel.SurfaceSolarRadiationResults(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message)));
+                return ViewResult(buildingModel, surfaceSolarRadiationResults, countyId, radius_Value, StationName(ePWFile), StationUrl(center), solarRadiationOrigin);
+            }, (buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount, ePWFileId) =>
+            {
+                // The calculation holds its inputs until it has run; nothing is shared with another job. The storage step
+                // reads the surfaces the calculation leaves behind and carries the visitor's token until it has run.
+                List<GIS.Classes.SurfaceSolarRadiation>? surfaceSolarRadiations = null;
+                Func<List<SurfaceSolarRadiationResult>?> calculation = () =>
+                {
+                    surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
+                    return Create.SurfaceSolarRadiationResults(surfaceSolarRadiations);
+                };
+
+                string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+                Func<CancellationToken, Task<bool>>? storage = null;
+                if (tokenString is not null && countyId is not null && ePWFileId is not null)
+                {
+                    int countyId_Value = countyId.Value;
+                    int ePWFileId_Value = ePWFileId.Value;
+                    storage = token => StoreAsync(buildingModel.BuildingSolarRadiationResult(countyId_Value, radius_Value, ePWFileId_Value, surfaceSolarRadiations), tokenString, id, token);
+                }
+
+                SolarJob solarJob = new(Guid.NewGuid(), id, countyId, radius_Value, normals.Count, buildingModel, StationName(ePWFile), StationUrl(center), calculation, storage);
                 if (!solarJobQueue.TryEnqueue(solarJob))
                 {
                     return Task.FromResult(QueueFull());
@@ -180,7 +203,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 return actionResult ?? JobNotFound(jobId);
             }
 
-            return ViewResult(buildingModel, surfaceSolarRadiationResults, solarJob.CountyId, solarJob.Radius, solarJob.StationName, solarJob.StationUrl);
+            return ViewResult(buildingModel, surfaceSolarRadiationResults, solarJob.CountyId, solarJob.Radius, solarJob.StationName, solarJob.StationUrl, new SolarRadiationOrigin(SolarRadiationSource.Solved, null, solarJob.Saved, solarJob.SignedIn));
         }
 
         /// <summary>
@@ -257,14 +280,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             return Ok(new { azimuth, altitude });
         }
 
-        private static string EPWFileItemUri(Point2D center)
-        {
-            UrlBuilder urlBuilder = new(Constants.Default.EPWFileItemUri);
-            urlBuilder = urlBuilder.AddParameter("x", center.X);
-            urlBuilder = urlBuilder.AddParameter("y", center.Y);
-            return urlBuilder.ToString();
-        }
-
         private static bool IsValidRadius(double radius)
         {
             return double.IsFinite(radius) && radius > 0 && radius <= Constants.Default.SolarSurroundingRadiusMax;
@@ -299,11 +314,11 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         // The view of a solved building, shared by the synchronous route and the job route. The root reference is the
         // one of the Building Viewer scene (buildingmodel/buildingmodelbyid), so each surface names the node it recolours.
-        private IActionResult ViewResult(BuildingModel buildingModel, List<SurfaceSolarRadiationResult> surfaceSolarRadiationResults, int? countyId, double radius, string? stationName, string? stationUrl)
+        private IActionResult ViewResult(BuildingModel buildingModel, List<SurfaceSolarRadiationResult> surfaceSolarRadiationResults, int? countyId, double radius, string? stationName, string? stationUrl, SolarRadiationOrigin? solarRadiationOrigin)
         {
             IReference? reference = PostgreSQL.Create.Reference(buildingModel, null, countyId);
 
-            SolarRadiationViewModel? solarRadiationViewModel = buildingModel.SolarRadiationViewModel(surfaceSolarRadiationResults, reference, radius, stationName, stationUrl is null ? null : $"{Request.PathBase}{stationUrl}");
+            SolarRadiationViewModel? solarRadiationViewModel = buildingModel.SolarRadiationViewModel(surfaceSolarRadiationResults, reference, radius, stationName, stationUrl is null ? null : $"{Request.PathBase}{stationUrl}", solarRadiationOrigin);
             if (solarRadiationViewModel is null)
             {
                 return NoContent();
@@ -375,12 +390,13 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             };
         }
 
-        // The pipeline shared by the synchronous routes and the job route, up to the solve: fetch and stamp
-        // the building, refuse what the ceilings do not cover before any expensive step (the job ceilings when
-        // background is true), fetch the neighbours and the weather, build the shading model, then hand
-        // everything to next - a synchronous solve, or a queued job. The neighbours go into the shading model
-        // only: nothing after the solve needs them.
-        private async Task<IActionResult> PrepareAsync(long id, int? countyId, double radius, bool background, Func<BuildingModel, Dictionary<string, Vector3D>, EPWFile, Point2D, ShadingModel, int, Task<IActionResult>> next, CancellationToken cancellationToken)
+        // The pipeline shared by the synchronous routes and the job route, up to the solve: fetch and stamp the building,
+        // fetch its weather, answer from a stored result when one exists (respondStored, without any ceiling, neighbour or
+        // solve - a stored building is answered whatever its size), and otherwise refuse what the ceilings do not cover
+        // (the job ceilings when background is true), fetch the neighbours, build the shading model and hand everything to
+        // next - a synchronous solve, or a queued job. The weather is fetched before the neighbours because the stored
+        // lookup needs its id; a missing weather file still answers 204 where it did before, after the neighbours.
+        private async Task<IActionResult> PrepareAsync(long id, int? countyId, double radius, bool background, Func<BuildingModel, List<SurfaceSolarRadiationResult>, EPWFile, Point2D, SolarRadiationOrigin, IActionResult> respondStored, Func<BuildingModel, Dictionary<string, Vector3D>, EPWFile, Point2D, ShadingModel, int, int?, Task<IActionResult>> next, CancellationToken cancellationToken)
         {
             try
             {
@@ -407,18 +423,30 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return UnprocessableEntity(new List<string>() { $"Building {id} has no closed external envelope (a degenerate model), so its walls and roofs have no outward side to receive the sun." });
                 }
 
-                if (normals.Count > (background ? Constants.Default.SolarJobReceiverCountMax : Constants.Default.SolarReceiverCountMax))
-                {
-                    return PayloadTooLarge(background || normals.Count > Constants.Default.SolarJobReceiverCountMax
-                        ? $"Building {id} has {normals.Count} external walls and roofs; a background calculation covers at most {Constants.Default.SolarJobReceiverCountMax}."
-                        : $"Building {id} has {normals.Count} external walls and roofs; a calculation on request covers at most {Constants.Default.SolarReceiverCountMax}. Calculate it in the background instead, which covers up to {Constants.Default.SolarJobReceiverCountMax}.");
-                }
-
                 // The neighbour circle is centred on the footprint and reaches the radius beyond its farthest corner.
                 Circle2D? circle2D = buildingModel.TerrainCircle(radius, 0);
                 if (circle2D?.Center is not Point2D center)
                 {
                     return UnprocessableEntity(new List<string>() { $"Building {id} has no geometry." });
+                }
+
+                (int? Id, EPWFile EPWFile)? ePWFileWithId = await httpClient.EPWFileAsync(center, cancellationToken);
+                cancellationToken.ThrowIfCancellationRequested();
+
+                if (ePWFileWithId is not null)
+                {
+                    IActionResult? actionResult_Stored = await StoredAsync(httpClient, id, countyId, radius, buildingModel, ePWFileWithId.Value.EPWFile, ePWFileWithId.Value.Id, center, respondStored, cancellationToken);
+                    if (actionResult_Stored is not null)
+                    {
+                        return actionResult_Stored;
+                    }
+                }
+
+                if (normals.Count > (background ? Constants.Default.SolarJobReceiverCountMax : Constants.Default.SolarReceiverCountMax))
+                {
+                    return PayloadTooLarge(background || normals.Count > Constants.Default.SolarJobReceiverCountMax
+                        ? $"Building {id} has {normals.Count} external walls and roofs; a background calculation covers at most {Constants.Default.SolarJobReceiverCountMax}."
+                        : $"Building {id} has {normals.Count} external walls and roofs; a calculation on request covers at most {Constants.Default.SolarReceiverCountMax}. Calculate it in the background instead, which covers up to {Constants.Default.SolarJobReceiverCountMax}.");
                 }
 
                 UrlBuilder urlBuilder = new(Constants.Default.BuildingModelItemsByCircleUri);
@@ -436,12 +464,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return StatusCode(StatusCodes.Status502BadGateway, new List<string>() { $"The neighbours of building {id} could not be read, so its shading cannot be calculated." });
                 }
 
-                EPWFile? ePWFile = await httpClient.ItemAsync<EPWFile>(EPWFileItemUri(center), cancellationToken);
-                cancellationToken.ThrowIfCancellationRequested();
-                if (ePWFile is null)
+                if (ePWFileWithId is null)
                 {
                     return NoContent();
                 }
+
+                EPWFile ePWFile = ePWFileWithId.Value.EPWFile;
 
                 ShadingModel? shadingModel = buildingModel.ToSolar(buildingModels_Surrounding, x => new GuidReference(x).ToString() is string reference && normals.ContainsKey(reference));
                 if (shadingModel is null)
@@ -458,7 +486,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                         : $"The surroundings of building {id} within {radiusText} m hold {casterTriangleCount} shading triangles; a calculation on request covers at most {Constants.Default.SolarCasterTriangleCountMax}. Choose a smaller radius, or calculate it in the background, which covers up to {Constants.Default.SolarJobCasterTriangleCountMax}.");
                 }
 
-                return await next(buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount);
+                return await next(buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount, ePWFileWithId.Value.Id);
             }
             catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
             {
@@ -475,21 +503,103 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
         }
 
+        // A stored result for the building, answered through respondStored, or null to solve (DiGi.GIS.WebAPI.UI#73). The
+        // key is the county part, the building model id derived from the model's Guid (Query.SolarBuildingModelId), the
+        // rounded radius and the solver version; the weather is not part of it. A stored summary for this EPW file is
+        // answered as it is; one for another weather source is rebuilt from the stored shading factors and, for a
+        // signed-in visitor, stored again. A request without a county part or without the EPW id (an older GIS Web API)
+        // neither reads nor stores; a read failure or a rebuild that cannot run is a miss.
+        private async Task<IActionResult?> StoredAsync(HttpClient httpClient, long id, int? countyId, double radius, BuildingModel buildingModel, EPWFile ePWFile, int? ePWFileId, Point2D center, Func<BuildingModel, List<SurfaceSolarRadiationResult>, EPWFile, Point2D, SolarRadiationOrigin, IActionResult> respondStored, CancellationToken cancellationToken)
+        {
+            long? buildingModelId = buildingModel.SolarBuildingModelId();
+            if (countyId is null || ePWFileId is null || buildingModelId is null)
+            {
+                return null;
+            }
+
+            Stopwatch stopwatch = Stopwatch.StartNew();
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            string weatherSourceId = ePWFileId.Value.ToString(CultureInfo.InvariantCulture);
+
+            GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult = await httpClient.BuildingSolarRadiationAsync(buildingModelId.Value, countyId.Value, radius, false, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            if (buildingSolarRadiationResult is null)
+            {
+                return null;
+            }
+
+            if (buildingSolarRadiationResult.WeatherSourceType == GIS.Enums.WeatherSourceType.EPW && buildingSolarRadiationResult.WeatherSourceId == weatherSourceId)
+            {
+                List<SurfaceSolarRadiationResult>? surfaceSolarRadiationResults = Create.SurfaceSolarRadiationResults(buildingSolarRadiationResult.SurfaceSolarRadiations);
+                if (surfaceSolarRadiationResults is null || surfaceSolarRadiationResults.Count == 0)
+                {
+                    return null;
+                }
+
+                logger.LogInformation("Solar radiation for building {Id} (county {CountyId}): loaded the stored result of {StoredAt} - radius {Radius} m, {ResultCount} results, weather {WeatherSourceId}, no solve, total {Elapsed} ms.", id, countyId, buildingSolarRadiationResult.CreatedAt, radius, surfaceSolarRadiationResults.Count, weatherSourceId, stopwatch.ElapsedMilliseconds);
+
+                return respondStored(buildingModel, surfaceSolarRadiationResults, ePWFile, center, new SolarRadiationOrigin(SolarRadiationSource.Stored, buildingSolarRadiationResult.CreatedAt, false, tokenString is not null));
+            }
+
+            GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult_Factors = await httpClient.BuildingSolarRadiationAsync(buildingModelId.Value, countyId.Value, radius, true, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            List<GIS.Classes.SurfaceSolarRadiation>? surfaceSolarRadiations = buildingSolarRadiationResult_Factors.SurfaceSolarRadiations(buildingModel.BuildingInformation, ePWFile);
+            List<SurfaceSolarRadiationResult>? surfaceSolarRadiationResults_Rebuilt = Create.SurfaceSolarRadiationResults(surfaceSolarRadiations);
+            if (surfaceSolarRadiations is null || surfaceSolarRadiationResults_Rebuilt is null || surfaceSolarRadiationResults_Rebuilt.Count == 0)
+            {
+                logger.LogWarning("Solar radiation for building {Id} (county {CountyId}): the stored result for weather {WeatherSourceId} could not be rebuilt for weather {WeatherSourceIdNew}, so it is solved again.", id, countyId, buildingSolarRadiationResult.WeatherSourceId, weatherSourceId);
+                return null;
+            }
+
+            bool saved = tokenString is not null && await StoreAsync(buildingModel.BuildingSolarRadiationResult(countyId.Value, radius, ePWFileId.Value, surfaceSolarRadiations), tokenString, id, cancellationToken);
+
+            logger.LogInformation("Solar radiation for building {Id} (county {CountyId}): rebuilt the stored result of {StoredAt} for weather {WeatherSourceId} (stored for {WeatherSourceIdStored}) - radius {Radius} m, {ResultCount} results, no solve, {Saved}, total {Elapsed} ms.", id, countyId, buildingSolarRadiationResult.CreatedAt, weatherSourceId, buildingSolarRadiationResult.WeatherSourceId, radius, surfaceSolarRadiationResults_Rebuilt.Count, saved ? "stored" : "not stored", stopwatch.ElapsedMilliseconds);
+
+            return respondStored(buildingModel, surfaceSolarRadiationResults_Rebuilt, ePWFile, center, new SolarRadiationOrigin(SolarRadiationSource.Rebuilt, buildingSolarRadiationResult.CreatedAt, saved, tokenString is not null));
+        }
+
+        // Stores a result on behalf of the visitor whose token is given, answering whether it was stored. A refusal (401
+        // for an expired session, 400 for a disabled flag or a refused body, 404 for a reference in no county part) or a
+        // failure is logged with its status and never fails the visitor's response; the token is never logged.
+        private async Task<bool> StoreAsync(GIS.Classes.BuildingSolarRadiationResult? buildingSolarRadiationResult, string tokenString, long id, CancellationToken cancellationToken)
+        {
+            if (buildingSolarRadiationResult is null)
+            {
+                logger.LogWarning("Solar radiation for building {Id}: the result cannot be stored - the model carries no reference, or a surface has no shading factor for some sun-up hour.", id);
+                return false;
+            }
+
+            WebAPIResponse? webAPIResponse = await httpClientFactory.CreateClient().StoreBuildingSolarRadiationAsync(buildingSolarRadiationResult, tokenString, cancellationToken);
+            if (webAPIResponse?.StatusCode == StatusCodes.Status200OK)
+            {
+                return true;
+            }
+
+            logger.LogWarning("Solar radiation for building {Id}: the result was not stored, the GIS Web API answered {StatusCode}.", id, webAPIResponse is null ? "no response" : webAPIResponse.StatusCode.ToString(CultureInfo.InvariantCulture));
+            return false;
+        }
+
         // The synchronous routes: prepare with the synchronous ceilings, then solve in this request behind the
         // host-wide gate and hand the results to the route's response. The gate is also held by background
         // jobs for many minutes, so the wait is bounded (SolarSolveGateWaitSeconds) and answers 503 rather
-        // than holding the request until the front end gives up.
-        private async Task<IActionResult> SolveAsync(long id, int? countyId, double? radius, Func<BuildingModel, List<SurfaceSolarRadiationResult>, double, EPWFile, Point2D, IActionResult> respond, CancellationToken cancellationToken)
+        // than holding the request until the front end gives up. A signed-in visitor's result is stored before
+        // the response, which says whether it was.
+        private async Task<IActionResult> SolveAsync(long id, int? countyId, double? radius, Func<BuildingModel, List<SurfaceSolarRadiationResult>, double, EPWFile, Point2D, SolarRadiationOrigin, IActionResult> respond, CancellationToken cancellationToken)
         {
-            double radius_Value = radius ?? Constants.Default.SolarSurroundingRadius;
-            if (!IsValidRadius(radius_Value))
+            double radius_Requested = radius ?? Constants.Default.SolarSurroundingRadius;
+            double radius_Value = Query.SolarRadiusKey(radius_Requested);
+            if (!IsValidRadius(radius_Requested) || !IsValidRadius(radius_Value))
             {
                 return RadiusBadRequest();
             }
 
             Stopwatch stopwatch = Stopwatch.StartNew();
 
-            return await PrepareAsync(id, countyId, radius_Value, false, async (buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount) =>
+            return await PrepareAsync(id, countyId, radius_Value, false, (buildingModel, surfaceSolarRadiationResults, ePWFile, center, solarRadiationOrigin) =>
+            {
+                return respond(buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center, solarRadiationOrigin);
+            }, async (buildingModel, normals, ePWFile, center, shadingModel, casterTriangleCount, ePWFileId) =>
             {
                 if (!await semaphoreSlim.WaitAsync(SolveGateWait, cancellationToken))
                 {
@@ -497,15 +607,17 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return ServiceUnavailable(Constants.Default.SolarSolveGateWaitSeconds, $"Another solar radiation calculation is running on the server. Try again in a minute, or calculate building {id} in the background.");
                 }
 
-                List<SurfaceSolarRadiationResult>? surfaceSolarRadiationResults;
+                List<GIS.Classes.SurfaceSolarRadiation>? surfaceSolarRadiations;
                 try
                 {
-                    surfaceSolarRadiationResults = shadingModel.SurfaceSolarRadiationResults(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
+                    surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
                 }
                 finally
                 {
                     semaphoreSlim.Release();
                 }
+
+                List<SurfaceSolarRadiationResult>? surfaceSolarRadiationResults = Create.SurfaceSolarRadiationResults(surfaceSolarRadiations);
 
                 logger.LogInformation("Solar radiation for building {Id} (county {CountyId}): radius {Radius} m, {ReceiverCount} receivers, {CasterTriangleCount} caster triangles, {ResultCount} results, total {Elapsed} ms.", id, countyId, radius_Value, normals.Count, casterTriangleCount, surfaceSolarRadiationResults?.Count, stopwatch.ElapsedMilliseconds);
 
@@ -514,7 +626,10 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return UnprocessableEntity(new List<string>() { $"The solar radiation of building {id} could not be calculated from its model and weather file." });
                 }
 
-                return respond(buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center);
+                string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+                bool saved = tokenString is not null && countyId is not null && ePWFileId is not null && await StoreAsync(buildingModel.BuildingSolarRadiationResult(countyId.Value, radius_Value, ePWFileId.Value, surfaceSolarRadiations), tokenString, id, cancellationToken);
+
+                return respond(buildingModel, surfaceSolarRadiationResults, radius_Value, ePWFile, center, new SolarRadiationOrigin(SolarRadiationSource.Solved, null, saved, tokenString is not null));
             }, cancellationToken);
         }
     }

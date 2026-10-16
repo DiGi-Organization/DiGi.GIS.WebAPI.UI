@@ -2,6 +2,8 @@ using DiGi.Analytical.Building.Classes;
 using DiGi.GIS.WebAPI.UI.Enums;
 using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace DiGi.GIS.WebAPI.UI.Classes
 {
@@ -23,6 +25,7 @@ namespace DiGi.GIS.WebAPI.UI.Classes
         /// <param name="stationName">The name of the EPW weather station the calculation uses, or null when the file names none.</param>
         /// <param name="stationUrl">The application relative URL of the EPW file page of the station, or null.</param>
         /// <param name="calculation">The calculation, prepared with every input it needs; it is released once it has run.</param>
+        /// <param name="storage">Stores the calculated result on behalf of the signed-in visitor once the calculation has completed, answering whether it was stored; null for an anonymous request. It carries the visitor's token, so it is released once it has run, and on cancellation.</param>
         public SolarJob(
             Guid id,
             long buildingModelId,
@@ -32,7 +35,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             BuildingModel? buildingModel,
             string? stationName,
             string? stationUrl,
-            Func<List<SurfaceSolarRadiationResult>?>? calculation)
+            Func<List<SurfaceSolarRadiationResult>?>? calculation,
+            Func<CancellationToken, Task<bool>>? storage = null)
         {
             Id = id;
             BuildingModelId = buildingModelId;
@@ -43,6 +47,8 @@ namespace DiGi.GIS.WebAPI.UI.Classes
             StationName = stationName;
             StationUrl = stationUrl;
             Calculation = calculation;
+            Storage = storage;
+            SignedIn = storage is not null;
         }
 
         /// <summary> Gets the building, kept to reference the Building Viewer nodes of the results; null once the job failed or was cancelled. </summary>
@@ -53,6 +59,15 @@ namespace DiGi.GIS.WebAPI.UI.Classes
 
         /// <summary> Gets the prepared calculation, or null once it has run or the job was cancelled. </summary>
         public Func<List<SurfaceSolarRadiationResult>?>? Calculation { get; internal set; }
+
+        /// <summary> Gets a value indicating whether the calculated result was stored; false until the storage step has run, and always false for an anonymous request. </summary>
+        public bool Saved { get; internal set; }
+
+        /// <summary> Gets a value indicating whether the request carried a user token, so the result was to be stored. </summary>
+        public bool SignedIn { get; }
+
+        /// <summary> Gets the step storing the result on behalf of the signed-in visitor, or null once it has run, the job was cancelled, or the request was anonymous. </summary>
+        public Func<CancellationToken, Task<bool>>? Storage { get; internal set; }
 
         /// <summary> Gets the optional unique identifier of the county associated with the building. </summary>
         public int? CountyId { get; }

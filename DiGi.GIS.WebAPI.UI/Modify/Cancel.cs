@@ -34,6 +34,7 @@ namespace DiGi.GIS.WebAPI.UI
                     // Nothing of it will be used again: the calculation and the building go at once.
                     solarJob.Status = SolarJobStatus.Cancelled;
                     solarJob.Calculation = null;
+                    solarJob.Storage = null;
                     solarJob.BuildingModel = null;
                     solarJob.FinishedAt = solarJobQueue.TimeProvider.GetUtcNow();
                 }

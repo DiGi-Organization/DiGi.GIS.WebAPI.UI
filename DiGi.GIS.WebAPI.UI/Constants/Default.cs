@@ -190,6 +190,21 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string EPWFileItemUri = GISWebAPIUri + "/gis/epwfile/item";
 
         /// <summary>
+        /// The response header of <see cref="EPWFileItemUri"/> carrying the id of the <c>epw_file</c> row the body holds, as an invariant integer (DiGi-Organization/DiGi.GIS.WebAPI#67). It names the weather source of a stored solar radiation summary; a response without it is solved and shown but neither stored nor reused.
+        /// </summary>
+        public const string EPWFileIdHeaderName = "DiGi-EPWFile-Id";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint reading the stored solar radiation of a building model (<c>id</c>, <c>countyid</c>, <c>radius</c>, <c>solverversion</c>, <c>shadingfactors</c>); 204 when nothing is stored (DiGi-Organization/DiGi.GIS.WebAPI#67).
+        /// </summary>
+        public const string BuildingSolarRadiationUri = GISWebAPIUri + "/gis/buildingsolarradiation/solarradiationbybuildingmodelid";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint storing the solar radiation of a building on behalf of the signed-in user (bearer token; <c>AllowUpdateSolarRadiationData</c> on the host).
+        /// </summary>
+        public const string BuildingSolarRadiationSetUri = GISWebAPIUri + "/gis/buildingsolarradiation/setsolarradiation";
+
+        /// <summary>
         /// The angular tolerance, in radians, below which the solar radiation calculation groups sun directions into one shading solve (<c>ShadingSolverOptions.AngleTolerance</c>); 2°, twice the solver default.
         /// <para>Measured over a full EPW year (DiGi-Organization/DiGi.Solar#7, comment 5831808537): it halves the direction groups (615 → 295) and the solve time, and changes the annual per-surface irradiation by at most 2.06 %. #7 measured on a 16-thread machine, not on this host; the relative saving holds on any machine.</para>
         /// </summary>
@@ -236,6 +251,21 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// <para>A non-leap year, so the 8 760 hours of an EPW year map one to one; a 29 February record is skipped.</para>
         /// </summary>
         public const int SolarReferenceYear = 2025;
+
+        /// <summary>
+        /// The number of hours of the solar reference year (<see cref="SolarReferenceYear"/>, 365 days): the length of every surface's stored shading factors, index = hour of the year.
+        /// </summary>
+        public const int SolarReferenceHourCount = 8760;
+
+        /// <summary>
+        /// The precision, in decimal places, to which the neighbour radius is rounded before it is solved, looked up and stored: one, so 0.1 m. The radius is part of the stored key and compared exactly, so it is rounded once (<see cref="Query.SolarRadiusKey(double)"/>) and every layer then uses the same value.
+        /// </summary>
+        public const int SolarRadiusDecimals = 1;
+
+        /// <summary>
+        /// The version of the solar radiation solve - the shading solver, <c>SolarController.SolarShadingSolverOptions()</c> and the hourly aggregation - that stored results are keyed by. Bump it whenever any of them changes: every result stored under an older version is then a miss and is solved again (DiGi.GIS.WebAPI.UI#73).
+        /// </summary>
+        public const int SolarSolverVersion = 1;
 
         /// <summary>
         /// The dependency injection key of the <see cref="System.Threading.SemaphoreSlim"/> of <see cref="SolarConcurrentSolveCount"/> slots that gates every solar radiation solve on this host.

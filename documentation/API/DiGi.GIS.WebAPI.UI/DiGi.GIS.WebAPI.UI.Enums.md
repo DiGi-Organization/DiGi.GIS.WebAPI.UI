@@ -43,3 +43,32 @@ The calculation threw or produced no result; the job carries the error text\.
 `Cancelled` 4
 
 Cancelled by the client: a queued job is never calculated, and the results of a running one are discarded\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource'></a>
+
+## SolarRadiationSource Enum
+
+Specifies where the solar radiation a response shows came from\.
+
+```csharp
+public enum SolarRadiationSource
+```
+### Fields
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource.Solved'></a>
+
+`Solved` 0
+
+Solved for this request: neighbours fetched, shading model built, shading solver run\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource.Stored'></a>
+
+`Stored` 1
+
+Loaded from a stored result solved for the same building model, radius, solver version and weather source; nothing was solved\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource.Rebuilt'></a>
+
+`Rebuilt` 2
+
+Rebuilt from the shading factors of a stored result for another weather source; no neighbours, no shading model, no solve\.

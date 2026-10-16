@@ -1192,9 +1192,7 @@ public string Status { get; }
 
 ## SolarRadiationViewModel Class
 
-Represents the annual solar radiation of one building as the Building Viewer's "Solar radiation" panel applies it: one entry per receiving surface, recoloured in the existing scene, and the inputs the Results card reports\.
-
-Answered by `solar/viewbybuildingmodelid` and `solar/jobs/{jobId}/view`. It carries no geometry: the surfaces are matched to the scene by [Reference](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel.Reference 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel\.Reference').
+The solar radiation of one building as the Building Viewer's "Solar radiation" panel applies it: the colour and result of each receiving surface, the radius and weather station, and where the result came from\.
 
 ```csharp
 public class SolarRadiationViewModel
@@ -1203,47 +1201,71 @@ public class SolarRadiationViewModel
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → SolarRadiationViewModel
 ### Constructors
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool)'></a>
 
-## SolarRadiationViewModel\(double, string, string, List\<SolarSurfaceViewModel\>\) Constructor
+## SolarRadiationViewModel\(double, string, string, List\<SolarSurfaceViewModel\>, string, Nullable\<DateTimeOffset\>, bool, bool\) Constructor
 
 Initializes a new instance of the [SolarRadiationViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarRadiationViewModel') class\.
 
 ```csharp
-public SolarRadiationViewModel(double radius, string? stationName, string? stationUrl, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel> surfaces);
+public SolarRadiationViewModel(double radius, string? stationName, string? stationUrl, System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel> surfaces, string source, System.Nullable<System.DateTimeOffset> storedAt, bool saved, bool signedIn);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).radius'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).radius'></a>
 
 `radius` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
-The neighbour radius the calculation used, in metres\.
+The neighbour radius the result was solved with, in m\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).stationName'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).stationName'></a>
 
 `stationName` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The name of the EPW weather station, or null when the file names none\.
+The name of the weather station, or null\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).stationUrl'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).stationUrl'></a>
 
 `stationUrl` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
-The application relative URL of the EPW file page of the station, or null\.
+The station page of the weather file, or null\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_).surfaces'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).surfaces'></a>
 
 `surfaces` [System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[SolarSurfaceViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.SolarSurfaceViewModel')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
 
-The results of the receiving surfaces\.
+The coloured surfaces\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).source'></a>
+
+`source` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+Where the result came from: `Solved`, `Stored` or `Rebuilt` \([SolarRadiationSource](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.SolarRadiationSource 'DiGi\.GIS\.WebAPI\.UI\.Enums\.SolarRadiationSource')\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).storedAt'></a>
+
+`storedAt` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+When a stored result was calculated, or null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).saved'></a>
+
+`saved` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True when this request stored its result\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SolarRadiationViewModel(double,string,string,System.Collections.Generic.List_DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel_,string,System.Nullable_System.DateTimeOffset_,bool,bool).signedIn'></a>
+
+`signedIn` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True when the request carried a user token, so a result could be stored\.
 ### Properties
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.Radius'></a>
 
 ## SolarRadiationViewModel\.Radius Property
 
-Gets the neighbour radius the calculation used, in metres\.
+Gets the neighbour radius the result was solved with, in m\.
 
 ```csharp
 public double Radius { get; }
@@ -1252,11 +1274,50 @@ public double Radius { get; }
 #### Property Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.Saved'></a>
+
+## SolarRadiationViewModel\.Saved Property
+
+Gets a value indicating whether this request stored its result\.
+
+```csharp
+public bool Saved { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.SignedIn'></a>
+
+## SolarRadiationViewModel\.SignedIn Property
+
+Gets a value indicating whether the request carried a user token\.
+
+```csharp
+public bool SignedIn { get; }
+```
+
+#### Property Value
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.Source'></a>
+
+## SolarRadiationViewModel\.Source Property
+
+Gets where the result came from: `Solved`, `Stored` or `Rebuilt`\.
+
+```csharp
+public string Source { get; }
+```
+
+#### Property Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.StationName'></a>
 
 ## SolarRadiationViewModel\.StationName Property
 
-Gets the name of the EPW weather station, or null when the file names none\.
+Gets the name of the weather station, or null\.
 
 ```csharp
 public string? StationName { get; }
@@ -1269,7 +1330,7 @@ public string? StationName { get; }
 
 ## SolarRadiationViewModel\.StationUrl Property
 
-Gets the application relative URL of the EPW file page of the station, or null\.
+Gets the station page of the weather file, or null\.
 
 ```csharp
 public string? StationUrl { get; }
@@ -1278,11 +1339,24 @@ public string? StationUrl { get; }
 #### Property Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.StoredAt'></a>
+
+## SolarRadiationViewModel\.StoredAt Property
+
+Gets when a stored result was calculated, or null\.
+
+```csharp
+public System.Nullable<System.DateTimeOffset> StoredAt { get; }
+```
+
+#### Property Value
+[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.DateTimeOffset](https://learn.microsoft.com/en-us/dotnet/api/system.datetimeoffset 'System\.DateTimeOffset')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.SolarRadiationViewModel.Surfaces'></a>
 
 ## SolarRadiationViewModel\.Surfaces Property
 
-Gets the results of the receiving surfaces\.
+Gets the coloured surfaces\.
 
 ```csharp
 public System.Collections.Generic.List<DiGi.GIS.WebAPI.UI.ViewModels.SolarSurfaceViewModel> Surfaces { get; }
