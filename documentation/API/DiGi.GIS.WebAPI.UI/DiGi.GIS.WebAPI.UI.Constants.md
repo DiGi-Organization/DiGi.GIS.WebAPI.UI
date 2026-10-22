@@ -200,6 +200,47 @@ public static class Default
 Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → Default
 ### Fields
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.AddressPointBuildingsByAddressUri'></a>
+
+## Default\.AddressPointBuildingsByAddressUri Field
+
+URI of the GIS Web API endpoint ranking the buildings that match a free text address \(DiGi\-Organization/DiGi\.GIS\.WebAPI\#68\)\.
+
+TODO [AddressSearch]: the endpoint answers 404 on the deployed host until the build carrying DiGi.GIS.WebAPI e732a1e is deployed, which the relay reads as "no matches". Remove this note once `GET /information/endpoints` on api.digiproject.uk lists `buildingsbyaddress` (DiGi-Organization/DiGi.GIS.WebAPI.UI#76).
+
+```csharp
+public const string AddressPointBuildingsByAddressUri = "https://api.digiproject.uk/gis/addresspoint/buildingsbyaddress";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.AddressSearchLimitMaximum'></a>
+
+## Default\.AddressSearchLimitMaximum Field
+
+The largest number of matches the upstream [AddressPointBuildingsByAddressUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.AddressPointBuildingsByAddressUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.AddressPointBuildingsByAddressUri') answers for one request\.
+
+```csharp
+public const int AddressSearchLimitMaximum = 100;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.AddressSearchMinimumLength'></a>
+
+## Default\.AddressSearchMinimumLength Field
+
+The fewest characters of address text the address search relay accepts, so a keystroke or two does not rank every address\.
+
+```csharp
+public const int AddressSearchMinimumLength = 3;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.Building2DCentroidsUri'></a>
 
 ## Default\.Building2DCentroidsUri Field

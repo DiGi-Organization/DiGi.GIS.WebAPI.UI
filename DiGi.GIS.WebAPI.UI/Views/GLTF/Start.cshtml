@@ -40,6 +40,30 @@
     </div>
 
     <div class="gis-card gis-hero-card">
+        @* Magnifier line icon (same line-icon set as the building icons). *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Find by Address</h2>
+        <p class="gis-hero-text">
+            Type a street and locality to find a building by its address. Misspellings and missing diacritics are tolerated; add a house number to narrow the list.
+        </p>
+        <form id="address-search-form" class="gis-inline-form" autocomplete="off" role="search">
+            <label>Address
+                <input type="text" id="address-search-text" class="gis-input-address" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="address-search-results" maxlength="200" placeholder="e.g. Marszalkowska, Warszawa" />
+            </label>
+            <label>No.
+                <input type="text" id="address-search-housenumber" class="gis-input-sm" maxlength="20" />
+            </label>
+        </form>
+        <div id="address-search-status" class="gis-address-status" role="status" aria-live="polite"></div>
+        <ul id="address-search-results" class="gis-address-results" role="listbox" aria-label="Matching addresses" hidden></ul>
+    </div>
+
+    <div class="gis-card gis-hero-card">
         @* Multiple-buildings line icon (consistent line-icon set shared with the communication start page). *@
         <div class="gis-hero-icon">
             <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
@@ -73,7 +97,13 @@
 
 @section Scripts {
     <script src="~/js/gis-common.js" asp-append-version="true"></script>
+    <script src="~/js/address-search.js" asp-append-version="true"></script>
     <script>
+        initAddressSearch({
+            searchUrl: '@Url.Content("~/addresspoint/buildingsbyaddress")',
+            openUrl: '@Url.Content("~/buildingmodel/itembyreference")',
+            minimumLength: @DiGi.GIS.WebAPI.UI.Constants.Default.AddressSearchMinimumLength
+        });
         setupDisplayAreaRadiusValidation('#buildingmodel-radius-form');
         // The Building Viewer radius is the minimum view range; the ground is loaded out to 3 times it, and at most 2000 m.
         setupDisplayAreaRadiusValidation('#buildingmodel-id-form', 'radius', 666, 666);

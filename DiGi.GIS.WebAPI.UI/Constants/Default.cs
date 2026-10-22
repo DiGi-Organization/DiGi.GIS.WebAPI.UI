@@ -125,6 +125,22 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string GISWebAPIUri_Development = "https://api.digiproject.uk";
 
         /// <summary>
+        /// URI of the GIS Web API endpoint ranking the buildings that match a free text address (DiGi-Organization/DiGi.GIS.WebAPI#68).
+        /// <para>TODO [AddressSearch]: the endpoint answers 404 on the deployed host until the build carrying DiGi.GIS.WebAPI e732a1e is deployed, which the relay reads as "no matches". Remove this note once <c>GET /information/endpoints</c> on api.digiproject.uk lists <c>buildingsbyaddress</c> (DiGi-Organization/DiGi.GIS.WebAPI.UI#76).</para>
+        /// </summary>
+        public const string AddressPointBuildingsByAddressUri = GISWebAPIUri + "/gis/addresspoint/buildingsbyaddress";
+
+        /// <summary>
+        /// The fewest characters of address text the address search relay accepts, so a keystroke or two does not rank every address.
+        /// </summary>
+        public const int AddressSearchMinimumLength = 3;
+
+        /// <summary>
+        /// The largest number of matches the upstream <see cref="AddressPointBuildingsByAddressUri"/> answers for one request.
+        /// </summary>
+        public const int AddressSearchLimitMaximum = 100;
+
+        /// <summary>
         /// URI of the GIS Web API endpoint drawing the next building to verify: one with orthophoto coverage and no user-provided year built yet.
         /// <para>Requires a signed-in session.</para>
         /// </summary>
