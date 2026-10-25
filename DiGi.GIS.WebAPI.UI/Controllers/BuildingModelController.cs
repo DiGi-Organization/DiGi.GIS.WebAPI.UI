@@ -254,6 +254,40 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Asynchronously opens the building named by an address search match: the building is resolved by <paramref name="reference"/> alone (the point only selects the county part, see <see cref="Query.Building2DReferenceByPointAsync(HttpClient?, string?, int?, double?, double?, CancellationToken)"/>) and the request is redirected to <see cref="GetBuildingModelByIdAsync(long, int?, double?, CancellationToken)"/>.
+        /// <para>Unlike <see cref="GetItemByReferenceAsync(string, double, double, double?, CancellationToken)"/> it does not search a circle around the point, so a match farther from its footprint than <see cref="Constants.Default.BuildingSearchRadius"/> still opens, and a building that does not resolve is never replaced by a neighbouring one.</para>
+        /// </summary>
+        /// <param name="reference">The reference of the matched building.</param>
+        /// <param name="x">The X coordinate of the address point, in PL-1992 (EPSG:2180) metres.</param>
+        /// <param name="y">The Y coordinate of the address point, in PL-1992 (EPSG:2180) metres.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>A redirect to the building page, a bad request when the reference or the point is missing or not finite, or a not found response when the reference does not resolve.</returns>
+        [HttpGet("itembyaddress")]
+        public async Task<IActionResult> GetItemByAddressAsync([FromQuery(Name = "reference")] string? reference, [FromQuery(Name = "x")] double? x, [FromQuery(Name = "y")] double? y, CancellationToken cancellationToken = default)
+        {
+            if (string.IsNullOrWhiteSpace(reference) || !x.HasValue || !y.HasValue || !double.IsFinite(x.Value) || !double.IsFinite(y.Value))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            PostgreSQL.Classes.Building2DReference? building2DReference = await httpClient.Building2DReferenceByPointAsync(reference, null, x, y, cancellationToken);
+            if (building2DReference is null || building2DReference.Id <= 0)
+            {
+                return NotFound();
+            }
+
+            string url = $"~/buildingmodel/buildingmodelbyid?id={building2DReference.Id.ToString(CultureInfo.InvariantCulture)}";
+            if (building2DReference.CountyId.HasValue)
+            {
+                url += $"&countyid={building2DReference.CountyId.Value.ToString(CultureInfo.InvariantCulture)}";
+            }
+
+            return Redirect(url);
+        }
+
+        /// <summary>
         /// Renders the 3D viewer page for a single building. The page itself carries no geometry; the viewer streams the binary glTF payload from the glb endpoint.
         /// <para>The page offers the "Solar radiation" panel (<see cref="SolarController.GetViewByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/>), with <paramref name="radius"/> as the neighbour radius limited by <see cref="Query.SolarRadius(double?)"/>.</para>
         /// </summary>

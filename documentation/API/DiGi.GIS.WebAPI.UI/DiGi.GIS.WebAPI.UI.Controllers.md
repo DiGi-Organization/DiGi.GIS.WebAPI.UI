@@ -1020,6 +1020,47 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 A [System\.Threading\.Tasks\.Task&lt;&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1') holding the \.glb file, or no content when the building has no neighbours\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByAddressAsync(string,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## BuildingModelController\.GetItemByAddressAsync\(string, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Asynchronously opens the building named by an address search match: the building is resolved by [reference](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByAddressAsync(string,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).reference 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetItemByAddressAsync\(string, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)\.reference') alone \(the point only selects the county part, see [Building2DReferenceByPointAsync\(this HttpClient, string, Nullable&lt;int&gt;, Nullable&lt;double&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Building2DReferenceByPointAsync(thisSystem.Net.Http.HttpClient,string,System.Nullable_int_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.Building2DReferenceByPointAsync\(this System\.Net\.Http\.HttpClient, string, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')\) and the request is redirected to [GetBuildingModelByIdAsync\(long, Nullable&lt;int&gt;, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetBuildingModelByIdAsync(long,System.Nullable_int_,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetBuildingModelByIdAsync\(long, System\.Nullable\<int\>, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)')\.
+
+Unlike [GetItemByReferenceAsync\(string, double, double, Nullable&lt;double&gt;, CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingModelController\.GetItemByReferenceAsync\(string, double, double, System\.Nullable\<double\>, System\.Threading\.CancellationToken\)') it does not search a circle around the point, so a match farther from its footprint than [BuildingSearchRadius](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSearchRadius 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingSearchRadius') still opens, and a building that does not resolve is never replaced by a neighbouring one.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetItemByAddressAsync(string? reference, System.Nullable<double> x, System.Nullable<double> y, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByAddressAsync(string,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the matched building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByAddressAsync(string,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x'></a>
+
+`x` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the address point, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByAddressAsync(string,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y'></a>
+
+`y` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the address point, in PL\-1992 \(EPSG:2180\) metres\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByAddressAsync(string,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+A redirect to the building page, a bad request when the reference or the point is missing or not finite, or a not found response when the reference does not resolve\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingModelController.GetItemByReferenceAsync(string,double,double,System.Nullable_double_,System.Threading.CancellationToken)'></a>
 
 ## BuildingModelController\.GetItemByReferenceAsync\(string, double, double, Nullable\<double\>, CancellationToken\) Method
