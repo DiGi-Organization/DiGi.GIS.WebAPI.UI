@@ -1,17 +1,48 @@
 @{
     ViewData["Title"] = "Buildings";
-    ViewData["Description"] = "Explore the building directory and query spatial and architectural attributes of buildings in the GIS database.";
+    ViewData["Description"] = "Find a building by its address, or browse buildings by administrative area, and query their spatial and architectural attributes.";
 }
 
 <div class="gis-panel">
     <div class="gis-card gis-hero-card">
-        <div class="gis-hero-icon">🏢</div>
-        <h2 class="gis-title gis-title-hero">Buildings Directory</h2>
+        @* Magnifier line icon (same line-icon set as the 3D Viewer start page icons). *@
+        <div class="gis-hero-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" role="img" aria-hidden="true">
+                <circle cx="11" cy="11" r="7" />
+                <path d="m21 21-4.3-4.3" />
+            </svg>
+        </div>
+        <h2 class="gis-title gis-title-hero">Find by Address</h2>
         <p class="gis-hero-text">
-            To view buildings and their technical details, please first select an administrative area.
+            Type a street and locality to find a building by its address. Misspellings and missing diacritics are tolerated; add a house number to narrow the list.
         </p>
-        <a href="~/administrativeareal2D" class="gis-button">
+        <form id="address-search-form" class="gis-inline-form" autocomplete="off" role="search">
+            <label>Address
+                <input type="text" id="address-search-text" class="gis-input-address" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="address-search-results" maxlength="200" placeholder="e.g. Marszalkowska, Warszawa" />
+            </label>
+            <label>No.
+                <input type="text" id="address-search-housenumber" class="gis-input-sm" maxlength="20" />
+            </label>
+        </form>
+        <div id="address-search-status" class="gis-address-status" role="status" aria-live="polite"></div>
+        <ul id="address-search-results" class="gis-address-results" role="listbox" aria-label="Matching addresses" hidden></ul>
+        @* Browsing by area was this page's only content before the address search moved here (#79). *@
+        <p class="gis-hero-text">
+            To browse buildings and their technical details by area, start from an administrative area instead.
+        </p>
+        <a href="~/administrativeareal2D" class="gis-button gis-button-secondary">
             Go to Administrative Areas
         </a>
     </div>
 </div>
+
+@section Scripts {
+    <script src="~/js/address-search.js" asp-append-version="true"></script>
+    <script>
+        initAddressSearch({
+            searchUrl: '@Url.Content("~/addresspoint/buildingsbyaddress")',
+            openUrl: '@Url.Content("~/buildingmodel/itembyaddress")',
+            minimumLength: @DiGi.GIS.WebAPI.UI.Constants.Default.AddressSearchMinimumLength
+        });
+    </script>
+}

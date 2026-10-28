@@ -1,5 +1,5 @@
 /*
- * Address search of the Building Viewer start page (DiGi.GIS.WebAPI.UI#76).
+ * Address search of the Buildings start page (DiGi.GIS.WebAPI.UI#76, moved from the 3D Viewer start page by #79).
  *
  * Types go to this application's own relay (AddressPointController), which forwards them to the GIS Web
  * API's buildingsbyaddress. The query names - text, housenumber - are that contract; the API ignores an

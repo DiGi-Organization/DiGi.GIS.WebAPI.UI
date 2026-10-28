@@ -1395,7 +1395,7 @@ h1.gis-title-large {
             width: 100px;
         }
 
-/* Address search of the Building Viewer start page (#76) */
+/* Address search of the Buildings start page (#76, #79) */
 .gis-inline-form input.gis-input-address {
     width: 280px;
     max-width: 100%;
