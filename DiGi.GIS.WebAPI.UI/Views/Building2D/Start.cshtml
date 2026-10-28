@@ -24,8 +24,9 @@
                 <input type="text" id="address-search-housenumber" class="gis-input-sm" maxlength="20" />
             </label>
         </form>
-        <div id="address-search-status" class="gis-address-status" role="status" aria-live="polite"></div>
-        <ul id="address-search-results" class="gis-address-results" role="listbox" aria-label="Matching addresses" hidden></ul>
+        @* Always-shown results box, styled as the Typology Select Area prompt (#80): address-search.js writes
+           every state into it - the minimum-length hint, searching, the matches, no matches or a refusal. *@
+        <div id="address-search-results" class="gis-scroll-box gis-typology-load-results gis-address-results" role="listbox" aria-label="Matching addresses"></div>
         @* Browsing by area was this page's only content before the address search moved here (#79). *@
         <p class="gis-hero-text">
             To browse buildings and their technical details by area, start from an administrative area instead.

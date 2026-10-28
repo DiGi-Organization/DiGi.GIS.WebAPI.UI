@@ -4,6 +4,10 @@
  * Types go to this application's own relay (AddressPointController), which forwards them to the GIS Web
  * API's buildingsbyaddress. The query names - text, housenumber - are that contract; the API ignores an
  * unknown name silently, so they are kept in step by hand.
+ *
+ * The results box mirrors the Select Area prompt of the Typology page (#80): it is always shown, and every
+ * state - the minimum-length hint, searching, no matches, a refusal - is written inside it with the same
+ * classes, so the two searches look and read alike.
  */
 function initAddressSearch(options) {
     const searchDelay = 300;
@@ -11,9 +15,8 @@ function initAddressSearch(options) {
     const textInput = document.getElementById('address-search-text');
     const houseNumberInput = document.getElementById('address-search-housenumber');
     const form = document.getElementById('address-search-form');
-    const status = document.getElementById('address-search-status');
     const list = document.getElementById('address-search-results');
-    if (textInput === null || houseNumberInput === null || form === null || status === null || list === null) {
+    if (textInput === null || houseNumberInput === null || form === null || list === null) {
         return;
     }
 
@@ -42,25 +45,45 @@ function initAddressSearch(options) {
         return typeof value === 'number' && isFinite(value) ? value : null;
     }
 
-    function label(match) {
+    // The label's parts, read as a breadcrumb like the Select Area rows: street and number, then postal code
+    // and locality.
+    function labelParts(match) {
         const point = match.AddressPoint || {};
         const street = [point.StreetName, point.HouseNumber].filter(Boolean).join(' ');
         const locality = [point.PostalCode, point.LocalityName].filter(Boolean).join(' ');
-        return [street, locality].filter(Boolean).join(', ');
+        return [street, locality].filter(Boolean);
     }
 
-    function setStatus(text, isError) {
-        status.textContent = text;
-        status.classList.toggle('text-danger', isError === true);
-    }
-
-    function clearList() {
+    // Every message state is a non-result state: the rows are gone, and with them any selection, so Enter
+    // must not open a row the visitor can no longer see.
+    function showMessage(text, isError) {
         rows = [];
         activeIndex = -1;
-        list.innerHTML = '';
-        list.hidden = true;
         textInput.setAttribute('aria-expanded', 'false');
         textInput.removeAttribute('aria-activedescendant');
+
+        const message = document.createElement('div');
+        message.className = isError === true ? 'gis-empty-state gis-typology-load-error' : 'gis-empty-state';
+        message.textContent = text;
+        list.replaceChildren(message);
+    }
+
+    function showIdle() {
+        showMessage('Type at least ' + options.minimumLength + ' characters to search.', false);
+    }
+
+    function showSearching() {
+        rows = [];
+        activeIndex = -1;
+        textInput.setAttribute('aria-expanded', 'false');
+        textInput.removeAttribute('aria-activedescendant');
+
+        const loader = document.createElement('div');
+        loader.className = 'gis-loader';
+        const caption = document.createElement('p');
+        caption.className = 'gis-loader-text';
+        caption.textContent = 'Searching addresses…';
+        list.replaceChildren(loader, caption);
     }
 
     function abort() {
@@ -77,11 +100,11 @@ function initAddressSearch(options) {
 
     function setActive(index) {
         activeIndex = index;
-        const items = list.children;
+        const items = list.querySelectorAll('.gis-typology-result-row');
         for (let i = 0; i < items.length; i++) {
             const selected = i === index;
             items[i].setAttribute('aria-selected', selected ? 'true' : 'false');
-            items[i].classList.toggle('gis-address-active', selected);
+            items[i].classList.toggle('gis-typology-result-selected', selected);
         }
         if (index >= 0 && index < items.length) {
             textInput.setAttribute('aria-activedescendant', items[index].id);
@@ -99,7 +122,7 @@ function initAddressSearch(options) {
         const x = coordinate(match.AddressPoint ? match.AddressPoint.Location : null, 'X', 0);
         const y = coordinate(match.AddressPoint ? match.AddressPoint.Location : null, 'Y', 1);
         if (!match.Reference || x === null || y === null) {
-            setStatus('This address has no location to open.', true);
+            showMessage('This address has no location to open.', true);
             return;
         }
         window.location.href = options.openUrl
@@ -109,22 +132,39 @@ function initAddressSearch(options) {
     }
 
     function render(matches) {
-        rows = matches;
-        list.innerHTML = '';
-        matches.forEach(function (match, index) {
-            const item = document.createElement('li');
+        const items = matches.map(function (match, index) {
+            const item = document.createElement('div');
             item.id = 'address-search-option-' + index;
             item.setAttribute('role', 'option');
             item.setAttribute('aria-selected', 'false');
-            item.className = 'gis-address-option';
-            item.textContent = label(match);
+            item.className = 'gis-typology-result-row';
+
+            const breadcrumb = document.createElement('span');
+            breadcrumb.className = 'gis-path-breadcrumb';
+            labelParts(match).forEach(function (part, partIndex) {
+                if (partIndex > 0) {
+                    const separator = document.createElement('span');
+                    separator.className = 'breadcrumb-separator';
+                    separator.textContent = '›';
+                    breadcrumb.appendChild(separator);
+                }
+                const wrapper = document.createElement('span');
+                wrapper.className = 'breadcrumb-item-wrapper';
+                wrapper.textContent = part;
+                breadcrumb.appendChild(wrapper);
+            });
+            item.appendChild(breadcrumb);
+
+            // mousedown, not click, so the inputs keep focus and the open is not lost to a blur.
             item.addEventListener('mousedown', function (event) {
                 event.preventDefault();
                 open(index);
             });
-            list.appendChild(item);
+            return item;
         });
-        list.hidden = false;
+
+        rows = matches;
+        list.replaceChildren.apply(list, items);
         textInput.setAttribute('aria-expanded', 'true');
         setActive(-1);
     }
@@ -133,8 +173,7 @@ function initAddressSearch(options) {
         const text = textInput.value.trim();
         abort();
         if (text.length < options.minimumLength) {
-            clearList();
-            setStatus(text.length === 0 ? '' : 'Type at least ' + options.minimumLength + ' characters to search.', false);
+            showIdle();
             return;
         }
 
@@ -146,20 +185,18 @@ function initAddressSearch(options) {
             query += '&housenumber=' + encodeURIComponent(houseNumber);
         }
 
-        setStatus('Searching...', false);
+        showSearching();
         try {
             const response = await fetch(options.searchUrl + query, { signal: controller.signal });
             if (current !== sequence) {
                 return;
             }
             if (response.status === 204) {
-                clearList();
-                setStatus('No matching address found.', false);
+                showMessage('No matching address found.', false);
                 return;
             }
             if (!response.ok) {
-                clearList();
-                setStatus(response.status === 503 ? 'The address service is unreachable.' : 'The address search failed.', true);
+                showMessage(response.status === 503 ? 'The address service is unreachable.' : 'The address search failed.', true);
                 return;
             }
             const matches = await response.json();
@@ -167,19 +204,17 @@ function initAddressSearch(options) {
                 return;
             }
             if (!Array.isArray(matches) || matches.length === 0) {
-                clearList();
-                setStatus('No matching address found.', false);
+                showMessage('No matching address found.', false);
                 return;
             }
-            setStatus(matches.length + (matches.length === 1 ? ' match.' : ' matches.'), false);
             render(matches);
         } catch (error) {
             if (error && error.name === 'AbortError') {
                 return;
             }
+            // A dead connection or an undecodable body is a refusal, not an empty result.
             if (current === sequence) {
-                clearList();
-                setStatus('The address search failed.', true);
+                showMessage('The address search failed.', true);
             }
         }
     }
@@ -215,12 +250,13 @@ function initAddressSearch(options) {
             event.preventDefault();
             setActive(activeIndex <= 0 ? rows.length - 1 : activeIndex - 1);
         } else if (event.key === 'Escape') {
-            abort();
-            clearList();
-            setStatus('', false);
+            // The box stays on the page, so Escape only drops the highlighted row.
+            setActive(-1);
         }
     }
 
     textInput.addEventListener('keydown', onKey);
     houseNumberInput.addEventListener('keydown', onKey);
+
+    showIdle();
 }

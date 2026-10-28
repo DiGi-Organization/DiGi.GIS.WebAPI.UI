@@ -1401,38 +1401,18 @@ h1.gis-title-large {
     max-width: 100%;
 }
 
-.gis-address-status {
-    min-height: 1.4em;
-    margin-top: 10px;
-    font-size: 0.85rem;
-    color: var(--text-muted);
-}
-
-.gis-address-results {
-    list-style: none;
-    margin: 6px auto 0;
-    padding: 0;
-    max-width: 520px;
-    max-height: 320px;
-    overflow-y: auto;
+/* The results box wears the Select Area classes (.gis-scroll-box .gis-typology-load-results, #80); this
+   only places it in the centred hero card - compound, so it wins over the later
+   .gis-typology-load-results margin - as wide as the Select Area dialog, left-aligned rows. */
+.gis-typology-load-results.gis-address-results {
+    max-width: 620px;
+    margin: 10px auto;
     text-align: left;
-    border: 1px solid var(--border-color);
-    border-radius: 4px;
+    overflow-x: hidden;
 }
 
-    .gis-address-results[hidden] {
-        display: none;
-    }
-
-.gis-address-option {
-    padding: 8px 12px;
-    cursor: pointer;
-    overflow-wrap: anywhere;
-}
-
-    .gis-address-option:hover,
-    .gis-address-option.gis-address-active {
-        background: var(--border-color);
+    .gis-address-results .breadcrumb-item-wrapper {
+        overflow-wrap: anywhere;
     }
 
 /* Narrow centered card (single control panel) */
