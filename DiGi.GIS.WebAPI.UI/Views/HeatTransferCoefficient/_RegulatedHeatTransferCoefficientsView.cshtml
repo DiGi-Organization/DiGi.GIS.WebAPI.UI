@@ -3,6 +3,7 @@
 @using DiGi.GIS.Classes
 @using System.Linq
 @using System.Collections.Generic
+@using DiGi.GIS.WebAPI.UI.Enums
 @using DiGi.GIS.WebAPI.UI.ViewModels
 @using DiGi.GIS.PostgreSQL.Classes
 @using DiGi.GIS.PostgreSQL.Enums
@@ -39,26 +40,41 @@
                 </tr>
             }
 
-            @{
-                // Extracting logic to explicit types
-                List<string>? names = regulatedHeatTransferCoefficients.GetNames();
-                if (viewData.IsResidential is bool isResidential)
-                {
-                    names?.RemoveAll(x => x.ToLower().StartsWith(isResidential ? "public" : "residential"));
-                }
-
-                int totalItems = names?.Count ?? 0;
+            @if (viewData.RegulatedBuildingCategory != RegulatedBuildingCategory.Undefined)
+            {
+                <tr>
+                    <td class="property-label">Building Category</td>
+                    <td>@(DiGi.Core.Query.Description(viewData.RegulatedBuildingCategory) ?? viewData.RegulatedBuildingCategory.ToString())</td>
+                </tr>
             }
 
-            @for (int i = 0; i < totalItems; i++)
+            @* The controller selects the limits that apply to the building's category (DiGi.GIS.WebAPI.UI#82). *@
+            @foreach (string name in viewData.Names)
             {
-                string? name = names![i];
-                double coefficientValue = 0;
-                regulatedHeatTransferCoefficients.TryGetValue(name, out coefficientValue);
+                regulatedHeatTransferCoefficients.TryGetValue(name, out double coefficientValue);
 
                 <tr>
                     <td class="property-label">@name:</td>
                     <td>@coefficientValue [W/(m²·K)]</td>
+                </tr>
+            }
+
+            @* A minimum thermal resistance is a resistance, never a heat transfer coefficient. *@
+            @foreach (string name in viewData.MinimumThermalResistanceNames)
+            {
+                regulatedHeatTransferCoefficients.TryGetMinimumThermalResistance(name, out double minimumThermalResistance);
+
+                <tr>
+                    <td class="property-label">@name (minimum thermal resistance):</td>
+                    <td>@minimumThermalResistance [(m²·K)/W]</td>
+                </tr>
+            }
+
+            @if (viewData.EnergyIndicatorRequirement)
+            {
+                <tr>
+                    <td class="property-label">Multi-family building:</td>
+                    <td>The single-family limits do not apply; the regulation limits the building by its seasonal heat demand indicator E ≤ E0.</td>
                 </tr>
             }
         </table>

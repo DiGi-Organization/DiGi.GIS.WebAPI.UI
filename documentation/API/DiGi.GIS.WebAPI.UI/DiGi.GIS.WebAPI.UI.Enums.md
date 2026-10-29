@@ -3,6 +3,49 @@
 ## DiGi\.GIS\.WebAPI\.UI\.Enums Namespace
 ### Enums
 
+<a name='DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory'></a>
+
+## RegulatedBuildingCategory Enum
+
+Specifies the building category that decides which limits of a technical\-conditions regulation apply to a building \(DiGi\-Organization/DiGi\.GIS\.WebAPI\.UI\#82\)\.
+
+The 1997, 2002 and 2008 regulations set limits per category: single-family building rows, residential rows for every residential building, and public building rows, which the panel also shows for any other non-residential building.
+
+```csharp
+public enum RegulatedBuildingCategory
+```
+### Fields
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.Undefined'></a>
+
+`Undefined` 0
+
+The category is not known \(no footprint was found\); every limit is shown\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.SingleFamily'></a>
+
+`SingleFamily` 1
+
+A single\-family residential building\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.MultiFamily'></a>
+
+`MultiFamily` 2
+
+A multi\-family residential building; the single\-family limits do not apply to it\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.Residential'></a>
+
+`Residential` 3
+
+A residential building that is neither marked single\-family nor multi\-family, or is marked both; every residential limit is shown\.
+
+<a name='DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.NonResidential'></a>
+
+`NonResidential` 4
+
+A non\-residential building; the public building limits are shown\.
+
 <a name='DiGi.GIS.WebAPI.UI.Enums.SolarJobStatus'></a>
 
 ## SolarJobStatus Enum

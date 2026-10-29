@@ -980,48 +980,105 @@ Initializes a new instance of the [RegulatedHeatTransferCoefficientsViewModel](D
 public RegulatedHeatTransferCoefficientsViewModel();
 ```
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,System.Nullable_bool_)'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool)'></a>
 
-## RegulatedHeatTransferCoefficientsViewModel\(short, IRegulatedHeatTransferCoefficients, Nullable\<bool\>\) Constructor
+## RegulatedHeatTransferCoefficientsViewModel\(short, IRegulatedHeatTransferCoefficients, RegulatedBuildingCategory, IEnumerable\<string\>, IEnumerable\<string\>, bool\) Constructor
 
 Initializes a new instance of the [RegulatedHeatTransferCoefficientsViewModel](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.RegulatedHeatTransferCoefficientsViewModel') class\.
 
 ```csharp
-public RegulatedHeatTransferCoefficientsViewModel(short year, DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients, System.Nullable<bool> isResidential);
+public RegulatedHeatTransferCoefficientsViewModel(short year, DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients? regulatedHeatTransferCoefficients, DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory regulatedBuildingCategory, System.Collections.Generic.IEnumerable<string>? names, System.Collections.Generic.IEnumerable<string>? minimumThermalResistanceNames, bool energyIndicatorRequirement);
 ```
 #### Parameters
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,System.Nullable_bool_).year'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool).year'></a>
 
 `year` [System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')
 
 The year associated with the regulated heat transfer coefficients\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,System.Nullable_bool_).regulatedHeatTransferCoefficients'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool).regulatedHeatTransferCoefficients'></a>
 
 `regulatedHeatTransferCoefficients` [DiGi\.Analytical\.Building\.HVAC\.Interfaces\.IRegulatedHeatTransferCoefficients](https://learn.microsoft.com/en-us/dotnet/api/digi.analytical.building.hvac.interfaces.iregulatedheattransfercoefficients 'DiGi\.Analytical\.Building\.HVAC\.Interfaces\.IRegulatedHeatTransferCoefficients')
 
 The regulated heat transfer coefficients\.
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,System.Nullable_bool_).isResidential'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool).regulatedBuildingCategory'></a>
 
-`isResidential` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+`regulatedBuildingCategory` [RegulatedBuildingCategory](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory')
 
-A value indicating whether the building is residential\.
+The building category the limits were selected for\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool).names'></a>
+
+`names` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The names of the heat transfer coefficients U\(max\) that apply to the building\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool).minimumThermalResistanceNames'></a>
+
+`minimumThermalResistanceNames` [System\.Collections\.Generic\.IEnumerable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ienumerable-1 'System\.Collections\.Generic\.IEnumerable\`1')
+
+The names of the minimum thermal resistances R\(min\) that apply to the building\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficientsViewModel(short,DiGi.Analytical.Building.HVAC.Interfaces.IRegulatedHeatTransferCoefficients,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory,System.Collections.Generic.IEnumerable_string_,System.Collections.Generic.IEnumerable_string_,bool).energyIndicatorRequirement'></a>
+
+`energyIndicatorRequirement` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+A value indicating whether the regulation limits the building by its seasonal heat demand indicator E instead of the single\-family limits left out\.
 ### Properties
 
-<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.IsResidential'></a>
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.EnergyIndicatorRequirement'></a>
 
-## RegulatedHeatTransferCoefficientsViewModel\.IsResidential Property
+## RegulatedHeatTransferCoefficientsViewModel\.EnergyIndicatorRequirement Property
 
-Gets a value indicating whether the building is residential\.
+Gets a value indicating whether the regulation limits the building by its seasonal heat demand indicator E \(E ≤ E0\) instead of the single\-family limits left out of [Names](DiGi.GIS.WebAPI.UI.ViewModels.md#DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.Names 'DiGi\.GIS\.WebAPI\.UI\.ViewModels\.RegulatedHeatTransferCoefficientsViewModel\.Names')\.
 
 ```csharp
-public System.Nullable<bool> IsResidential { get; }
+public bool EnergyIndicatorRequirement { get; }
 ```
 
 #### Property Value
-[System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.MinimumThermalResistanceNames'></a>
+
+## RegulatedHeatTransferCoefficientsViewModel\.MinimumThermalResistanceNames Property
+
+Gets the names of the minimum thermal resistances R\(min\) \[\(m2K\)/W\] that apply to the building\.
+
+```csharp
+public System.Collections.Generic.List<string> MinimumThermalResistanceNames { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.Names'></a>
+
+## RegulatedHeatTransferCoefficientsViewModel\.Names Property
+
+Gets the names of the heat transfer coefficients U\(max\) \[W/\(m2K\)\] that apply to the building\.
+
+```csharp
+public System.Collections.Generic.List<string> Names { get; }
+```
+
+#### Property Value
+[System\.Collections\.Generic\.List&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.list-1 'System\.Collections\.Generic\.List\`1')
+
+<a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedBuildingCategory'></a>
+
+## RegulatedHeatTransferCoefficientsViewModel\.RegulatedBuildingCategory Property
+
+Gets the building category the limits were selected for\.
+
+```csharp
+public DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory RegulatedBuildingCategory { get; }
+```
+
+#### Property Value
+[RegulatedBuildingCategory](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory')
 
 <a name='DiGi.GIS.WebAPI.UI.ViewModels.RegulatedHeatTransferCoefficientsViewModel.RegulatedHeatTransferCoefficients'></a>
 

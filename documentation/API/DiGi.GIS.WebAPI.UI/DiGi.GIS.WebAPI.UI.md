@@ -2641,6 +2641,37 @@ The color to render\. This value can be null\.
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The lower case `#rrggbb` string, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when [color](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.Hex(thisDiGi.Core.Classes.Color).color 'DiGi\.GIS\.WebAPI\.UI\.Query\.Hex\(this DiGi\.Core\.Classes\.Color\)\.color') is null\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.IsRegulated(string,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory)'></a>
+
+## Query\.IsRegulated\(string, RegulatedBuildingCategory\) Method
+
+Determines whether a limit of a technical\-conditions regulation, identified by its name, applies to a building of the given category \(DiGi\-Organization/DiGi\.GIS\.WebAPI\.UI\#82\)\.
+
+The category is read from the name, the description DiGi.Analytical gives each limit: "Public building …" applies to a non-residential building, "Residential building (single-family) …" to a single-family building only, and any other "Residential building …" to every residential building. A name without one of these prefixes (the 2014 regulation's "Wall", "Window" …) applies to every building. With [Undefined](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.Undefined 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.Undefined') every limit applies, and with [Residential](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.Residential 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.Residential') every residential limit, the single-family ones included.
+
+The 1997 and 2002 regulations set the wall, roof and basement ceiling limits (1997: every limit) of a residential building for a single-family building only; a multi-family building meets them by its seasonal heat demand indicator E ≤ E0 instead (DiGi-Organization/DiGi.Analytical#12, #14).
+
+```csharp
+public static bool IsRegulated(string? name, DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory regulatedBuildingCategory);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.IsRegulated(string,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory).name'></a>
+
+`name` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The name of the limit\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.IsRegulated(string,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory).regulatedBuildingCategory'></a>
+
+`regulatedBuildingCategory` [RegulatedBuildingCategory](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory')
+
+The category of the building\.
+
+#### Returns
+[System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')  
+[true](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') if the limit applies to the building; [false](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/builtin-types/bool 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/builtin\-types/bool') if it does not or [name](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.IsRegulated(string,DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory).name 'DiGi\.GIS\.WebAPI\.UI\.Query\.IsRegulated\(string, DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\)\.name') is null or whitespace\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.ItemAsync_T_(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken)'></a>
 
 ## Query\.ItemAsync\<T\>\(this HttpClient, string, CancellationToken\) Method
@@ -2894,6 +2925,29 @@ The unique identifier of the job\.
 #### Returns
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')  
 The place of the job, or null when it is finished, cancelled, unknown or expired\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.RegulatedBuildingCategory(thisDiGi.GIS.Classes.Building2D)'></a>
+
+## Query\.RegulatedBuildingCategory\(this Building2D\) Method
+
+Determines the building category that decides which limits of a technical\-conditions regulation apply to the building \(DiGi\-Organization/DiGi\.GIS\.WebAPI\.UI\#82\)\.
+
+A residential building ([DiGi\.GIS\.Query\.IsResidential\(DiGi\.GIS\.Classes\.Building2D\)](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.query.isresidential#digi-gis-query-isresidential(digi-gis-classes-building2d) 'DiGi\.GIS\.Query\.IsResidential\(DiGi\.GIS\.Classes\.Building2D\)')) is [SingleFamily](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.SingleFamily 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.SingleFamily') or [MultiFamily](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.MultiFamily 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.MultiFamily') when exactly one of the two specific functions is set, and [Residential](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.Residential 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.Residential') otherwise. Any other building is [NonResidential](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.NonResidential 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.NonResidential').
+
+```csharp
+public static DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory RegulatedBuildingCategory(this DiGi.GIS.Classes.Building2D? building2D);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.RegulatedBuildingCategory(thisDiGi.GIS.Classes.Building2D).building2D'></a>
+
+`building2D` [DiGi\.GIS\.Classes\.Building2D](https://learn.microsoft.com/en-us/dotnet/api/digi.gis.classes.building2d 'DiGi\.GIS\.Classes\.Building2D')
+
+The building footprint\. This value can be null\.
+
+#### Returns
+[RegulatedBuildingCategory](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory')  
+The building category, or [Undefined](DiGi.GIS.WebAPI.UI.Enums.md#DiGi.GIS.WebAPI.UI.Enums.RegulatedBuildingCategory.Undefined 'DiGi\.GIS\.WebAPI\.UI\.Enums\.RegulatedBuildingCategory\.Undefined') when [building2D](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.RegulatedBuildingCategory(thisDiGi.GIS.Classes.Building2D).building2D 'DiGi\.GIS\.WebAPI\.UI\.Query\.RegulatedBuildingCategory\(this DiGi\.GIS\.Classes\.Building2D\)\.building2D') is null\.
 
 <a name='DiGi.GIS.WebAPI.UI.Query.RelayUpstream(DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse)'></a>
 

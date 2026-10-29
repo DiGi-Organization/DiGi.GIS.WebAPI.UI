@@ -1,7 +1,7 @@
-using DiGi.Analytical.Building.HVAC.Classes;
 using DiGi.Analytical.Building.HVAC.Interfaces;
 using DiGi.GIS.Classes;
 using DiGi.GIS.Interfaces;
+using DiGi.GIS.WebAPI.UI.Enums;
 using DiGi.GIS.WebAPI.UI.ViewModels;
 using DiGi.WebAPI.Classes;
 using Microsoft.AspNetCore.Mvc;
@@ -94,13 +94,17 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
             #endregion RegulatedHeatTransferCoefficients
 
-            #region IsResidential
+            #region RegulatedBuildingCategory
 
-            // The 2002 regulation is the only one that sets different limits for a residential building,
-            // so the footprint is only read when that is the regulation in force.
-            bool? isResidential = null;
+            List<string> names = regulatedHeatTransferCoefficients.GetNames();
+            List<string> minimumThermalResistanceNames = regulatedHeatTransferCoefficients.GetMinimumThermalResistanceNames();
 
-            if (regulatedHeatTransferCoefficients is RegulatedHeatTransferCoefficients_2002)
+            // The 1997, 2002 and 2008 regulations set limits per building category (single-family, residential, public),
+            // so the footprint is read whenever a limit does not apply to every category (DiGi-Organization/DiGi.GIS.WebAPI.UI#82).
+            bool categoryDependent = names.Concat(minimumThermalResistanceNames).Any(x => !Query.IsRegulated(x, RegulatedBuildingCategory.MultiFamily) || !Query.IsRegulated(x, RegulatedBuildingCategory.NonResidential));
+
+            RegulatedBuildingCategory regulatedBuildingCategory = RegulatedBuildingCategory.Undefined;
+            if (categoryDependent)
             {
                 urlBuilder = new($"{Constants.Default.GISWebAPIUri}/gis/building2d/itembyreference");
                 urlBuilder = urlBuilder.AddParameter("reference", reference);
@@ -110,15 +114,15 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 }
 
                 Building2D? building2D = await httpClient.ItemAsync<Building2D>(urlBuilder.ToString(), cancellationToken);
-                if (building2D is not null)
-                {
-                    isResidential = GIS.Query.IsResidential(building2D);
-                }
+                regulatedBuildingCategory = building2D.RegulatedBuildingCategory();
             }
 
-            #endregion IsResidential
+            // A multi-family building is left without the single-family limits; the regulation limits it by E <= E0 instead.
+            bool energyIndicatorRequirement = regulatedBuildingCategory == RegulatedBuildingCategory.MultiFamily && names.Concat(minimumThermalResistanceNames).Any(x => Query.IsRegulated(x, RegulatedBuildingCategory.SingleFamily) && !Query.IsRegulated(x, RegulatedBuildingCategory.MultiFamily));
 
-            RegulatedHeatTransferCoefficientsViewModel regulatedHeatTransferCoefficientsViewModel = new(year, regulatedHeatTransferCoefficients, isResidential);
+            #endregion RegulatedBuildingCategory
+
+            RegulatedHeatTransferCoefficientsViewModel regulatedHeatTransferCoefficientsViewModel = new(year, regulatedHeatTransferCoefficients, regulatedBuildingCategory, names.FindAll(x => Query.IsRegulated(x, regulatedBuildingCategory)), minimumThermalResistanceNames.FindAll(x => Query.IsRegulated(x, regulatedBuildingCategory)), energyIndicatorRequirement);
 
             return PartialView("_RegulatedHeatTransferCoefficientsView", regulatedHeatTransferCoefficientsViewModel);
         }
