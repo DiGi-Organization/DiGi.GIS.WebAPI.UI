@@ -2,36 +2,94 @@
     ViewData["Title"] = "Orto Data";
     ViewData["Description"] = "Verify building construction years against historical orthophoto imagery.";
     ViewData["Robots"] = "noindex, nofollow";
+
+    // The area mode (issue #84) is entered by query - mode=area - and every other value keeps the page's
+    // default building mode. The toggle carries a complete bounding box across both directions, so
+    // building <-> area never loses the area the reviewer was working on.
+    bool areaMode = string.Equals(Context.Request.Query["mode"].ToString(), "area", StringComparison.OrdinalIgnoreCase);
+
+    string boundingBox_X1 = Context.Request.Query["x_1"].ToString();
+    string boundingBox_Y1 = Context.Request.Query["y_1"].ToString();
+    string boundingBox_X2 = Context.Request.Query["x_2"].ToString();
+    string boundingBox_Y2 = Context.Request.Query["y_2"].ToString();
+    bool hasBoundingBox = !string.IsNullOrWhiteSpace(boundingBox_X1) && !string.IsNullOrWhiteSpace(boundingBox_Y1) && !string.IsNullOrWhiteSpace(boundingBox_X2) && !string.IsNullOrWhiteSpace(boundingBox_Y2);
+
+    string boundingBoxQuery = hasBoundingBox
+        ? "x_1=" + Uri.EscapeDataString(boundingBox_X1) + "&y_1=" + Uri.EscapeDataString(boundingBox_Y1) + "&x_2=" + Uri.EscapeDataString(boundingBox_X2) + "&y_2=" + Uri.EscapeDataString(boundingBox_Y2)
+        : string.Empty;
+
+    string modeToggle_Href = areaMode
+        ? Url.Content("~/ortodata") + (hasBoundingBox ? "?" + boundingBoxQuery : string.Empty)
+        : Url.Content("~/ortodata") + "?mode=area" + (hasBoundingBox ? "&" + boundingBoxQuery : string.Empty);
 }
 
 <div class="ortodata-page">
     <div id="ortodata-toolbar" class="ortodata-toolbar">
-        <div class="ortodata-toolbar-row">
-            <div class="ortodata-identity">
-                <span class="ortodata-county">County ID: <span id="ortodata-county">&ndash;</span></span>
-                <span class="ortodata-reference">Reference: <span id="ortodata-reference">&ndash;</span></span>
-            </div>
-            <div class="ortodata-toolbar-actions">
-                <button type="button" id="ortodata-details" class="gis-button gis-button-secondary">Details</button>
-                <button type="button" id="ortodata-existed" class="ortodata-bound" aria-pressed="false">Existed in oldest photo</button>
-                <button type="button" id="ortodata-notvisible" class="ortodata-bound" aria-pressed="false">Not visible in newest photo</button>
-                <button type="button" id="ortodata-clear" class="gis-button gis-button-secondary">Clear</button>
-                <button type="button" id="ortodata-next" class="gis-button">Next</button>
-            </div>
+        <div class="ortodata-toolbar-row ortodata-mode-row">
+            <a id="ortodata-mode" class="ortodata-bound" role="button" aria-pressed="@(areaMode ? "true" : "false")" href="@modeToggle_Href">Area mode</a>
         </div>
-        <div id="ortodata-provenance" class="ortodata-provenance" hidden></div>
+        @if (areaMode)
+        {
+            <div id="ortodata-area-panel" class="ortodata-area-panel" data-max-area-side="@DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaMaximumSide.ToString(System.Globalization.CultureInfo.InvariantCulture)">
+                <div class="ortodata-area-fields">
+                    <label class="gis-field-label ortodata-area-field">Min X<input id="ortodata-area-x1" type="text" inputmode="decimal" autocomplete="off"></label>
+                    <label class="gis-field-label ortodata-area-field">Min Y<input id="ortodata-area-y1" type="text" inputmode="decimal" autocomplete="off"></label>
+                    <label class="gis-field-label ortodata-area-field">Max X<input id="ortodata-area-x2" type="text" inputmode="decimal" autocomplete="off"></label>
+                    <label class="gis-field-label ortodata-area-field">Max Y<input id="ortodata-area-y2" type="text" inputmode="decimal" autocomplete="off"></label>
+                    <div class="ortodata-area-buttons">
+                        <button type="button" id="ortodata-area-load" class="gis-button">Load</button>
+                        <button type="button" id="ortodata-area-draw" class="ortodata-bound" aria-pressed="false" disabled>Draw polygon</button>
+                        <button type="button" id="ortodata-area-close" class="gis-button gis-button-secondary" hidden>Close</button>
+                        <button type="button" id="ortodata-area-export" class="gis-button gis-button-secondary" disabled>Export CSV</button>
+                    </div>
+                </div>
+                <div id="ortodata-area-status" class="ortodata-status" role="status" aria-live="polite" hidden></div>
+                <div id="ortodata-area-marking" class="ortodata-area-marking" hidden></div>
+            </div>
+        }
+        else
+        {
+            <div class="ortodata-toolbar-row">
+                <div class="ortodata-identity">
+                    <span class="ortodata-county">County ID: <span id="ortodata-county">&ndash;</span></span>
+                    <span class="ortodata-reference">Reference: <span id="ortodata-reference">&ndash;</span></span>
+                </div>
+                <div class="ortodata-toolbar-actions">
+                    <button type="button" id="ortodata-details" class="gis-button gis-button-secondary">Details</button>
+                    <button type="button" id="ortodata-existed" class="ortodata-bound" aria-pressed="false">Existed in oldest photo</button>
+                    <button type="button" id="ortodata-notvisible" class="ortodata-bound" aria-pressed="false">Not visible in newest photo</button>
+                    <button type="button" id="ortodata-clear" class="gis-button gis-button-secondary">Clear</button>
+                    <button type="button" id="ortodata-next" class="gis-button">Next</button>
+                </div>
+            </div>
+            <div id="ortodata-provenance" class="ortodata-provenance" hidden></div>
+        }
     </div>
 
-    <div id="ortodata-status" class="ortodata-status" role="status" aria-live="polite" hidden></div>
+    @if (areaMode)
+    {
+        <div id="ortodata-area-grid" class="ortodata-grid ortodata-area-grid"></div>
+    }
+    else
+    {
+        <div id="ortodata-status" class="ortodata-status" role="status" aria-live="polite" hidden></div>
 
-    <div id="ortodata-grid" class="ortodata-grid"></div>
+        <div id="ortodata-grid" class="ortodata-grid"></div>
 
-    <div id="ortodata-empty" class="ortodata-empty" hidden>
-        <p class="ortodata-empty-title">Nothing left to verify</p>
-        <p class="ortodata-empty-text">Every covered building already has a year built answer, or the service could not be reached.</p>
-    </div>
+        <div id="ortodata-empty" class="ortodata-empty" hidden>
+            <p class="ortodata-empty-title">Nothing left to verify</p>
+            <p class="ortodata-empty-text">Every covered building already has a year built answer, or the service could not be reached.</p>
+        </div>
+    }
 </div>
 
 @section Scripts {
-    <script src="~/js/ortodata.js" asp-append-version="true"></script>
+    @if (areaMode)
+    {
+        <script src="~/js/ortodata-area.js" asp-append-version="true"></script>
+    }
+    else
+    {
+        <script src="~/js/ortodata.js" asp-append-version="true"></script>
+    }
 }

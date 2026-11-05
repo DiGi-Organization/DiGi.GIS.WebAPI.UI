@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -17,6 +18,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
     /// Provides the Orto Data verification page and the endpoints it uses, each relaying to the GIS Web API with the visitor's session presented as a bearer token.
     /// <para>Distinct from <see cref="OrtoDatasController"/>, which serves the orthophoto coverage panel of the building details page. This controller is the whole of a standalone page: it draws a building that has photos but no user year built answer yet, shows one card per photo year, and records the reviewer's answer.</para>
     /// <para>The page requires a session: the page action redirects an anonymous visitor to the sign-in page, and every other action answers 401, which the page script answers with one refresh attempt and then a sign-out (<c>wwwroot/js/user.js</c>).</para>
+    /// <para>The <c>area/</c> actions serve the page's second mode, the Full-interpretation test areas (issue #84): epoch years and imagery for a bounding box, the area with its sampled cells and drawn objects, the footprint overlay, and the label read and upsert that record present / absent / indeterminate per object &#215; epoch. They are relays and nothing more - query names, bodies and statuses pass through as the sibling <c>/gis/ortoarea/</c> routes define them (DiGi.GIS.WebAPI#74), so the UI stays a store-nothing session gate over that service.</para>
     /// </summary>
     [Route("[controller]")]
     public class OrtoDataController : Controller
@@ -248,6 +250,347 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             HttpClient httpClient = httpClientFactory.CreateClient();
 
             WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Post, Constants.Default.YearBuiltDataSetUserYearBuiltUri, tokenString, userYearBuiltParameter, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            return StatusCode(webAPIResponse.StatusCode);
+        }
+
+        /// <summary>
+        /// Relays the epoch years whose imagery covers a bounding box - the years the area mode of the page renders one epoch card for.
+        /// <para>The answer is parsed into the year array rather than passed through as text, so the page is handed exactly the contract the table promises: an upstream 200 <c>[]</c> is an area with no epochs, not an error.</para>
+        /// </summary>
+        /// <param name="x_1">The X coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_1">The Y coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="x_2">The X coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_2">The Y coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> holding the years, 400 when a corner is missing or not a number, 401 without a session, 502 when a 200 body is not a year array, 503 when the service answered nothing at all, or the status the service answered with.</returns>
+        [HttpGet("area/availableyears")]
+        public async Task<IActionResult> GetAreaAvailableYearsAsync(double? x_1, double? y_1, double? x_2, double? y_2, CancellationToken cancellationToken = default)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            // Nullable bindings on purpose: an absent corner must be refused rather than read as a zero-area
+            // query the service would happily answer with no years.
+            if (!x_1.HasValue || !y_1.HasValue || !x_2.HasValue || !y_2.HasValue)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new(Constants.Default.OrtoAreaAvailableYearsUri);
+            urlBuilder = urlBuilder.AddParameter("x_1", x_1.Value);
+            urlBuilder = urlBuilder.AddParameter("y_1", y_1.Value);
+            urlBuilder = urlBuilder.AddParameter("x_2", x_2.Value);
+            urlBuilder = urlBuilder.AddParameter("y_2", y_2.Value);
+
+            WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, urlBuilder.ToString(), tokenString, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIResponse.StatusCode);
+            }
+
+            if (string.IsNullOrWhiteSpace(webAPIResponse.Json))
+            {
+                return Ok(new List<short>());
+            }
+
+            try
+            {
+                List<short>? years = JsonSerializer.Deserialize<List<short>>(webAPIResponse.Json);
+                return Ok(years ?? []);
+            }
+            catch (JsonException)
+            {
+                // A 200 whose body is not a year array is a content fault, answered as the fault it is (the
+                // mapping idiom of Query.RelayUpstream) and never as [] - an empty year list would read on the
+                // page as "no epochs cover this area".
+                return StatusCode(StatusCodes.Status502BadGateway);
+            }
+        }
+
+        /// <summary>
+        /// Relays the orthophoto image of a test area for one epoch year, as JPEG bytes.
+        /// <para>Status-preserving rather than collapsing through <see cref="Query.BytesAsync(HttpClient, string, CancellationToken)"/>: unlike the building image read, whose upstream endpoint is anonymous, this upstream route is session-gated, and the page must be able to tell an epoch the negative cache holds no imagery for (the upstream 404, rendered as an "indeterminate" badge - a missing image is data, not a hidden card) from a service that answered nothing (503).</para>
+        /// </summary>
+        /// <param name="x_1">The X coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_1">The Y coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="x_2">The X coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_2">The Y coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="year">The epoch year to read, or null when the query carries none.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> holding the image, 400 when a corner or the year is missing, 401 without a session, 404 when there is no imagery for the epoch, 502 when a 200 carried no bytes, 503 when the service answered nothing at all, or the status the service answered with.</returns>
+        [HttpGet("area/image")]
+        public async Task<IActionResult> GetAreaImageAsync(
+            double? x_1,
+            double? y_1,
+            double? x_2,
+            double? y_2,
+            short? year,
+            CancellationToken cancellationToken = default)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            // Nullable bindings on purpose: an absent corner or year must be refused rather than read as 0.
+            if (!x_1.HasValue || !y_1.HasValue || !x_2.HasValue || !y_2.HasValue || !year.HasValue)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new(Constants.Default.OrtoAreaImageUri);
+            urlBuilder = urlBuilder.AddParameter("x_1", x_1.Value);
+            urlBuilder = urlBuilder.AddParameter("y_1", y_1.Value);
+            urlBuilder = urlBuilder.AddParameter("x_2", x_2.Value);
+            urlBuilder = urlBuilder.AddParameter("y_2", y_2.Value);
+            urlBuilder = urlBuilder.AddParameter("year", year.Value);
+
+            WebAPIBytesResponse? webAPIBytesResponse = await httpClient.ResponseBytesAsync(urlBuilder.ToString(), tokenString, cancellationToken);
+            if (webAPIBytesResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIBytesResponse.StatusCode == StatusCodes.Status404NotFound)
+            {
+                // No imagery for the epoch: the same 404 shape the building image action answers with, which the
+                // page turns into its badge rather than into a hidden card.
+                return NotFound();
+            }
+
+            if (webAPIBytesResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIBytesResponse.StatusCode);
+            }
+
+            if (webAPIBytesResponse.Bytes is null || webAPIBytesResponse.Bytes.Length == 0)
+            {
+                // A 200 that carried no bytes is a content fault of the relay, not a missing epoch (issue #48
+                // conflation class): 502 keeps it distinct from the 404 above.
+                return StatusCode(StatusCodes.Status502BadGateway);
+            }
+
+            return File(webAPIBytesResponse.Bytes, "image/jpeg");
+        }
+
+        /// <summary>
+        /// Relays the area read behind the page's area mode: the test area with its sampled cells, its drawn objects and the label rows of every interpreter, verbatim.
+        /// </summary>
+        /// <param name="x_1">The X coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_1">The Y coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="x_2">The X coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_2">The Y coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> holding the upstream body, 400 when a corner is missing or not a number, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with.</returns>
+        [HttpGet("area/items")]
+        public async Task<IActionResult> GetAreaItemsAsync(double? x_1, double? y_1, double? x_2, double? y_2, CancellationToken cancellationToken = default)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            // Nullable bindings on purpose: an absent corner must be refused rather than read as zero.
+            if (!x_1.HasValue || !y_1.HasValue || !x_2.HasValue || !y_2.HasValue)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new(Constants.Default.OrtoAreaItemsUri);
+            urlBuilder = urlBuilder.AddParameter("x_1", x_1.Value);
+            urlBuilder = urlBuilder.AddParameter("y_1", y_1.Value);
+            urlBuilder = urlBuilder.AddParameter("x_2", x_2.Value);
+            urlBuilder = urlBuilder.AddParameter("y_2", y_2.Value);
+
+            WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, urlBuilder.ToString(), tokenString, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIResponse.StatusCode);
+            }
+
+            return Ok(webAPIResponse.Json);
+        }
+
+        /// <summary>
+        /// Relays the building footprints within a bounding box - the area mode's footprint overlay - passing the spatial tolerance through, invariantly, and defaulting to the upstream default when the caller names none.
+        /// <para>The upstream endpoint is the existing session-agnostic footprint read; this relay still gates it on this application's session, so the whole page keeps one session depth.</para>
+        /// </summary>
+        /// <param name="x_1">The X coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_1">The Y coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="x_2">The X coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_2">The Y coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="tolerance">The spatial tolerance in metres, or null / NaN to relay <see cref="Constants.Default.OrtoAreaTolerance"/> - the upstream default, spelled out rather than left implicit.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> holding the upstream body, 400 when a corner is missing or not a number, 401 without a session, 404 when no footprint lies in the bounding box, 503 when the service answered nothing at all, or the status the service answered with.</returns>
+        [HttpGet("area/buildings")]
+        public async Task<IActionResult> GetAreaBuildingsAsync(
+            double? x_1,
+            double? y_1,
+            double? x_2,
+            double? y_2,
+            double? tolerance,
+            CancellationToken cancellationToken = default)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            // Nullable bindings on purpose: an absent corner must be refused rather than read as zero.
+            if (!x_1.HasValue || !y_1.HasValue || !x_2.HasValue || !y_2.HasValue)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            double tolerance_Value = tolerance.HasValue && !double.IsNaN(tolerance.Value) ? tolerance.Value : Constants.Default.OrtoAreaTolerance;
+
+            UrlBuilder urlBuilder = new(Constants.Default.OrtoAreaBuildingsUri);
+            urlBuilder = urlBuilder.AddParameter("x_1", x_1.Value);
+            urlBuilder = urlBuilder.AddParameter("y_1", y_1.Value);
+            urlBuilder = urlBuilder.AddParameter("x_2", x_2.Value);
+            urlBuilder = urlBuilder.AddParameter("y_2", y_2.Value);
+            urlBuilder = urlBuilder.AddParameter("tolerance", tolerance_Value);
+
+            WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, urlBuilder.ToString(), tokenString, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIResponse.StatusCode);
+            }
+
+            return Ok(webAPIResponse.Json);
+        }
+
+        /// <summary>
+        /// Relays the label read behind the page's area mode: every label row of the area, all interpreters', verbatim - one export carries them all for the agreement computation.
+        /// </summary>
+        /// <param name="x_1">The X coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_1">The Y coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="x_2">The X coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_2">The Y coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> holding the upstream body, 400 when a corner is missing or not a number, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with.</returns>
+        [HttpGet("area/labels")]
+        public async Task<IActionResult> GetAreaLabelsAsync(double? x_1, double? y_1, double? x_2, double? y_2, CancellationToken cancellationToken = default)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            // Nullable bindings on purpose: an absent corner must be refused rather than read as zero.
+            if (!x_1.HasValue || !y_1.HasValue || !x_2.HasValue || !y_2.HasValue)
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            UrlBuilder urlBuilder = new(Constants.Default.OrtoAreaLabelsUri);
+            urlBuilder = urlBuilder.AddParameter("x_1", x_1.Value);
+            urlBuilder = urlBuilder.AddParameter("y_1", y_1.Value);
+            urlBuilder = urlBuilder.AddParameter("x_2", x_2.Value);
+            urlBuilder = urlBuilder.AddParameter("y_2", y_2.Value);
+
+            WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, urlBuilder.ToString(), tokenString, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIResponse.StatusCode);
+            }
+
+            return Ok(webAPIResponse.Json);
+        }
+
+        /// <summary>
+        /// Relays the creation of a drawn polygon of a test area, forwarding the posted body verbatim and answering with the status the service mirrored.
+        /// <para>The body reaches the service byte-identically (<see cref="Query.ResponseRawAsync(HttpClient, HttpMethod, string, string, string?, CancellationToken)"/>): nothing the page posts is re-serialized, so the geometry and the identifiers travel exactly as sent, and only the status comes back - the created object with its server-assigned identifier and cell index is re-read from the area items afterwards.</para>
+        /// </summary>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> that is empty on success or carries the status the service answered with; 400 for an empty body, 401 without a session, 503 when the service answered nothing at all.</returns>
+        [HttpPost("area/object")]
+        public async Task<IActionResult> SetAreaObjectAsync(CancellationToken cancellationToken = default)
+        {
+            return await RelayAreaPostAsync(Constants.Default.OrtoAreaObjectsUri, cancellationToken);
+        }
+
+        /// <summary>
+        /// Relays one object &#215; epoch label of a test area, forwarding the posted body verbatim and answering with the status the service mirrored.
+        /// <para>The state stays the integer code the page sent (0 present, 1 absent, 2 indeterminate) because the body is relayed byte-identically; the interpreter and the observation dates are stamped server-side from the bearer token and the covering sheets, never read from the body.</para>
+        /// </summary>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> that is empty on success or carries the status the service answered with; 400 for an empty body, 401 without a session, 503 when the service answered nothing at all.</returns>
+        [HttpPost("area/label")]
+        public async Task<IActionResult> SetAreaLabelAsync(CancellationToken cancellationToken = default)
+        {
+            return await RelayAreaPostAsync(Constants.Default.OrtoAreaLabelUri, cancellationToken);
+        }
+
+        /// <summary>
+        /// Reads this request's raw JSON body and relays it to a GIS Web API POST route verbatim, presenting the session token and mirroring the status that came back.
+        /// <para>The shared body of the two area POST relays (<see cref="SetAreaObjectAsync(CancellationToken)"/> and <see cref="SetAreaLabelAsync(CancellationToken)"/>): the cookie gate first, then a body that must already carry something to relay, then the byte-identical forward of <see cref="Query.ResponseRawAsync(HttpClient, HttpMethod, string, string, string?, CancellationToken)"/>.</para>
+        /// </summary>
+        /// <param name="requestUri">The GIS Web API URL to relay to. This value can be null.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> that is empty on success or carries the status the service answered with.</returns>
+        private async Task<IActionResult> RelayAreaPostAsync(string? requestUri, CancellationToken cancellationToken)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            // No [FromBody]: the payload is relayed as the bytes it arrived as, never re-serialized. An empty
+            // body is refused the way the service refuses one, before a round trip is spent on it.
+            using StreamReader streamReader = new(Request.Body);
+            string? body = await streamReader.ReadToEndAsync(cancellationToken);
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            WebAPIResponse? webAPIResponse = await httpClient.ResponseRawAsync(HttpMethod.Post, requestUri, tokenString, body, cancellationToken);
             if (webAPIResponse is null)
             {
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);

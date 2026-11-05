@@ -3144,6 +3144,104 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The status and body the Web API answered with, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it answered nothing at all\.
 
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseBytesAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken)'></a>
+
+## Query\.ResponseBytesAsync\(this HttpClient, string, string, CancellationToken\) Method
+
+Asynchronously relays a bodyless request to a Web API and reads back the status it answered with together with the body it returned as bytes\.
+
+The binary-body counterpart of [ResponseAsync\(this HttpClient, HttpMethod, string, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ResponseAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.ResponseAsync\(this System\.Net\.Http\.HttpClient, System\.Net\.Http\.HttpMethod, string, string, System\.Threading\.CancellationToken\)'): it keeps the status rather than collapsing failures into [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') (see [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse') for why), and it reads the body raw rather than as text, which is what [BytesAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.BytesAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)') cannot do - that helper decodes the body as a string and is anonymous, while the Orto Area image endpoint requires the session and distinguishes an epoch with no imagery (404) from an outage (503).
+
+The bearer variant [BytesAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.BytesAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)') names as the one to add if ever needed: the token is attached as `Authorization: Bearer` when one is given and omitted entirely when it is not, and the status is always answered with, so an unsuccessful response reports its status with no bytes.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse?> ResponseBytesAsync(this System.Net.Http.HttpClient? httpClient, string? requestUri, string? bearerToken, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseBytesAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseBytesAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The Web API URL to relay to\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseBytesAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).bearerToken'></a>
+
+`bearerToken` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The session token to present, or null to make the request anonymously\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseBytesAsync(thisSystem.Net.Http.HttpClient,string,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[WebAPIBytesResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIBytesResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The status and body the Web API answered with, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it answered nothing at all\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken)'></a>
+
+## Query\.ResponseRawAsync\(this HttpClient, HttpMethod, string, string, string, CancellationToken\) Method
+
+Asynchronously relays a request whose body is already a serialized JSON document, sending those bytes verbatim, and reads back the status the Web API answered with together with the body it returned\.
+
+Behaves exactly as [ResponseAsync\(this HttpClient, HttpMethod, string, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ResponseAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.ResponseAsync\(this System\.Net\.Http\.HttpClient, System\.Net\.Http\.HttpMethod, string, string, System\.Threading\.CancellationToken\)') in how failures and statuses are reported; the one difference is the body: where that method serializes the declared type, this one forwards what it was given, so a caller whose contract is "relay the body byte-identically" - the Orto Area object and label upserts, where `state` stays the integer the page sent - never re-serializes, re-cases or re-orders a single token of it.
+
+The body is sent as `application/json`; a null body is sent as an empty one rather than omitted, so the receiver's refusal of an incomplete request comes back to be mirrored.
+
+```csharp
+public static System.Threading.Tasks.Task<DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse?> ResponseRawAsync(this System.Net.Http.HttpClient? httpClient, System.Net.Http.HttpMethod? httpMethod, string? requestUri, string? bearerToken, string? jsonBody, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken).httpClient'></a>
+
+`httpClient` [System\.Net\.Http\.HttpClient](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpclient 'System\.Net\.Http\.HttpClient')
+
+The HTTP client used for the request\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken).httpMethod'></a>
+
+`httpMethod` [System\.Net\.Http\.HttpMethod](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.httpmethod 'System\.Net\.Http\.HttpMethod')
+
+The HTTP method to use\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The Web API URL to relay to\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken).bearerToken'></a>
+
+`bearerToken` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The session token to present, or null to make the request anonymously\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken).jsonBody'></a>
+
+`jsonBody` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The request body, already serialized as JSON\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The status and body the Web API answered with, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when it answered nothing at all\.
+
 <a name='DiGi.GIS.WebAPI.UI.Query.SolarBuildingModelId(thisDiGi.Analytical.Building.Classes.BuildingModel)'></a>
 
 ## Query\.SolarBuildingModelId\(this BuildingModel\) Method

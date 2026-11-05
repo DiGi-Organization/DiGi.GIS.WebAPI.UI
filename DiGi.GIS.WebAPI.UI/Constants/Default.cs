@@ -141,6 +141,59 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const int AddressSearchLimitMaximum = 100;
 
         /// <summary>
+        /// URI of the GIS Web API endpoint listing the epoch years whose imagery covers a bounding box - the years the area mode of the Orto Data page renders an epoch card for (issue #84).
+        /// <para>Requires a signed-in session.</para>
+        /// </summary>
+        public const string OrtoAreaAvailableYearsUri = GISWebAPIUri + "/gis/ortoarea/availableyearsbyboundingbox";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint serving the orthophoto image of a test area for one epoch year, as JPEG bytes. An epoch the negative cache holds no imagery for answers 404, which the page turns into an "indeterminate" badge rather than a hidden card (issue #84).
+        /// <para>Requires a signed-in session.</para>
+        /// </summary>
+        public const string OrtoAreaImageUri = GISWebAPIUri + "/gis/ortoarea/imagebyboundingbox";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering a test area by bounding box on first sight or as stored: the area with its sampled cells, its drawn objects, and the label rows of every interpreter (issue #84).
+        /// <para>Requires a signed-in session.</para>
+        /// </summary>
+        public const string OrtoAreaItemsUri = GISWebAPIUri + "/gis/ortoarea/areabyboundingbox";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint creating a drawn polygon of a test area, answering the stored object with its server-assigned identifier and sampled-cell index (issue #84).
+        /// <para>Requires a signed-in session.</para>
+        /// </summary>
+        public const string OrtoAreaObjectsUri = GISWebAPIUri + "/gis/ortoarea/objects";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint reading every label row of a test area - all interpreters' rows, which is what one export carries for the agreement computation (issue #84).
+        /// <para>Requires a signed-in session.</para>
+        /// </summary>
+        public const string OrtoAreaLabelsUri = GISWebAPIUri + "/gis/ortoarea/labelsbyboundingbox";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint upserting one object &#215; epoch label of a test area for the caller's own identity; the interpreter and the observation dates are stamped server-side (issue #84).
+        /// <para>Requires a signed-in session.</para>
+        /// </summary>
+        public const string OrtoAreaLabelUri = GISWebAPIUri + "/gis/ortoarea/label";
+
+        /// <summary>
+        /// URI of the existing GIS Web API endpoint answering building footprints within a bounding box, relayed for the area mode's footprint overlay (issue #84). The endpoint itself is session-agnostic upstream; the relay still gates it on this application's session so the page contract stays one session deep.
+        /// <para>The <c>tolerance</c> parameter it takes defaults to <see cref="OrtoAreaTolerance"/> when the caller names none, which is the upstream default (<c>DiGi.Core.Constants.Tolerance.MacroDistance</c>) spelled out rather than left implicit.</para>
+        /// </summary>
+        public const string OrtoAreaBuildingsUri = GISWebAPIUri + "/gis/building2D/itemsbyboundingbox";
+
+        /// <summary>
+        /// The longest side, in metres, of the bounding box the area mode of the Orto Data page may ask for; the same maximum the GIS Web API enforces on every <c>/gis/ortoarea/</c> route (<c>MaximumAreaSide</c>), mirrored here so the page can refuse an over-wide area before a request is made (issue #84).
+        /// <para>Chosen upstream for the WMS tile size and the sheet-query fan-out: a wider area would materialise more imagery than one epoch card can show and would let one request read across too many orthophoto sheets.</para>
+        /// </summary>
+        public const double OrtoAreaMaximumSide = 2000.0;
+
+        /// <summary>
+        /// The spatial tolerance, in metres, the area mode of the Orto Data page relays to <see cref="OrtoAreaBuildingsUri"/> when the caller names none - the upstream default of that endpoint, spelled out so a caller without a preference still gets a deterministic query string (issue #84).
+        /// </summary>
+        public const double OrtoAreaTolerance = Core.Constants.Tolerance.MacroDistance;
+
+        /// <summary>
         /// URI of the GIS Web API endpoint drawing the next building to verify: one with orthophoto coverage and no user-provided year built yet.
         /// <para>Requires a signed-in session.</para>
         /// </summary>

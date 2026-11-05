@@ -573,6 +573,139 @@ public const string NextCursorHeaderName = "DiGi-Next-Cursor";
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaAvailableYearsUri'></a>
+
+## Default\.OrtoAreaAvailableYearsUri Field
+
+URI of the GIS Web API endpoint listing the epoch years whose imagery covers a bounding box \- the years the area mode of the Orto Data page renders an epoch card for \(issue \#84\)\.
+
+Requires a signed-in session.
+
+```csharp
+public const string OrtoAreaAvailableYearsUri = "https://api.digiproject.uk/gis/ortoarea/availableyearsbyboundingbox";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaBuildingsUri'></a>
+
+## Default\.OrtoAreaBuildingsUri Field
+
+URI of the existing GIS Web API endpoint answering building footprints within a bounding box, relayed for the area mode's footprint overlay \(issue \#84\)\. The endpoint itself is session\-agnostic upstream; the relay still gates it on this application's session so the page contract stays one session deep\.
+
+The `tolerance` parameter it takes defaults to [OrtoAreaTolerance](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaTolerance 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoAreaTolerance') when the caller names none, which is the upstream default (`DiGi.Core.Constants.Tolerance.MacroDistance`) spelled out rather than left implicit.
+
+```csharp
+public const string OrtoAreaBuildingsUri = "https://api.digiproject.uk/gis/building2D/itemsbyboundingbox";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaImageUri'></a>
+
+## Default\.OrtoAreaImageUri Field
+
+URI of the GIS Web API endpoint serving the orthophoto image of a test area for one epoch year, as JPEG bytes\. An epoch the negative cache holds no imagery for answers 404, which the page turns into an "indeterminate" badge rather than a hidden card \(issue \#84\)\.
+
+Requires a signed-in session.
+
+```csharp
+public const string OrtoAreaImageUri = "https://api.digiproject.uk/gis/ortoarea/imagebyboundingbox";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaItemsUri'></a>
+
+## Default\.OrtoAreaItemsUri Field
+
+URI of the GIS Web API endpoint answering a test area by bounding box on first sight or as stored: the area with its sampled cells, its drawn objects, and the label rows of every interpreter \(issue \#84\)\.
+
+Requires a signed-in session.
+
+```csharp
+public const string OrtoAreaItemsUri = "https://api.digiproject.uk/gis/ortoarea/areabyboundingbox";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaLabelsUri'></a>
+
+## Default\.OrtoAreaLabelsUri Field
+
+URI of the GIS Web API endpoint reading every label row of a test area \- all interpreters' rows, which is what one export carries for the agreement computation \(issue \#84\)\.
+
+Requires a signed-in session.
+
+```csharp
+public const string OrtoAreaLabelsUri = "https://api.digiproject.uk/gis/ortoarea/labelsbyboundingbox";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaLabelUri'></a>
+
+## Default\.OrtoAreaLabelUri Field
+
+URI of the GIS Web API endpoint upserting one object × epoch label of a test area for the caller's own identity; the interpreter and the observation dates are stamped server\-side \(issue \#84\)\.
+
+Requires a signed-in session.
+
+```csharp
+public const string OrtoAreaLabelUri = "https://api.digiproject.uk/gis/ortoarea/label";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaMaximumSide'></a>
+
+## Default\.OrtoAreaMaximumSide Field
+
+The longest side, in metres, of the bounding box the area mode of the Orto Data page may ask for; the same maximum the GIS Web API enforces on every `/gis/ortoarea/` route \(`MaximumAreaSide`\), mirrored here so the page can refuse an over\-wide area before a request is made \(issue \#84\)\.
+
+Chosen upstream for the WMS tile size and the sheet-query fan-out: a wider area would materialise more imagery than one epoch card can show and would let one request read across too many orthophoto sheets.
+
+```csharp
+public const double OrtoAreaMaximumSide = 2000;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaObjectsUri'></a>
+
+## Default\.OrtoAreaObjectsUri Field
+
+URI of the GIS Web API endpoint creating a drawn polygon of a test area, answering the stored object with its server\-assigned identifier and sampled\-cell index \(issue \#84\)\.
+
+Requires a signed-in session.
+
+```csharp
+public const string OrtoAreaObjectsUri = "https://api.digiproject.uk/gis/ortoarea/objects";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaTolerance'></a>
+
+## Default\.OrtoAreaTolerance Field
+
+The spatial tolerance, in metres, the area mode of the Orto Data page relays to [OrtoAreaBuildingsUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaBuildingsUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoAreaBuildingsUri') when the caller names none \- the upstream default of that endpoint, spelled out so a caller without a preference still gets a deterministic query string \(issue \#84\)\.
+
+```csharp
+public const double OrtoAreaTolerance = 0.001;
+```
+
+#### Field Value
+[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.OrtoDataImageByReferenceUri'></a>
 
 ## Default\.OrtoDataImageByReferenceUri Field

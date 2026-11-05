@@ -2088,6 +2088,71 @@ public double Minimum { get; }
 #### Property Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse'></a>
+
+## WebAPIBytesResponse Class
+
+The outcome of a single binary\-body request relayed to a Web API: the status it answered with, and the body bytes when the answer carried any\.
+
+The bytes counterpart of [WebAPIResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIResponse'), which can only hold a text body: reading an image through that one would decode the JPEG as text and corrupt it. It is also status-preserving for the same reason that class is - the Orto Area image relay has to tell an epoch with no imagery (the upstream 404, the page's "indeterminate" badge) from a service that could not answer at all (a 503), and both must stay distinct from the image itself.
+
+```csharp
+public class WebAPIBytesResponse
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → WebAPIBytesResponse
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse.WebAPIBytesResponse(int,byte[])'></a>
+
+## WebAPIBytesResponse\(int, byte\[\]\) Constructor
+
+Initializes a new instance of the [WebAPIBytesResponse](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse 'DiGi\.GIS\.WebAPI\.UI\.Classes\.WebAPIBytesResponse') class\.
+
+```csharp
+public WebAPIBytesResponse(int statusCode, byte[]? bytes=null);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse.WebAPIBytesResponse(int,byte[]).statusCode'></a>
+
+`statusCode` [System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
+The HTTP status code the Web API answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse.WebAPIBytesResponse(int,byte[]).bytes'></a>
+
+`bytes` [System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+The response body, or null when the response carried none\.
+### Properties
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse.Bytes'></a>
+
+## WebAPIBytesResponse\.Bytes Property
+
+Gets the response body, or null when the response carried none\.
+
+```csharp
+public byte[]? Bytes { get; }
+```
+
+#### Property Value
+[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIBytesResponse.StatusCode'></a>
+
+## WebAPIBytesResponse\.StatusCode Property
+
+Gets the HTTP status code the Web API answered with\.
+
+```csharp
+public int StatusCode { get; }
+```
+
+#### Property Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.WebAPIResponse'></a>
 
 ## WebAPIResponse Class

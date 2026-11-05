@@ -1547,6 +1547,8 @@ Distinct from [OrtoDatasController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.W
 
 The page requires a session: the page action redirects an anonymous visitor to the sign-in page, and every other action answers 401, which the page script answers with one refresh attempt and then a sign-out (`wwwroot/js/user.js`).
 
+The `area/` actions serve the page's second mode, the Full-interpretation test areas (issue #84): epoch years and imagery for a bounding box, the area with its sampled cells and drawn objects, the footprint overlay, and the label read and upsert that record present / absent / indeterminate per object × epoch. They are relays and nothing more - query names, bodies and statuses pass through as the sibling `/gis/ortoarea/` routes define them (DiGi.GIS.WebAPI#74), so the UI stays a store-nothing session gate over that service.
+
 ```csharp
 public class OrtoDataController : Microsoft.AspNetCore.Mvc.Controller
 ```
@@ -1571,6 +1573,249 @@ public OrtoDataController(System.Net.Http.IHttpClientFactory httpClientFactory);
 
 The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create HTTP clients\.
 ### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaAvailableYearsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetAreaAvailableYearsAsync\(Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Relays the epoch years whose imagery covers a bounding box \- the years the area mode of the page renders one epoch card for\.
+
+The answer is parsed into the year array rather than passed through as text, so the page is handed exactly the contract the table promises: an upstream 200 `[]` is an area with no epochs, not an error.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAreaAvailableYearsAsync(System.Nullable<double> x_1, System.Nullable<double> y_1, System.Nullable<double> x_2, System.Nullable<double> y_2, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaAvailableYearsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaAvailableYearsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaAvailableYearsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaAvailableYearsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaAvailableYearsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the years, 400 when a corner is missing or not a number, 401 without a session, 502 when a 200 body is not a year array, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetAreaBuildingsAsync\(Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Relays the building footprints within a bounding box \- the area mode's footprint overlay \- passing the spatial tolerance through, invariantly, and defaulting to the upstream default when the caller names none\.
+
+The upstream endpoint is the existing session-agnostic footprint read; this relay still gates it on this application's session, so the whole page keeps one session depth.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAreaBuildingsAsync(System.Nullable<double> x_1, System.Nullable<double> y_1, System.Nullable<double> x_2, System.Nullable<double> y_2, System.Nullable<double> tolerance, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).tolerance'></a>
+
+`tolerance` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The spatial tolerance in metres, or null / NaN to relay [OrtoAreaTolerance](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.OrtoAreaTolerance 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.OrtoAreaTolerance') \- the upstream default, spelled out rather than left implicit\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaBuildingsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the upstream body, 400 when a corner is missing or not a number, 401 without a session, 404 when no footprint lies in the bounding box, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetAreaImageAsync\(Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<short\>, CancellationToken\) Method
+
+Relays the orthophoto image of a test area for one epoch year, as JPEG bytes\.
+
+Status-preserving rather than collapsing through [BytesAsync\(this HttpClient, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.BytesAsync(thisSystem.Net.Http.HttpClient,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.BytesAsync\(this System\.Net\.Http\.HttpClient, string, System\.Threading\.CancellationToken\)'): unlike the building image read, whose upstream endpoint is anonymous, this upstream route is session-gated, and the page must be able to tell an epoch the negative cache holds no imagery for (the upstream 404, rendered as an "indeterminate" badge - a missing image is data, not a hidden card) from a service that answered nothing (503).
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAreaImageAsync(System.Nullable<double> x_1, System.Nullable<double> y_1, System.Nullable<double> x_2, System.Nullable<double> y_2, System.Nullable<short> year, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken).year'></a>
+
+`year` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int16](https://learn.microsoft.com/en-us/dotnet/api/system.int16 'System\.Int16')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The epoch year to read, or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaImageAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_short_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the image, 400 when a corner or the year is missing, 401 without a session, 404 when there is no imagery for the epoch, 502 when a 200 carried no bytes, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaItemsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetAreaItemsAsync\(Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Relays the area read behind the page's area mode: the test area with its sampled cells, its drawn objects and the label rows of every interpreter, verbatim\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAreaItemsAsync(System.Nullable<double> x_1, System.Nullable<double> y_1, System.Nullable<double> x_2, System.Nullable<double> y_2, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaItemsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaItemsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaItemsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaItemsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaItemsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the upstream body, 400 when a corner is missing or not a number, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaLabelsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.GetAreaLabelsAsync\(Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, Nullable\<double\>, CancellationToken\) Method
+
+Relays the label read behind the page's area mode: every label row of the area, all interpreters', verbatim \- one export carries them all for the agreement computation\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetAreaLabelsAsync(System.Nullable<double> x_1, System.Nullable<double> y_1, System.Nullable<double> x_2, System.Nullable<double> y_2, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaLabelsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_1'></a>
+
+`x_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaLabelsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_1'></a>
+
+`y_1` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the first bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaLabelsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).x_2'></a>
+
+`x_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The X coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaLabelsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).y_2'></a>
+
+`y_2` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The Y coordinate of the second bounding\-box corner \(EPSG:2180\), or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetAreaLabelsAsync(System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Nullable_double_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the upstream body, 400 when a corner is missing or not a number, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.GetBuildingAsync(System.Nullable_int_,string,System.Threading.CancellationToken)'></a>
 
@@ -1674,6 +1919,81 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the drawn building with its years, the empty state when nothing unverified remains, 401 without a session, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.RelayAreaPostAsync(string,System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.RelayAreaPostAsync\(string, CancellationToken\) Method
+
+Reads this request's raw JSON body and relays it to a GIS Web API POST route verbatim, presenting the session token and mirroring the status that came back\.
+
+The shared body of the two area POST relays ([SetAreaObjectAsync\(CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetAreaObjectAsync(System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.OrtoDataController\.SetAreaObjectAsync\(System\.Threading\.CancellationToken\)') and [SetAreaLabelAsync\(CancellationToken\)](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetAreaLabelAsync(System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.OrtoDataController\.SetAreaLabelAsync\(System\.Threading\.CancellationToken\)')): the cookie gate first, then a body that must already carry something to relay, then the byte-identical forward of [ResponseRawAsync\(this HttpClient, HttpMethod, string, string, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.ResponseRawAsync\(this System\.Net\.Http\.HttpClient, System\.Net\.Http\.HttpMethod, string, string, string, System\.Threading\.CancellationToken\)').
+
+```csharp
+private System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> RelayAreaPostAsync(string? requestUri, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.RelayAreaPostAsync(string,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to relay to\. This value can be null\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.RelayAreaPostAsync(string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success or carries the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetAreaLabelAsync(System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.SetAreaLabelAsync\(CancellationToken\) Method
+
+Relays one object × epoch label of a test area, forwarding the posted body verbatim and answering with the status the service mirrored\.
+
+The state stays the integer code the page sent (0 present, 1 absent, 2 indeterminate) because the body is relayed byte-identically; the interpreter and the observation dates are stamped server-side from the bearer token and the covering sheets, never read from the body.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetAreaLabelAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetAreaLabelAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success or carries the status the service answered with; 400 for an empty body, 401 without a session, 503 when the service answered nothing at all\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetAreaObjectAsync(System.Threading.CancellationToken)'></a>
+
+## OrtoDataController\.SetAreaObjectAsync\(CancellationToken\) Method
+
+Relays the creation of a drawn polygon of a test area, forwarding the posted body verbatim and answering with the status the service mirrored\.
+
+The body reaches the service byte-identically ([ResponseRawAsync\(this HttpClient, HttpMethod, string, string, string, CancellationToken\)](DiGi.GIS.WebAPI.UI.md#DiGi.GIS.WebAPI.UI.Query.ResponseRawAsync(thisSystem.Net.Http.HttpClient,System.Net.Http.HttpMethod,string,string,string,System.Threading.CancellationToken) 'DiGi\.GIS\.WebAPI\.UI\.Query\.ResponseRawAsync\(this System\.Net\.Http\.HttpClient, System\.Net\.Http\.HttpMethod, string, string, string, System\.Threading\.CancellationToken\)')): nothing the page posts is re-serialized, so the geometry and the identifiers travel exactly as sent, and only the status comes back - the created object with its server-assigned identifier and cell index is re-read from the area items afterwards.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetAreaObjectAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetAreaObjectAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success or carries the status the service answered with; 400 for an empty body, 401 without a session, 503 when the service answered nothing at all\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.OrtoDataController.SetUserYearBuiltAsync(DiGi.GIS.WebAPI.UI.Classes.UserYearBuiltParameter,System.Threading.CancellationToken)'></a>
 

@@ -823,9 +823,240 @@ h1.gis-title-large {
     font-size: 0.95em;
 }
 
+/* Area mode of the Orto Data page - the Full-interpretation test areas (issue #84): the mode
+   toggle, the bounding-box panel, the epoch overlay (footprints, sampled cells, drawn polygons)
+   and the marking control. Same idiom as the block above: sticky toolbar, auto-fitting grid. */
+.ortodata-mode-row {
+    margin-bottom: 8px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+a.ortodata-bound {
+    /* The mode toggle is a link - it navigates between the two modes - wearing the bound idiom:
+       the same pill, with aria-pressed naming the mode the page currently holds. */
+    display: inline-block;
+    text-decoration: none;
+}
+
+.ortodata-area-panel {
+    margin-top: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ortodata-area-fields {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: 8px;
+}
+
+    .ortodata-area-fields .ortodata-area-field {
+        /* .gis-field-label stacks a label over a full-width input; here the field only needs to
+           be as wide as its coordinate. */
+        width: 120px;
+        margin-bottom: 0;
+    }
+
+.ortodata-area-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+}
+
+.ortodata-area-marking {
+    border-top: 1px solid var(--border-color-light);
+    padding-top: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ortodata-area-object-line {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 10px;
+}
+
+.ortodata-area-object {
+    font-weight: 600;
+    color: var(--text-dark);
+}
+
+.ortodata-area-epoch {
+    padding: 1px 8px;
+    border-radius: 10px;
+    background: var(--primary-light);
+    color: var(--primary-hover);
+    font-size: 0.85em;
+    font-weight: 600;
+}
+
+.ortodata-area-states {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+/* Other interpreters' rows: the same facts, a visibly foreign voice - muted, marked at the left,
+   never a control of this session's. */
+.ortodata-area-foreign-label {
+    padding: 2px 8px;
+    border-left: 3px solid var(--border-color);
+    color: var(--text-muted);
+    font-size: 0.85em;
+    font-style: italic;
+}
+
+.ortodata-area-foreign-hint {
+    color: var(--text-muted);
+    font-size: 0.85em;
+}
+
+.ortodata-area-card {
+    cursor: default;
+}
+
+.ortodata-area-canvas {
+    position: relative;
+    width: 100%;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    /* The aspect ratio follows the bounding box and is set inline per load, so the canvas - and
+       with it the overlay - has exactly the frame the orthophoto image spans. */
+}
+
+    .ortodata-area-canvas img {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+        object-fit: fill;
+        background-color: #f0f0f0;
+    }
+
+    /* [hidden] needs an explicit display rule here for the same reason the .typology-* rules
+       above carry one: any display set on the class beats the hidden attribute. A failed epoch
+       image hides itself so the badge and the overlay below it stay usable. */
+    .ortodata-area-canvas img[hidden] {
+        display: none;
+    }
+
+/* A missing image is data: the epoch keeps its card and wears the indeterminate badge. It never
+   takes part in a click - the overlay below it stays clickable underneath. */
+.ortodata-area-badge {
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 4px 10px;
+    border-radius: 12px;
+    background: rgba(255, 152, 0, 0.92);
+    color: #ffffff;
+    font-size: 0.8em;
+    font-weight: 600;
+    white-space: nowrap;
+    pointer-events: none;
+}
+
+.ortodata-area-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.ortodata-area-footprint {
+    fill: rgba(0, 120, 212, 0.15);
+    stroke: #0078d4;
+    stroke-width: 1.5;
+    cursor: pointer;
+}
+
+.ortodata-area-drawn {
+    fill: rgba(178, 106, 0, 0.18);
+    stroke: #b26a00;
+    stroke-width: 1.5;
+    stroke-dasharray: 6 3;
+    cursor: pointer;
+}
+
+/* The reviewer's own state for this epoch, painted on the polygon of every card. */
+.ortodata-area-footprint.is-present,
+.ortodata-area-drawn.is-present {
+    fill: rgba(46, 160, 67, 0.30);
+    stroke: #2ea043;
+}
+
+.ortodata-area-footprint.is-absent,
+.ortodata-area-drawn.is-absent {
+    fill: rgba(210, 30, 30, 0.25);
+    stroke: #c93030;
+}
+
+.ortodata-area-footprint.is-indeterminate,
+.ortodata-area-drawn.is-indeterminate {
+    fill: rgba(255, 152, 0, 0.30);
+    stroke: #d97706;
+}
+
+.ortodata-area-footprint.selected,
+.ortodata-area-drawn.selected {
+    stroke-width: 3;
+    stroke-dasharray: none;
+    filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.55));
+}
+
+/* Sampled cells: context, not targets - a click falls through to the card (or the polygon above). */
+.ortodata-area-cell {
+    fill: rgba(255, 196, 0, 0.16);
+    stroke: rgba(217, 119, 6, 0.8);
+    stroke-width: 1;
+    pointer-events: none;
+}
+
+.ortodata-area-cell.is-selected {
+    fill: rgba(255, 196, 0, 0.38);
+    stroke-width: 2;
+}
+
+.ortodata-area-draft polyline {
+    fill: none;
+    stroke: #c93030;
+    stroke-width: 2;
+}
+
+.ortodata-area-vertex {
+    fill: #c93030;
+    stroke: #ffffff;
+    stroke-width: 1.5;
+}
+
+/* Drawing affordance: everything on the grid becomes a vertex target while the tool is on. */
+.ortodata-grid.drawing .ortodata-area-canvas,
+.ortodata-grid.drawing .ortodata-area-footprint,
+.ortodata-grid.drawing .ortodata-area-drawn,
+.ortodata-grid.drawing .ortodata-area-cell {
+    cursor: crosshair;
+}
+
 @media (max-width: 768px) {
     .ortodata-grid {
         grid-template-columns: 1fr;
+    }
+
+    .ortodata-area-fields {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .ortodata-area-fields .ortodata-area-field {
+        width: 100%;
     }
 }
 
