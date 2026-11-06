@@ -964,6 +964,22 @@ a.ortodata-bound {
     pointer-events: none;
 }
 
+/* A transient image failure (503 / no answer) is not "no imagery": a red badge and a retry button
+   beside the year, so it is never mistaken for the indeterminate badge above. */
+.ortodata-area-card.is-image-unavailable .ortodata-area-badge {
+    background: rgba(198, 40, 40, 0.92);
+}
+
+.ortodata-area-retry {
+    margin-left: 8px;
+    padding: 1px 8px;
+    font-size: 0.8em;
+}
+
+    .ortodata-area-retry[hidden] {
+        display: none;
+    }
+
 .ortodata-area-overlay {
     position: absolute;
     inset: 0;

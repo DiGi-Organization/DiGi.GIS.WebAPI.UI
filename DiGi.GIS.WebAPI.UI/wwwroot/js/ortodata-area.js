@@ -64,6 +64,14 @@
         interpreter: null,      // the signed-in e-mail, lowercased; null = identity unreadable -> read-only
         identityState: 'pending',
         selection: null,   // { kind: 'footprint'|'drawn', reference?, objectId?, year }
+        // Per epoch year: 'loading' | 'loaded' | 'missing' (404 - the epoch has no imagery, so only
+        // Indeterminate may be recorded) | 'unavailable' (503 or no answer - a transient gap, e.g. a
+        // blank WMS tile the API refused to store; nothing may be recorded until a retry loads it).
+        // Kept across renderCards(), which rebuilds every card on each selection or save: a rebuilt card
+        // restores its state instead of starting over, and reuses the object URL of an image that only
+        // loaded through the fetch retry.
+        imageStates: {},
+        imageSources: {},
         drawMode: false,
         drawVertices: [],
         drawCardYear: null,
@@ -653,24 +661,97 @@
         image.loading = 'lazy';
         image.alt = `Orthophoto from ${year}`;
 
-        // A year the negative cache holds no imagery for keeps its card and wears the badge: a missing
-        // image is data (the epoch is marked indeterminate), never a reason to hide the card. The
-        // handler is wired before the source so an instantly failed load cannot slip past it.
+        // A year the negative cache holds no imagery for (404) keeps its card and wears the badge: a
+        // missing image is data (the epoch is indeterminate), never a reason to hide the card. Any
+        // other failure - 503 for a WMS tile that stayed blank, or no answer at all - is transient and
+        // must not read as "no imagery": the card says so, offers a retry, and marking stays blocked
+        // (DiGi.GIS.WebAPI.UI#85). An <img> cannot see the status, so a failed load is asked again
+        // with fetch, which both reads the status and retries. The handler is wired before the source
+        // so an instantly failed load cannot slip past it.
         const badge = document.createElement('span');
         badge.className = 'ortodata-area-badge';
-        badge.textContent = 'indeterminate - no imagery';
         badge.hidden = true;
 
-        image.onerror = function () {
-            image.hidden = true;
-            badge.hidden = false;
+        const retry = document.createElement('button');
+        retry.type = 'button';
+        retry.className = 'ortodata-bound ortodata-area-retry';
+        retry.textContent = 'Retry image';
+        retry.hidden = true;
+
+        function setImageState(imageState, render) {
+            state.imageStates[year] = imageState;
+            card.classList.toggle('is-image-missing', imageState === 'missing');
+            card.classList.toggle('is-image-unavailable', imageState === 'unavailable');
+            image.hidden = imageState === 'missing' || imageState === 'unavailable';
+            badge.hidden = !image.hidden;
+            badge.textContent = imageState === 'missing' ? 'indeterminate - no imagery' : 'not loaded - retry';
+            retry.hidden = imageState !== 'unavailable';
+            retry.disabled = false;
+            if (render !== false && state.selection !== null && state.selection.year === year) {
+                renderMarking();
+            }
+        }
+
+        async function fetchImage() {
+            let response;
+            try {
+                response = await digiUser.fetchWithAuth(imageUrl(year), { method: 'GET' });
+            } catch (error) {
+                setImageState('unavailable');
+                return;
+            }
+
+            if (response.ok) {
+                const blob = await response.blob();
+                image.onerror = function () {
+                    setImageState('unavailable');
+                };
+                if (state.imageSources[year]) {
+                    URL.revokeObjectURL(state.imageSources[year]);
+                }
+                state.imageSources[year] = URL.createObjectURL(blob);
+                // A hidden lazy image never loads, and a retried card hides its image - the bytes are
+                // in hand already, so load eagerly.
+                image.loading = 'eager';
+                image.src = state.imageSources[year];
+                return;
+            }
+
+            setImageState(response.status === 404 ? 'missing' : 'unavailable');
+        }
+
+        image.onload = function () {
+            setImageState('loaded');
         };
 
-        image.src = imageUrl(year);
+        image.onerror = function () {
+            fetchImage();
+        };
+
+        retry.addEventListener('click', function () {
+            retry.disabled = true;
+            badge.textContent = 'retrying...';
+            fetchImage();
+        });
+
+        // A rebuilt card keeps what its epoch already showed: a known gap is re-applied without a new
+        // request (Retry is the way to ask again), anything else (re)loads - from the browser cache or
+        // from the object URL the fetch retry left.
+        const knownState = state.imageStates[year];
+        if (knownState === 'missing' || knownState === 'unavailable') {
+            setImageState(knownState, false);
+        } else {
+            if (knownState === undefined) {
+                state.imageStates[year] = 'loading';
+            }
+
+            image.src = state.imageSources[year] || imageUrl(year);
+        }
 
         const label = document.createElement('span');
         label.className = 'ortodata-year';
         label.textContent = String(year);
+        label.appendChild(retry);
 
         canvas.appendChild(image);
         canvas.appendChild(badge);
@@ -720,6 +801,38 @@
         return `Footprint ${selection.reference}`;
     }
 
+    /**
+     * Whether a state may be recorded on an epoch, from what its image did. A loaded image allows
+     * every state; an epoch with no imagery (404) allows only Indeterminate (code 2) - the protocol's
+     * forced state; an image still loading or temporarily unavailable allows none, so a transient gap
+     * is never recorded as an observation.
+     */
+    function isStateAllowed(year, code) {
+        const imageState = state.imageStates[year];
+        if (imageState === 'loaded') {
+            return true;
+        }
+
+        return imageState === 'missing' && code === 2;
+    }
+
+    function imageStateHint(year) {
+        const imageState = state.imageStates[year];
+        if (imageState === 'missing') {
+            return 'This epoch has no imagery here, so only Indeterminate can be recorded.';
+        }
+
+        if (imageState === 'unavailable') {
+            return 'The image of this epoch is temporarily unavailable. Retry it on the card before marking.';
+        }
+
+        if (imageState === 'loading') {
+            return 'The image of this epoch is still loading.';
+        }
+
+        return null;
+    }
+
     function renderMarking() {
         const bar = elements.marking;
         bar.textContent = '';
@@ -759,7 +872,7 @@
             button.className = 'ortodata-bound';
             button.textContent = stateNames[code];
             button.setAttribute('aria-pressed', myLabel !== null && myLabel.state === code ? 'true' : 'false');
-            button.disabled = readOnly || state.posting;
+            button.disabled = readOnly || state.posting || !isStateAllowed(selection.year, code);
             button.dataset.state = String(code);
             button.addEventListener('click', function () {
                 setState(code);
@@ -773,6 +886,14 @@
             const hint = document.createElement('span');
             hint.className = 'ortodata-area-foreign-hint';
             hint.textContent = 'The signed-in identity could not be read, so the labels are shown read-only.';
+            bar.appendChild(hint);
+        }
+
+        const imageHint = imageStateHint(selection.year);
+        if (imageHint !== null) {
+            const hint = document.createElement('span');
+            hint.className = 'ortodata-area-foreign-hint';
+            hint.textContent = imageHint;
             bar.appendChild(hint);
         }
 
@@ -804,6 +925,11 @@
         }
 
         const selection = state.selection;
+        if (!isStateAllowed(selection.year, code)) {
+            showStatus(imageStateHint(selection.year) || 'This state cannot be recorded for this epoch.');
+            return;
+        }
+
         const identity = selectionIdentity(selection);
         const current = myLabelFor(identity, selection.year);
         if (current !== null && current.state === code) {
@@ -1060,6 +1186,12 @@
             state.labels = asArray(labelsResult.data).map(normaliseLabelRow);
             applyFootprints(buildingsResult.data);
             state.selection = null;
+            for (const source of Object.values(state.imageSources)) {
+                URL.revokeObjectURL(source);
+            }
+
+            state.imageStates = {};
+            state.imageSources = {};
 
             if (state.drawMode) {
                 // The vertices belonged to the previous box.
