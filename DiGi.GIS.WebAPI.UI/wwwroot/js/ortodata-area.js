@@ -43,8 +43,6 @@
         x2: document.getElementById('ortodata-area-x2'),
         y2: document.getElementById('ortodata-area-y2'),
         load: document.getElementById('ortodata-area-load'),
-        draw: document.getElementById('ortodata-area-draw'),
-        close: document.getElementById('ortodata-area-close'),
         export: document.getElementById('ortodata-area-export'),
         status: document.getElementById('ortodata-area-status'),
         marking: document.getElementById('ortodata-area-marking'),
@@ -74,7 +72,6 @@
         imageSources: {},
         drawMode: false,
         drawVertices: [],
-        drawCardYear: null,
         maxAreaSide: defaultMaxAreaSide,
         busy: false,
         posting: 0,        // label saves in flight (several may run at once from the dialog)
@@ -100,10 +97,13 @@
         error: null,       // the last refused save; it stays on the status line until its retry succeeds, or the next brush or epoch
         errorName: null,
         removeButton: null,
+        drawButton: null,
+        finishButton: null,
         armedObjectId: null // with the Remove tool, the drawn polygon clicked once; a second click on it removes it
     };
 
-    const removeTool = 'remove'; // the dialog's fourth tool: removes a drawn polygon instead of marking a state
+    const drawTool = 'draw';     // the dialog's fourth tool: draws a polygon for a building the database lacks
+    const removeTool = 'remove'; // the dialog's fifth tool: removes a drawn polygon instead of marking a state
 
     function showStatus(message) {
         elements.status.textContent = message;
@@ -532,17 +532,13 @@
     }
 
     /**
-     * Appends the overlay of one epoch to its card. On a card a click on a polygon (outside drawing)
-     * opens the epoch dialog - the card is the overview; marking happens on the large image.
+     * Appends the overlay of one epoch to its card. On a card a click on a polygon opens the epoch
+     * dialog - the card is the overview; marking, drawing and removing happen on the large image.
      */
     function buildOverlay(year, card) {
         const svg = buildOverlaySvg(year, function () {
             openEpochDialog(year);
         });
-
-        if (state.drawMode && state.drawCardYear === year) {
-            svg.appendChild(buildDraftGroup());
-        }
 
         card.querySelector('.ortodata-area-canvas').appendChild(svg);
     }
@@ -628,7 +624,11 @@
         return svg;
     }
 
-    function buildDraftGroup() {
+    /**
+     * The polygon being drawn. radius is the corner markers' radius in overlay units (the overlay's
+     * viewBox is svgSize wide whatever its size on screen), so the caller converts the pixels it wants.
+     */
+    function buildDraftGroup(radius) {
         const group = svgElement('g');
         group.setAttribute('class', 'ortodata-area-draft');
         if (state.drawVertices.length === 0) {
@@ -645,34 +645,11 @@
             circle.setAttribute('class', 'ortodata-area-vertex');
             circle.setAttribute('cx', toSvgX(vertex[0]).toFixed(2));
             circle.setAttribute('cy', toSvgY(vertex[1]).toFixed(2));
-            circle.setAttribute('r', '6');
+            circle.setAttribute('r', radius.toFixed(3));
             group.appendChild(circle);
         }
 
         return group;
-    }
-
-    function renderDraft() {
-        if (state.drawCardYear === null) {
-            return;
-        }
-
-        const card = cardForYear(state.drawCardYear);
-        if (card === null) {
-            return;
-        }
-
-        const svg = card.querySelector('.ortodata-area-overlay');
-        if (svg === null) {
-            return;
-        }
-
-        const existing = svg.querySelector('.ortodata-area-draft');
-        if (existing !== null) {
-            existing.remove();
-        }
-
-        svg.appendChild(buildDraftGroup());
     }
 
     function shortId(objectId) {
@@ -824,17 +801,8 @@
         // The overlay attaches itself into the canvas, after the image, so it stacks on top of it.
         buildOverlay(year, card);
 
-        canvas.addEventListener('click', function (event) {
-            if (!state.drawMode) {
-                openEpochDialog(year); // the card is the overview: marking happens on the large image
-                return;
-            }
-
-            if (state.drawCardYear !== null && state.drawCardYear !== year) {
-                return; // one polygon is drawn on one card
-            }
-
-            placeVertex(event, canvas, year);
+        canvas.addEventListener('click', function () {
+            openEpochDialog(year); // the card is the overview: marking and drawing happen on the large image
         });
 
         if (state.selection !== null && state.selection.year === year) {
@@ -1118,8 +1086,14 @@
         }
 
         dialog.root.hidden = true;
-        dialog.year = null;
         dialog.armedObjectId = null;
+        if (dialog.brush === drawTool) {
+            // An unfinished polygon belongs to this epoch's image; it is dropped with the dialog.
+            dialog.brush = null;
+            setDrawing(false);
+        }
+
+        dialog.year = null;
         document.body.classList.remove('ortodata-epoch-open');
     }
 
@@ -1160,10 +1134,21 @@
             dialog.brushes.push(button);
         }
 
+        const draw = document.createElement('button');
+        draw.type = 'button';
+        draw.className = 'ortodata-bound ortodata-epoch-brush ortodata-epoch-draw';
+        draw.textContent = 'Draw polygon (4)';
+        draw.title = 'Draw a building the database lacks; it then shows on every epoch';
+        draw.addEventListener('click', function () {
+            selectDialogTool(drawTool);
+        });
+        brushes.appendChild(draw);
+        dialog.drawButton = draw;
+
         const remove = document.createElement('button');
         remove.type = 'button';
         remove.className = 'ortodata-bound ortodata-epoch-brush ortodata-epoch-remove';
-        remove.textContent = 'Remove polygon (4)';
+        remove.textContent = 'Remove polygon (5)';
         remove.title = 'Remove a polygon you drew, while no other interpreter has labelled it';
         remove.addEventListener('click', function () {
             selectDialogTool(removeTool);
@@ -1175,6 +1160,19 @@
 
         const actions = document.createElement('div');
         actions.className = 'ortodata-epoch-actions';
+
+        const finish = document.createElement('button');
+        finish.type = 'button';
+        finish.className = 'gis-button ortodata-epoch-finish';
+        finish.textContent = 'Finish polygon';
+        finish.title = 'Save the polygon being drawn (Enter)';
+        finish.hidden = true;
+        finish.disabled = true;
+        finish.addEventListener('click', function () {
+            finishDraw();
+        });
+        actions.appendChild(finish);
+        dialog.finishButton = finish;
 
         const fit = document.createElement('button');
         fit.type = 'button';
@@ -1234,6 +1232,15 @@
 
         wireDialogZoomAndPan();
 
+        // With the Draw tool a click on the image places a corner. Clicks on polygons reach here too:
+        // their own handlers stand aside while drawing, so a corner can sit on an existing outline. The
+        // click that ends a pan never arrives (wireDialogZoomAndPan swallows it).
+        viewport.addEventListener('click', function (event) {
+            if (dialog.brush === drawTool && event.button === 0) {
+                placeDialogVertex(event);
+            }
+        });
+
         // A click on the dimmed backdrop closes like OK; a click inside the modal does not.
         root.addEventListener('click', function (event) {
             if (event.target === root) {
@@ -1246,12 +1253,25 @@
                 return;
             }
 
+            const drawing = dialog.brush === drawTool && state.drawVertices.length > 0;
             if (event.key === 'Escape') {
                 event.preventDefault();
-                closeEpochDialog();
+                if (drawing) {
+                    dropDialogDraft(); // first Esc drops the polygon being drawn, the next one closes
+                } else {
+                    closeEpochDialog();
+                }
+            } else if (event.key === 'Enter' && drawing) {
+                event.preventDefault();
+                finishDraw();
+            } else if (event.key === 'Backspace' && drawing) {
+                event.preventDefault();
+                undoDialogVertex();
             } else if (event.key === '1' || event.key === '2' || event.key === '3') {
                 selectDialogTool(Number(event.key) - 1);
             } else if (event.key === '4') {
+                selectDialogTool(drawTool);
+            } else if (event.key === '5') {
                 selectDialogTool(removeTool);
             } else if (event.key === '0') {
                 resetDialogZoom();
@@ -1301,6 +1321,10 @@
         dialog.stage.style.height = `${height}px`;
         dialog.stage.style.left = `${dialog.x}px`;
         dialog.stage.style.top = `${dialog.y}px`;
+
+        if (state.drawMode && state.drawVertices.length > 0) {
+            renderDialogDraft(false); // keep the corner markers 5 px wide at the new zoom
+        }
     }
 
     function resetDialogZoom() {
@@ -1410,15 +1434,23 @@
             }
         }
 
+        if (state.drawMode) {
+            svg.appendChild(buildDraftGroup(dialogVertexRadius()));
+        }
+
         dialog.stage.appendChild(svg);
     }
 
-    /** Toggles one dialog tool: a state code (0-2) or removeTool. Choosing a tool clears an armed removal and a sticky error. */
+    /**
+     * Toggles one dialog tool: a state code (0-2), drawTool or removeTool. Choosing a tool clears an
+     * armed removal, a sticky error and an unfinished polygon.
+     */
     function selectDialogTool(tool) {
         dialog.brush = dialog.brush === tool ? null : tool;
         dialog.error = null;
         dialog.errorName = null;
         dialog.armedObjectId = null;
+        setDrawing(dialog.brush === drawTool);
         renderDialogOverlay();
         renderDialogBrushes();
     }
@@ -1430,6 +1462,17 @@
         if (state.interpreter === null && dialog.brush === removeTool) {
             dialog.brush = null;
         }
+
+        // Drawing needs a visible image: a building cannot be traced on a missing or blank epoch.
+        const drawAllowed = state.interpreter !== null && year !== null && state.imageStates[year] === 'loaded';
+        dialog.drawButton.disabled = !drawAllowed;
+        if (!drawAllowed && dialog.brush === drawTool) {
+            dialog.brush = null;
+            setDrawing(false);
+            renderDialogOverlay();
+        }
+
+        dialog.drawButton.setAttribute('aria-pressed', dialog.brush === drawTool ? 'true' : 'false');
 
         for (const button of dialog.brushes) {
             const code = Number(button.dataset.state);
@@ -1449,6 +1492,11 @@
 
         if (dialog.brush === removeTool) {
             setDialogStatus('Click a polygon you drew, then click it again to remove it. Footprints cannot be removed.');
+            return;
+        }
+
+        if (dialog.brush === drawTool) {
+            renderDialogDraft(); // its status line explains the corners
             return;
         }
 
@@ -1597,35 +1645,23 @@
         return `the service answered status ${status}.`;
     }
 
-    // ---- drawing ---------------------------------------------------------------------------
+    // ---- drawing (in the epoch dialog) -----------------------------------------------------
 
+    // Polygons are drawn on the large, zoomable image of the epoch dialog, beside the Remove tool:
+    // state.drawMode is true while the dialog's Draw tool is chosen, and the draft (state.drawVertices,
+    // world coordinates) is shown on the dialog's overlay only.
     function setDrawing(drawing) {
         state.drawMode = drawing;
-        elements.draw.setAttribute('aria-pressed', drawing ? 'true' : 'false');
-        elements.close.hidden = !drawing;
-        elements.grid.classList.toggle('drawing', drawing);
-    }
-
-    function startDraw() {
-        if (state.bbox === null) {
-            showStatus('Load an area before drawing a polygon.');
-            return;
-        }
-
-        setDrawing(true);
-        showStatus('Click a card to place the first point. Click that first point again, or Close, to finish - at least three points. Esc cancels.');
-    }
-
-    function cancelDraw() {
         state.drawVertices = [];
-        state.drawCardYear = null;
-        setDrawing(false);
-        renderCards();
-        hideStatus();
+        if (dialog.root !== null) {
+            dialog.viewport.classList.toggle('is-drawing', drawing);
+            dialog.finishButton.hidden = !drawing;
+            dialog.finishButton.disabled = true;
+        }
     }
 
-    function worldPoint(event, canvas) {
-        const rect = canvas.getBoundingClientRect();
+    function dialogWorldPoint(event) {
+        const rect = dialog.stage.getBoundingClientRect();
         const ratioX = (event.clientX - rect.left) / rect.width;
         const ratioY = (event.clientY - rect.top) / rect.height;
         return [
@@ -1634,45 +1670,82 @@
         ];
     }
 
-    function screenPoint(world, canvas) {
-        const rect = canvas.getBoundingClientRect();
+    function dialogScreenPoint(world) {
+        const rect = dialog.stage.getBoundingClientRect();
         return {
             x: rect.left + (world[0] - state.bbox.x1) / (state.bbox.x2 - state.bbox.x1) * rect.width,
             y: rect.top + (state.bbox.y2 - world[1]) / (state.bbox.y2 - state.bbox.y1) * rect.height
         };
     }
 
-    function placeVertex(event, canvas, year) {
-        if (state.drawCardYear === null) {
-            state.drawCardYear = year;
+    /** The corner markers' radius in overlay units for a constant 5 screen pixels at the current zoom. */
+    function dialogVertexRadius() {
+        return 5 * svgSize / Math.max(1, dialog.stage.offsetWidth);
+    }
+
+    /**
+     * Redraws only the draft on the dialog's overlay, so placing a corner never rebuilds the polygons.
+     * updateStatus false redraws the markers alone - after a zoom, which changes their radius.
+     */
+    function renderDialogDraft(updateStatus) {
+        const svg = dialog.stage.querySelector('.ortodata-area-overlay');
+        if (svg === null) {
+            return;
         }
 
-        // Closing on the first point is judged in screen pixels, so the tolerance means the same
-        // whatever the zoom of the card.
+        const existing = svg.querySelector('.ortodata-area-draft');
+        if (existing !== null) {
+            existing.remove();
+        }
+
+        svg.appendChild(buildDraftGroup(dialogVertexRadius()));
+        if (updateStatus === false) {
+            return;
+        }
+
+        dialog.finishButton.disabled = state.drawVertices.length < 3;
+        setDialogStatus(state.drawVertices.length === 0
+            ? 'Click the corners of the building. Finish on the first corner, with Finish polygon or Enter; Backspace undoes a corner, Esc drops the polygon.'
+            : `${state.drawVertices.length} corner(s). ${state.drawVertices.length < 3 ? 'At least three are needed.' : 'Click the first corner, Finish polygon or Enter to save it.'}`);
+    }
+
+    function placeDialogVertex(event) {
+        // Closing on the first corner is judged in screen pixels, so the tolerance means the same at
+        // every zoom.
         if (state.drawVertices.length >= 3) {
-            const first = screenPoint(state.drawVertices[0], canvas);
-            const distance = Math.hypot(event.clientX - first.x, event.clientY - first.y);
-            if (distance <= closeTolerancePx) {
+            const first = dialogScreenPoint(state.drawVertices[0]);
+            if (Math.hypot(event.clientX - first.x, event.clientY - first.y) <= closeTolerancePx) {
                 finishDraw();
                 return;
             }
         }
 
-        state.drawVertices.push(worldPoint(event, canvas));
-        renderDraft();
+        state.drawVertices.push(dialogWorldPoint(event));
+        renderDialogDraft();
+    }
+
+    function undoDialogVertex() {
+        if (state.drawVertices.length > 0) {
+            state.drawVertices.pop();
+            renderDialogDraft();
+        }
+    }
+
+    function dropDialogDraft() {
+        state.drawVertices = [];
+        renderDialogDraft();
     }
 
     async function finishDraw() {
         if (state.submittingObject) {
-            return; // one submission at a time: a double click on Close must not create two objects
+            return; // one submission at a time: a double Enter must not create two objects
         }
 
         if (state.drawVertices.length < 3) {
-            showStatus('A polygon needs at least three points.');
+            setDialogStatus('A polygon needs at least three corners.');
             return;
         }
 
-        const year = state.drawCardYear;
         const body = {
             x_1: state.bbox.x1,
             y_1: state.bbox.y1,
@@ -1682,42 +1755,37 @@
         };
 
         state.submittingObject = true;
+        dialog.finishButton.disabled = true;
         const result = await postJson('/ortodata/area/object', body);
         state.submittingObject = false;
         if (result.status < 200 || result.status >= 300) {
-            // The vertices stay put so the same polygon can be submitted again.
+            // The corners stay put so the same polygon can be submitted again.
+            dialog.finishButton.disabled = false;
             if (result.status === 0) {
-                showStatus('The service could not be reached. The polygon was not saved.');
+                setDialogStatus('The service could not be reached. The polygon was not saved; press Finish polygon to try again.');
             } else if (result.status === 401) {
-                showStatus('Your session has expired. Sign in again.');
+                setDialogStatus('Your session has expired. Sign in again.');
             } else {
-                showStatus(`The polygon could not be saved (status ${result.status}).`);
+                setDialogStatus(`The polygon could not be saved (status ${result.status}); press Finish polygon to try again.`);
             }
 
             return;
         }
 
-        const knownIds = state.objects.map(function (object) { return object.objectId; });
-
         state.drawVertices = [];
-        state.drawCardYear = null;
-        setDrawing(false);
-        hideStatus();
 
-        // The created object (its server-assigned id and sampled-cell index) is re-read from the
-        // area items, then selected so its cell shows on the control at once.
+        // The created object (its server-assigned id and sampled-cell index) is re-read from the area
+        // items, so it shows on every epoch at once.
         const itemsResult = await requestJson(areaUrl('items', state.bbox), { method: 'GET' });
-        if (itemsResult.status === 200 && itemsResult.data !== null && applyAreaItems(itemsResult.data)) {
-            const created = state.objects.find(function (object) { return knownIds.indexOf(object.objectId) === -1; });
-            if (created !== undefined && year !== null) {
-                state.selection = { kind: 'drawn', reference: null, objectId: created.objectId, year: year };
-            }
-        } else {
-            showStatus(failureMessage('area items', itemsResult.status));
+        if (itemsResult.status !== 200 || itemsResult.data === null || !applyAreaItems(itemsResult.data)) {
+            setDialogStatus(`The polygon was saved, but the area could not be re-read (${failureMessage('area items', itemsResult.status)}). Reload the area.`);
+            return;
         }
 
         renderCards();
-        renderMarking();
+        renderDialogOverlay();
+        renderDialogDraft();
+        setDialogStatus('Polygon saved; it now shows on every epoch. Draw the next one, or choose a state and click it to label it.');
     }
 
     // ---- load ------------------------------------------------------------------------------
@@ -1792,17 +1860,9 @@
             state.imageStates = {};
             state.imageSources = {};
 
-            if (state.drawMode) {
-                // The vertices belonged to the previous box.
-                state.drawVertices = [];
-                state.drawCardYear = null;
-                setDrawing(false);
-            }
-
             renderCards();
             renderMarking();
 
-            elements.draw.disabled = false;
             elements.export.disabled = false;
 
             if (state.years.length === 0) {
@@ -1977,33 +2037,8 @@
         loadArea();
     });
 
-    elements.draw.addEventListener('click', function () {
-        if (state.drawMode) {
-            cancelDraw();
-        } else {
-            startDraw();
-        }
-    });
-
-    elements.close.addEventListener('click', function () {
-        finishDraw();
-    });
-
     elements.export.addEventListener('click', function () {
         exportCsv();
-    });
-
-    document.addEventListener('keydown', function (event) {
-        if (!state.drawMode || event.key !== 'Escape') {
-            return;
-        }
-
-        const tag = event.target && event.target.tagName ? event.target.tagName.toUpperCase() : '';
-        if (tag === 'INPUT' || tag === 'TEXTAREA') {
-            return;
-        }
-
-        cancelDraw();
     });
 
     (async function start() {

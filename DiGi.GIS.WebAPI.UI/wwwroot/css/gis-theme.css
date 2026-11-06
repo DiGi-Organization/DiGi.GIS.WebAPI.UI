@@ -1182,12 +1182,21 @@ body.ortodata-epoch-open {
     stroke-width: 1.5;
 }
 
-/* Drawing affordance: everything on the grid becomes a vertex target while the tool is on. */
-.ortodata-grid.drawing .ortodata-area-canvas,
-.ortodata-grid.drawing .ortodata-area-footprint,
-.ortodata-grid.drawing .ortodata-area-drawn,
-.ortodata-grid.drawing .ortodata-area-cell {
+/* Drawing affordance in the epoch dialog: every polygon under the pointer is a corner target while
+   the Draw tool is on, not a building to mark. */
+.ortodata-epoch-viewport.is-drawing .ortodata-area-footprint,
+.ortodata-epoch-viewport.is-drawing .ortodata-area-drawn,
+.ortodata-epoch-viewport.is-drawing .ortodata-area-cell {
     cursor: crosshair;
+}
+
+.ortodata-epoch-draw[aria-pressed="true"] {
+    background: #0078d4;
+    border-color: #0078d4;
+}
+
+.ortodata-epoch-finish[hidden] {
+    display: none;
 }
 
 @media (max-width: 768px) {
