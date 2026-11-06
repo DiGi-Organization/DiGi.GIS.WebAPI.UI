@@ -77,7 +77,28 @@
         drawCardYear: null,
         maxAreaSide: defaultMaxAreaSide,
         busy: false,
-        posting: false
+        posting: 0,        // label saves in flight (several may run at once from the dialog)
+        submittingObject: false
+    };
+
+    // The epoch dialog (one at a time): the large image of one epoch with its overlay, where marking
+    // happens. brush = the state code applied by a click on a building (null = none chosen yet);
+    // scale/x/y = the zoom and pan of the stage inside the viewport, in CSS pixels.
+    const dialog = {
+        year: null,
+        brush: null,
+        scale: 1,
+        x: 0,
+        y: 0,
+        root: null,
+        viewport: null,
+        stage: null,
+        image: null,
+        title: null,
+        brushes: [],
+        status: null,
+        error: null,       // the last refused save; it stays on the status line until its retry succeeds, or the next brush or epoch
+        errorName: null
     };
 
     function showStatus(message) {
@@ -485,18 +506,6 @@
         return '';
     }
 
-    function selectPolygon(kind, reference, objectId, year) {
-        state.selection = {
-            kind: kind,
-            reference: reference,
-            objectId: objectId,
-            year: year
-        };
-
-        renderCards();
-        renderMarking();
-    }
-
     function buildPolygon(className, points, titleText, clickHandler) {
         const polygon = svgElement('polygon');
         polygon.setAttribute('class', className);
@@ -516,7 +525,45 @@
         return polygon;
     }
 
+    /**
+     * Appends the overlay of one epoch to its card. On a card a click on a polygon (outside drawing)
+     * opens the epoch dialog - the card is the overview; marking happens on the large image.
+     */
     function buildOverlay(year, card) {
+        const svg = buildOverlaySvg(year, function () {
+            openEpochDialog(year);
+        });
+
+        if (state.drawMode && state.drawCardYear === year) {
+            svg.appendChild(buildDraftGroup());
+        }
+
+        card.querySelector('.ortodata-area-canvas').appendChild(svg);
+    }
+
+    /** Rebuilds only the overlays that show one epoch - its card and an open dialog on it - after a label changes. */
+    function refreshYear(year) {
+        const card = cardForYear(year);
+        if (card !== null) {
+            const svg = card.querySelector('.ortodata-area-overlay');
+            if (svg !== null) {
+                svg.remove();
+            }
+
+            buildOverlay(year, card);
+        }
+
+        if (dialog.year === year) {
+            renderDialogOverlay();
+        }
+    }
+
+    /**
+     * The overlay of one epoch: sampled cells, footprints and drawn polygons, coloured by this
+     * interpreter's states. onPick(kind, reference, objectId) runs for a click on a polygon outside
+     * drawing mode.
+     */
+    function buildOverlaySvg(year, onPick) {
         const svg = svgElement('svg');
         svg.setAttribute('class', 'ortodata-area-overlay');
         svg.setAttribute('viewBox', `0 0 ${svgSize} ${svgSize}`);
@@ -552,7 +599,7 @@
                 }
 
                 event.stopPropagation();
-                selectPolygon('footprint', footprint.reference, null, year);
+                onPick('footprint', footprint.reference, null);
             }));
         }
 
@@ -566,15 +613,11 @@
                 }
 
                 event.stopPropagation();
-                selectPolygon('drawn', null, object.objectId, year);
+                onPick('drawn', null, object.objectId);
             }));
         }
 
-        if (state.drawMode && state.drawCardYear === year) {
-            svg.appendChild(buildDraftGroup());
-        }
-
-        card.querySelector('.ortodata-area-canvas').appendChild(svg);
+        return svg;
     }
 
     function buildDraftGroup() {
@@ -690,6 +733,16 @@
             if (render !== false && state.selection !== null && state.selection.year === year) {
                 renderMarking();
             }
+
+            if (dialog.year === year) {
+                // A retry on the card (or a late 404) changes what the open dialog may record.
+                if (imageState === 'loaded') {
+                    dialog.image.hidden = false;
+                    dialog.image.src = state.imageSources[year] || imageUrl(year);
+                }
+
+                renderDialogBrushes();
+            }
         }
 
         async function fetchImage() {
@@ -763,6 +816,7 @@
 
         canvas.addEventListener('click', function (event) {
             if (!state.drawMode) {
+                openEpochDialog(year); // the card is the overview: marking happens on the large image
                 return;
             }
 
@@ -872,7 +926,7 @@
             button.className = 'ortodata-bound';
             button.textContent = stateNames[code];
             button.setAttribute('aria-pressed', myLabel !== null && myLabel.state === code ? 'true' : 'false');
-            button.disabled = readOnly || state.posting || !isStateAllowed(selection.year, code);
+            button.disabled = readOnly || !isStateAllowed(selection.year, code);
             button.dataset.state = String(code);
             button.addEventListener('click', function () {
                 setState(code);
@@ -915,25 +969,41 @@
     }
 
     async function setState(code) {
-        if (state.selection === null || state.bbox === null || state.posting) {
+        if (state.selection === null) {
             return;
+        }
+
+        const message = await saveLabel(state.selection, code);
+        if (message !== null) {
+            showStatus(message);
+        } else {
+            hideStatus();
+        }
+    }
+
+    /**
+     * Records this interpreter's state for one object on one epoch: optimistic, so the row shows on the
+     * card and the dialog at once, and rolled back - that row only - when the relay refuses. Saves for
+     * different objects may run side by side (the dialog marks one building per click).
+     * Returns null on success or when nothing had to be saved, otherwise the message to show.
+     */
+    async function saveLabel(selection, code) {
+        if (selection === null || state.bbox === null) {
+            return null;
         }
 
         if (state.interpreter === null) {
-            showStatus('The signed-in identity could not be read, so marking is unavailable.');
-            return;
+            return 'The signed-in identity could not be read, so marking is unavailable.';
         }
 
-        const selection = state.selection;
         if (!isStateAllowed(selection.year, code)) {
-            showStatus(imageStateHint(selection.year) || 'This state cannot be recorded for this epoch.');
-            return;
+            return imageStateHint(selection.year) || 'This state cannot be recorded for this epoch.';
         }
 
         const identity = selectionIdentity(selection);
         const current = myLabelFor(identity, selection.year);
         if (current !== null && current.state === code) {
-            return; // already the recorded state; the contract keeps one row per identity x epoch x interpreter
+            return null; // already the recorded state; the contract keeps one row per identity x epoch x interpreter
         }
 
         const body = {
@@ -955,9 +1025,11 @@
             }
         }
 
-        // Optimistic: the row lands on every card at once and is rolled back if the relay refuses.
-        const backup = state.labels.slice();
-        state.labels = state.labels.filter(function (row) { return !(identityOf(row) === identity && row.epochYear === selection.year && isMe(row.interpreter)); });
+        // Optimistic: the row lands at once; on refusal only this row is put back as it was, so a save
+        // running in parallel for another building is never undone with it.
+        const isMine = function (row) { return identityOf(row) === identity && row.epochYear === selection.year && isMe(row.interpreter); };
+        const previous = state.labels.filter(isMine);
+        state.labels = state.labels.filter(function (row) { return !isMine(row); });
 
         const optimistic = {
             areaKey: state.areaKey,
@@ -971,31 +1043,414 @@
         };
         state.labels.push(optimistic);
 
-        state.posting = true;
-        renderCards();
+        state.posting++;
+        refreshYear(selection.year);
         renderMarking();
 
         const result = await postJson('/ortodata/area/label', body);
 
-        state.posting = false;
+        state.posting--;
         if (result.status < 200 || result.status >= 300) {
-            state.labels = backup;
-            renderCards();
+            state.labels = state.labels.filter(function (row) { return row !== optimistic; }).concat(previous);
+            refreshYear(selection.year);
             renderMarking();
 
             if (result.status === 0) {
-                showStatus('The service could not be reached. The label was not saved.');
-            } else if (result.status === 401) {
-                showStatus('Your session has expired. Sign in again.');
-            } else {
-                showStatus(`The label could not be saved (status ${result.status}).`);
+                return 'The service could not be reached. The label was not saved.';
+            }
+
+            if (result.status === 401) {
+                return 'Your session has expired. Sign in again.';
+            }
+
+            return `The label could not be saved (status ${result.status}).`;
+        }
+
+        renderMarking();
+        return null;
+    }
+
+    // ---- the epoch dialog ------------------------------------------------------------------
+
+    const dialogMaximumScale = 8;    // 1 km at ~900 px fitted is ~1.1 m/px; x8 is ~0.14 m/px, below the 0.25 m imagery
+    const dialogDragThresholdPx = 4; // a pointer that moves less than this between down and up is a click, not a pan
+
+    /** Opens the large view of one epoch. The state chosen last stays chosen across epochs. */
+    function openEpochDialog(year) {
+        if (state.bbox === null) {
+            return;
+        }
+
+        if (dialog.root === null) {
+            buildDialog();
+        }
+
+        dialog.year = year;
+        dialog.scale = 1;
+        dialog.x = 0;
+        dialog.y = 0;
+        dialog.title.textContent = `Epoch ${year}`;
+        dialog.image.hidden = false;
+        dialog.image.src = state.imageSources[year] || imageUrl(year);
+
+        dialog.root.hidden = false;
+        dialog.error = null;
+        document.body.classList.add('ortodata-epoch-open');
+        renderDialogOverlay();
+        renderDialogBrushes();
+        layoutDialogStage();
+        dialog.root.querySelector('.ortodata-epoch-ok').focus();
+    }
+
+    function closeEpochDialog() {
+        if (dialog.root === null || dialog.root.hidden) {
+            return;
+        }
+
+        dialog.root.hidden = true;
+        dialog.year = null;
+        document.body.classList.remove('ortodata-epoch-open');
+    }
+
+    function buildDialog() {
+        const root = document.createElement('div');
+        root.className = 'gis-modal-overlay ortodata-epoch-overlay';
+        root.hidden = true;
+
+        const modal = document.createElement('div');
+        modal.className = 'gis-card gis-modal ortodata-epoch-modal';
+        modal.setAttribute('role', 'dialog');
+        modal.setAttribute('aria-modal', 'true');
+        modal.setAttribute('aria-labelledby', 'ortodata-epoch-title');
+
+        const header = document.createElement('div');
+        header.className = 'ortodata-epoch-header';
+
+        const title = document.createElement('h3');
+        title.id = 'ortodata-epoch-title';
+        title.className = 'gltf-card-title ortodata-epoch-title';
+        header.appendChild(title);
+
+        const brushes = document.createElement('div');
+        brushes.className = 'ortodata-area-states ortodata-epoch-brushes';
+        brushes.setAttribute('role', 'group');
+        brushes.setAttribute('aria-label', 'State applied by a click on a building');
+        dialog.brushes = [];
+        for (let code = 0; code < stateNames.length; code++) {
+            const button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'ortodata-bound ortodata-epoch-brush ortodata-epoch-brush-' + code;
+            button.textContent = `${stateNames[code]} (${code + 1})`;
+            button.dataset.state = String(code);
+            button.addEventListener('click', function () {
+                dialog.brush = dialog.brush === code ? null : code;
+                dialog.error = null;
+                renderDialogBrushes();
+            });
+            brushes.appendChild(button);
+            dialog.brushes.push(button);
+        }
+
+        header.appendChild(brushes);
+
+        const actions = document.createElement('div');
+        actions.className = 'ortodata-epoch-actions';
+
+        const fit = document.createElement('button');
+        fit.type = 'button';
+        fit.className = 'gis-button gis-button-secondary';
+        fit.textContent = 'Fit';
+        fit.title = 'Show the whole area (0)';
+        fit.addEventListener('click', function () {
+            resetDialogZoom();
+        });
+
+        const ok = document.createElement('button');
+        ok.type = 'button';
+        ok.className = 'gis-button ortodata-epoch-ok';
+        ok.textContent = 'OK';
+        ok.addEventListener('click', function () {
+            closeEpochDialog();
+        });
+
+        actions.appendChild(fit);
+        actions.appendChild(ok);
+        header.appendChild(actions);
+
+        const viewport = document.createElement('div');
+        viewport.className = 'ortodata-epoch-viewport';
+
+        const stage = document.createElement('div');
+        stage.className = 'ortodata-epoch-stage';
+
+        const image = document.createElement('img');
+        image.alt = 'Orthophoto';
+        image.draggable = false;
+        // A missing or unavailable epoch shows the overlay on an empty stage; the brushes and the
+        // status line say what may be recorded (isStateAllowed).
+        image.onerror = function () {
+            image.hidden = true;
+        };
+        stage.appendChild(image);
+        viewport.appendChild(stage);
+
+        const status = document.createElement('div');
+        status.className = 'ortodata-epoch-status';
+        status.setAttribute('role', 'status');
+        status.setAttribute('aria-live', 'polite');
+
+        modal.appendChild(header);
+        modal.appendChild(viewport);
+        modal.appendChild(status);
+        root.appendChild(modal);
+        document.body.appendChild(root);
+
+        dialog.root = root;
+        dialog.viewport = viewport;
+        dialog.stage = stage;
+        dialog.image = image;
+        dialog.title = title;
+        dialog.status = status;
+
+        wireDialogZoomAndPan();
+
+        // A click on the dimmed backdrop closes like OK; a click inside the modal does not.
+        root.addEventListener('click', function (event) {
+            if (event.target === root) {
+                closeEpochDialog();
+            }
+        });
+
+        document.addEventListener('keydown', function (event) {
+            if (dialog.root === null || dialog.root.hidden) {
+                return;
+            }
+
+            if (event.key === 'Escape') {
+                event.preventDefault();
+                closeEpochDialog();
+            } else if (event.key === '1' || event.key === '2' || event.key === '3') {
+                const code = Number(event.key) - 1;
+                dialog.brush = dialog.brush === code ? null : code;
+                dialog.error = null;
+                renderDialogBrushes();
+            } else if (event.key === '0') {
+                resetDialogZoom();
+            }
+        });
+
+        // The viewport's size depends on the header wrapping and on the status line, both of which change
+        // after the dialog opens - so the stage follows the viewport itself, not the window.
+        new ResizeObserver(function () {
+            if (!dialog.root.hidden) {
+                layoutDialogStage();
+            }
+        }).observe(viewport);
+    }
+
+    /** The stage size at scale 1: the area's box fitted into the viewport, aspect kept. */
+    function dialogBaseSize() {
+        const width = state.bbox.x2 - state.bbox.x1;
+        const height = state.bbox.y2 - state.bbox.y1;
+        const aspect = width > 0 && height > 0 ? width / height : 1;
+        const availableWidth = Math.max(1, dialog.viewport.clientWidth);
+        const availableHeight = Math.max(1, dialog.viewport.clientHeight);
+        if (availableWidth / availableHeight > aspect) {
+            return { width: availableHeight * aspect, height: availableHeight };
+        }
+
+        return { width: availableWidth, height: availableWidth / aspect };
+    }
+
+    /**
+     * Sizes and places the stage. Zoom resizes the stage itself (the image and the overlay are 100 %
+     * of it) rather than applying a CSS transform, so the overlay's non-scaling strokes stay one pixel
+     * wide at every zoom and never cover the small buildings they outline.
+     */
+    function layoutDialogStage() {
+        const base = dialogBaseSize();
+        const width = base.width * dialog.scale;
+        const height = base.height * dialog.scale;
+        const viewportWidth = dialog.viewport.clientWidth;
+        const viewportHeight = dialog.viewport.clientHeight;
+
+        // Centred while smaller than the viewport; otherwise clamped so no empty band opens at an edge.
+        dialog.x = width <= viewportWidth ? (viewportWidth - width) / 2 : Math.min(0, Math.max(viewportWidth - width, dialog.x));
+        dialog.y = height <= viewportHeight ? (viewportHeight - height) / 2 : Math.min(0, Math.max(viewportHeight - height, dialog.y));
+
+        dialog.stage.style.width = `${width}px`;
+        dialog.stage.style.height = `${height}px`;
+        dialog.stage.style.left = `${dialog.x}px`;
+        dialog.stage.style.top = `${dialog.y}px`;
+    }
+
+    function resetDialogZoom() {
+        dialog.scale = 1;
+        dialog.x = 0;
+        dialog.y = 0;
+        layoutDialogStage();
+    }
+
+    function wireDialogZoomAndPan() {
+        const viewport = dialog.viewport;
+
+        viewport.addEventListener('wheel', function (event) {
+            event.preventDefault();
+            const rect = viewport.getBoundingClientRect();
+            const pointerX = event.clientX - rect.left;
+            const pointerY = event.clientY - rect.top;
+            const previous = dialog.scale;
+            const next = Math.min(dialogMaximumScale, Math.max(1, previous * (event.deltaY < 0 ? 1.25 : 0.8)));
+            if (next === previous) {
+                return;
+            }
+
+            // Keep the point under the pointer still while the stage grows or shrinks around it.
+            dialog.x = pointerX - (pointerX - dialog.x) * next / previous;
+            dialog.y = pointerY - (pointerY - dialog.y) * next / previous;
+            dialog.scale = next;
+            layoutDialogStage();
+        }, { passive: false });
+
+        let drag = null;
+        viewport.addEventListener('pointerdown', function (event) {
+            if (event.button !== 0) {
+                return;
+            }
+
+            drag = { startX: event.clientX, startY: event.clientY, x: dialog.x, y: dialog.y, moved: false, id: event.pointerId };
+        });
+
+        viewport.addEventListener('pointermove', function (event) {
+            if (drag === null || drag.id !== event.pointerId) {
+                return;
+            }
+
+            const dx = event.clientX - drag.startX;
+            const dy = event.clientY - drag.startY;
+            if (!drag.moved && Math.hypot(dx, dy) < dialogDragThresholdPx) {
+                return;
+            }
+
+            if (!drag.moved) {
+                drag.moved = true;
+                viewport.setPointerCapture(event.pointerId);
+                viewport.classList.add('is-panning');
+            }
+
+            dialog.x = drag.x + dx;
+            dialog.y = drag.y + dy;
+            layoutDialogStage();
+        });
+
+        const endDrag = function (event) {
+            if (drag === null || drag.id !== event.pointerId) {
+                return;
+            }
+
+            if (drag.moved) {
+                viewport.classList.remove('is-panning');
+                // The click that follows a pan must not mark the building the pointer was released over.
+                const swallow = function (clickEvent) {
+                    clickEvent.stopPropagation();
+                    clickEvent.preventDefault();
+                };
+                window.addEventListener('click', swallow, { capture: true, once: true });
+                setTimeout(function () {
+                    window.removeEventListener('click', swallow, { capture: true });
+                }, 0);
+            }
+
+            drag = null;
+        };
+
+        viewport.addEventListener('pointerup', endDrag);
+        viewport.addEventListener('pointercancel', endDrag);
+    }
+
+    function renderDialogOverlay() {
+        if (dialog.root === null || dialog.year === null) {
+            return;
+        }
+
+        const year = dialog.year;
+        const existing = dialog.stage.querySelector('.ortodata-area-overlay');
+        if (existing !== null) {
+            existing.remove();
+        }
+
+        dialog.stage.appendChild(buildOverlaySvg(year, function (kind, reference, objectId) {
+            markFromDialog({ kind: kind, reference: reference, objectId: objectId, year: year });
+        }));
+    }
+
+    function renderDialogBrushes() {
+        const year = dialog.year;
+        for (const button of dialog.brushes) {
+            const code = Number(button.dataset.state);
+            const allowed = state.interpreter !== null && year !== null && isStateAllowed(year, code);
+            if (!allowed && dialog.brush === code) {
+                dialog.brush = null;
+            }
+
+            button.disabled = !allowed;
+            button.setAttribute('aria-pressed', dialog.brush === code ? 'true' : 'false');
+        }
+
+        if (state.interpreter === null) {
+            setDialogStatus('The signed-in identity could not be read, so the labels are shown read-only.');
+            return;
+        }
+
+        const hint = year === null ? null : imageStateHint(year);
+        if (hint !== null) {
+            setDialogStatus(hint);
+            return;
+        }
+
+        setDialogStatus(dialog.brush === null
+            ? 'Choose Present, Absent or Indeterminate, then click buildings. Wheel zooms, drag pans.'
+            : `Click buildings to mark them ${stateNames[dialog.brush]}. Each click is saved.`);
+    }
+
+    function setDialogStatus(message) {
+        // A refused save outranks every later message: with saves running side by side, the success
+        // of the next building would otherwise overwrite it before it was read.
+        const text = dialog.error !== null ? dialog.error : message;
+        dialog.status.textContent = text;
+        dialog.status.classList.toggle('is-error', dialog.error !== null);
+    }
+
+    async function markFromDialog(target) {
+        if (dialog.brush === null) {
+            setDialogStatus('Choose Present, Absent or Indeterminate first.');
+            return;
+        }
+
+        const code = dialog.brush;
+        const name = target.kind === 'drawn' ? `Drawn polygon ${shortId(target.objectId)}` : `Footprint ${target.reference}`;
+        const message = await saveLabel(target, code);
+        if (dialog.year !== target.year) {
+            if (message !== null) {
+                showStatus(`${name}, ${target.year}: ${message}`); // the dialog moved on; the page status keeps it
             }
 
             return;
         }
 
-        hideStatus();
-        renderMarking();
+        if (message !== null) {
+            dialog.error = `${name} was not saved: ${message} Click it again to retry.`;
+            dialog.errorName = name;
+            setDialogStatus(dialog.error);
+            return;
+        }
+
+        if (dialog.errorName === name) {
+            dialog.error = null; // the retry of the refused building went through
+            dialog.errorName = null;
+        }
+
+        setDialogStatus(`${name}: ${stateNames[code]} saved.`);
     }
 
     // ---- drawing ---------------------------------------------------------------------------
@@ -1064,7 +1519,7 @@
     }
 
     async function finishDraw() {
-        if (state.posting) {
+        if (state.submittingObject) {
             return; // one submission at a time: a double click on Close must not create two objects
         }
 
@@ -1082,9 +1537,9 @@
             polygon: state.drawVertices
         };
 
-        state.posting = true;
+        state.submittingObject = true;
         const result = await postJson('/ortodata/area/object', body);
-        state.posting = false;
+        state.submittingObject = false;
         if (result.status < 200 || result.status >= 300) {
             // The vertices stay put so the same polygon can be submitted again.
             if (result.status === 0) {

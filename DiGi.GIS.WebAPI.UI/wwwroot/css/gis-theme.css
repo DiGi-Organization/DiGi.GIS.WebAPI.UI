@@ -926,6 +926,8 @@ a.ortodata-bound {
     width: 100%;
     overflow: hidden;
     background-color: #f0f0f0;
+    /* A card is the overview of one epoch: a click opens the large epoch dialog, where marking happens. */
+    cursor: zoom-in;
     /* The aspect ratio follows the bounding box and is set inline per load, so the canvas - and
        with it the overlay - has exactly the frame the orthophoto image spans. */
 }
@@ -978,6 +980,110 @@ a.ortodata-bound {
 
     .ortodata-area-retry[hidden] {
         display: none;
+    }
+
+/* The epoch dialog: one epoch's image as large as the window allows, zoom and pan inside the
+   viewport, the three state brushes and OK in the header. */
+body.ortodata-epoch-open {
+    overflow: hidden;
+}
+
+.ortodata-epoch-overlay[hidden] {
+    display: none;
+}
+
+.gis-modal.ortodata-epoch-modal {
+    width: 96vw;
+    max-width: 96vw;
+    height: 94vh;
+    box-sizing: border-box;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.ortodata-epoch-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.ortodata-epoch-title {
+    margin: 0;
+}
+
+.ortodata-epoch-brushes {
+    flex: 1 1 auto;
+}
+
+.ortodata-epoch-actions {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+}
+
+/* The active brush is unmistakable: filled in the colour its state draws on the overlay. */
+.ortodata-epoch-brush[aria-pressed="true"] {
+    color: #ffffff;
+    font-weight: 600;
+}
+
+.ortodata-epoch-brush-0[aria-pressed="true"] {
+    background: #2ea043;
+    border-color: #2ea043;
+}
+
+.ortodata-epoch-brush-1[aria-pressed="true"] {
+    background: #c93030;
+    border-color: #c93030;
+}
+
+.ortodata-epoch-brush-2[aria-pressed="true"] {
+    background: #d97706;
+    border-color: #d97706;
+}
+
+.ortodata-epoch-viewport {
+    position: relative;
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: hidden;
+    background: #1f1f1f;
+    border-radius: 4px;
+    touch-action: none;
+    cursor: crosshair;
+}
+
+    .ortodata-epoch-viewport.is-panning {
+        cursor: grabbing;
+    }
+
+.ortodata-epoch-stage {
+    position: absolute;
+}
+
+    .ortodata-epoch-stage img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        user-select: none;
+    }
+
+        .ortodata-epoch-stage img[hidden] {
+            display: none;
+        }
+
+.ortodata-epoch-status {
+    min-height: 1.4em;
+    font-size: 0.85rem;
+    color: var(--text-dark);
+}
+
+    .ortodata-epoch-status.is-error {
+        color: var(--danger-color);
+        font-weight: 600;
     }
 
 .ortodata-area-overlay {
