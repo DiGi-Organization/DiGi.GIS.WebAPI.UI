@@ -98,8 +98,12 @@
         brushes: [],
         status: null,
         error: null,       // the last refused save; it stays on the status line until its retry succeeds, or the next brush or epoch
-        errorName: null
+        errorName: null,
+        removeButton: null,
+        armedObjectId: null // with the Remove tool, the drawn polygon clicked once; a second click on it removes it
     };
+
+    const removeTool = 'remove'; // the dialog's fourth tool: removes a drawn polygon instead of marking a state
 
     function showStatus(message) {
         elements.status.textContent = message;
@@ -238,8 +242,10 @@
 
             const polygon = pick(object, ['polygon2D', 'Polygon2D', 'polygon', 'Polygon']);
             const cellIndex = pick(object, ['cellIndex', 'CellIndex']);
+            const createdBy = pick(object, ['createdBy', 'CreatedBy']);
             state.objects.push({
                 objectId: String(objectId),
+                createdBy: createdBy === null || createdBy === undefined ? null : String(createdBy),
                 // Normalized once: null stays "outside every sampled cell", anything else must be a
                 // number for the cell highlight and the export's cell_id to line up.
                 cellIndex: cellIndex === null || cellIndex === undefined || !Number.isFinite(Number(cellIndex)) ? null : Number(cellIndex),
@@ -607,14 +613,16 @@
             const identity = 'drawn:' + object.objectId;
             const cellText = object.cellIndex === null || object.cellIndex === undefined ? 'outside the sampled cells' : `cell ${object.cellIndex}`;
             const className = 'ortodata-area-drawn' + stateClassFor(identity, year) + (isSelected(identity) ? ' selected' : '');
-            svg.appendChild(buildPolygon(className, object.points, `Drawn polygon ${shortId(object.objectId)} (${cellText}) - click to mark`, function (event) {
+            const polygon = buildPolygon(className, object.points, `Drawn polygon ${shortId(object.objectId)} (${cellText}) - click to mark`, function (event) {
                 if (state.drawMode) {
                     return;
                 }
 
                 event.stopPropagation();
                 onPick('drawn', null, object.objectId);
-            }));
+            });
+            polygon.dataset.objectId = object.objectId;
+            svg.appendChild(polygon);
         }
 
         return svg;
@@ -722,6 +730,7 @@
         retry.hidden = true;
 
         function setImageState(imageState, render) {
+            const changed = state.imageStates[year] !== imageState;
             state.imageStates[year] = imageState;
             card.classList.toggle('is-image-missing', imageState === 'missing');
             card.classList.toggle('is-image-unavailable', imageState === 'unavailable');
@@ -734,8 +743,9 @@
                 renderMarking();
             }
 
-            if (dialog.year === year) {
-                // A retry on the card (or a late 404) changes what the open dialog may record.
+            if (changed && dialog.year === year) {
+                // A retry on the card (or a late 404) changes what the open dialog may record. A rebuilt card
+                // reloading the same image changes nothing, and must not overwrite the dialog's status line.
                 if (imageState === 'loaded') {
                     dialog.image.hidden = false;
                     dialog.image.src = state.imageSources[year] || imageUrl(year);
@@ -1109,6 +1119,7 @@
 
         dialog.root.hidden = true;
         dialog.year = null;
+        dialog.armedObjectId = null;
         document.body.classList.remove('ortodata-epoch-open');
     }
 
@@ -1143,13 +1154,22 @@
             button.textContent = `${stateNames[code]} (${code + 1})`;
             button.dataset.state = String(code);
             button.addEventListener('click', function () {
-                dialog.brush = dialog.brush === code ? null : code;
-                dialog.error = null;
-                renderDialogBrushes();
+                selectDialogTool(code);
             });
             brushes.appendChild(button);
             dialog.brushes.push(button);
         }
+
+        const remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'ortodata-bound ortodata-epoch-brush ortodata-epoch-remove';
+        remove.textContent = 'Remove polygon (4)';
+        remove.title = 'Remove a polygon you drew, while no other interpreter has labelled it';
+        remove.addEventListener('click', function () {
+            selectDialogTool(removeTool);
+        });
+        brushes.appendChild(remove);
+        dialog.removeButton = remove;
 
         header.appendChild(brushes);
 
@@ -1230,10 +1250,9 @@
                 event.preventDefault();
                 closeEpochDialog();
             } else if (event.key === '1' || event.key === '2' || event.key === '3') {
-                const code = Number(event.key) - 1;
-                dialog.brush = dialog.brush === code ? null : code;
-                dialog.error = null;
-                renderDialogBrushes();
+                selectDialogTool(Number(event.key) - 1);
+            } else if (event.key === '4') {
+                selectDialogTool(removeTool);
             } else if (event.key === '0') {
                 resetDialogZoom();
             }
@@ -1379,13 +1398,39 @@
             existing.remove();
         }
 
-        dialog.stage.appendChild(buildOverlaySvg(year, function (kind, reference, objectId) {
+        const svg = buildOverlaySvg(year, function (kind, reference, objectId) {
             markFromDialog({ kind: kind, reference: reference, objectId: objectId, year: year });
-        }));
+        });
+
+        if (dialog.armedObjectId !== null) {
+            for (const polygon of svg.querySelectorAll('.ortodata-area-drawn')) {
+                if (polygon.dataset.objectId === dialog.armedObjectId) {
+                    polygon.classList.add('is-armed');
+                }
+            }
+        }
+
+        dialog.stage.appendChild(svg);
+    }
+
+    /** Toggles one dialog tool: a state code (0-2) or removeTool. Choosing a tool clears an armed removal and a sticky error. */
+    function selectDialogTool(tool) {
+        dialog.brush = dialog.brush === tool ? null : tool;
+        dialog.error = null;
+        dialog.errorName = null;
+        dialog.armedObjectId = null;
+        renderDialogOverlay();
+        renderDialogBrushes();
     }
 
     function renderDialogBrushes() {
         const year = dialog.year;
+        dialog.removeButton.disabled = state.interpreter === null;
+        dialog.removeButton.setAttribute('aria-pressed', dialog.brush === removeTool ? 'true' : 'false');
+        if (state.interpreter === null && dialog.brush === removeTool) {
+            dialog.brush = null;
+        }
+
         for (const button of dialog.brushes) {
             const code = Number(button.dataset.state);
             const allowed = state.interpreter !== null && year !== null && isStateAllowed(year, code);
@@ -1399,6 +1444,11 @@
 
         if (state.interpreter === null) {
             setDialogStatus('The signed-in identity could not be read, so the labels are shown read-only.');
+            return;
+        }
+
+        if (dialog.brush === removeTool) {
+            setDialogStatus('Click a polygon you drew, then click it again to remove it. Footprints cannot be removed.');
             return;
         }
 
@@ -1427,6 +1477,11 @@
             return;
         }
 
+        if (dialog.brush === removeTool) {
+            await removeFromDialog(target);
+            return;
+        }
+
         const code = dialog.brush;
         const name = target.kind === 'drawn' ? `Drawn polygon ${shortId(target.objectId)}` : `Footprint ${target.reference}`;
         const message = await saveLabel(target, code);
@@ -1451,6 +1506,95 @@
         }
 
         setDialogStatus(`${name}: ${stateNames[code]} saved.`);
+    }
+
+    /**
+     * The Remove tool: the first click on a drawn polygon arms it (outlined), a second click on the same
+     * polygon removes it. The page states the rules before asking - only the interpreter who drew a
+     * polygon may remove it, and only while nobody else has labelled it - and the service enforces them.
+     */
+    async function removeFromDialog(target) {
+        if (target.kind !== 'drawn') {
+            setDialogStatus('Footprints come from the building database and cannot be removed; only drawn polygons can.');
+            return;
+        }
+
+        const object = state.objects.find(function (candidate) { return candidate.objectId === target.objectId; });
+        const name = `Drawn polygon ${shortId(target.objectId)}`;
+        if (object === undefined) {
+            return;
+        }
+
+        if (!isMe(object.createdBy)) {
+            setDialogStatus(`${name} was drawn by ${object.createdBy || 'another interpreter'}; only they can remove it.`);
+            return;
+        }
+
+        const labelledByOthers = state.labels.some(function (row) { return identityOf(row) === 'drawn:' + object.objectId && !isMe(row.interpreter); });
+        if (labelledByOthers) {
+            setDialogStatus(`${name} has labels from another interpreter, so it cannot be removed.`);
+            return;
+        }
+
+        if (dialog.armedObjectId !== object.objectId) {
+            dialog.armedObjectId = object.objectId;
+            renderDialogOverlay();
+            setDialogStatus(`Click ${name} again to remove it and your labels on it.`);
+            return;
+        }
+
+        dialog.armedObjectId = null;
+        const message = await removeObject(object.objectId);
+        setDialogStatus(message === null ? `${name} removed.` : `${name} was not removed: ${message}`);
+    }
+
+    /**
+     * Removes a drawn polygon through the relay and, on success (or when it is already gone), from every
+     * card and the dialog together with this interpreter's labels on it. Returns null on success,
+     * otherwise the message to show.
+     */
+    async function removeObject(objectId) {
+        const url = getResolvedUrl('/ortodata/area/object?' + bboxQuery(state.bbox) + '&objectId=' + encodeURIComponent(objectId));
+
+        let status;
+        try {
+            const response = await digiUser.fetchWithAuth(url, { method: 'DELETE' });
+            status = response.status;
+        } catch (error) {
+            status = 0;
+        }
+
+        if (status === 200 || status === 204 || status === 404) {
+            // 404: removed already (another tab, or a retry) - the local copy goes too.
+            state.objects = state.objects.filter(function (object) { return object.objectId !== objectId; });
+            state.labels = state.labels.filter(function (row) { return identityOf(row) !== 'drawn:' + objectId; });
+            if (state.selection !== null && state.selection.kind === 'drawn' && state.selection.objectId === objectId) {
+                state.selection = null;
+            }
+
+            renderCards();
+            renderDialogOverlay();
+            renderMarking();
+            return null;
+        }
+
+        if (status === 0) {
+            return 'the service could not be reached.';
+        }
+
+        if (status === 401) {
+            return 'your session has expired. Sign in again.';
+        }
+
+        if (status === 403) {
+            return 'only the interpreter who drew it can remove it.';
+        }
+
+        if (status === 409) {
+            return 'another interpreter has labelled it in the meantime.';
+        }
+
+        return `the service answered status ${status}.`;
     }
 
     // ---- drawing ---------------------------------------------------------------------------

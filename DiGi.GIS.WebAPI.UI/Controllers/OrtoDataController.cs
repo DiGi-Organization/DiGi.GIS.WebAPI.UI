@@ -553,6 +553,51 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         /// <summary>
+        /// Relays the removal of a drawn polygon of a test area and answers with the status the service mirrored.
+        /// <para>The rules are the service's (<c>DELETE /gis/ortoarea/objects</c>): only the interpreter who drew the polygon may remove it, and only while no other interpreter has labelled it - 403 and 409 come back as they are, so the page can say which rule refused. The caller's own labels on the polygon go with it.</para>
+        /// </summary>
+        /// <param name="x_1">The X coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_1">The Y coordinate of the first bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="x_2">The X coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="y_2">The Y coordinate of the second bounding-box corner (EPSG:2180), or null when the query carries none.</param>
+        /// <param name="objectId">The server-assigned identifier of the polygon, or null when the query carries none.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
+        /// <returns>An <see cref="IActionResult"/> that is empty on success or carries the status the service answered with; 400 when a corner or the identifier is missing, 401 without a session, 503 when the service answered nothing at all.</returns>
+        [HttpDelete("area/object")]
+        public async Task<IActionResult> RemoveAreaObjectAsync(double? x_1, double? y_1, double? x_2, double? y_2, string? objectId, CancellationToken cancellationToken = default)
+        {
+            string? tokenString = Request.Cookies[Constants.Default.UserTokenCookieName];
+            if (string.IsNullOrWhiteSpace(tokenString))
+            {
+                return Unauthorized();
+            }
+
+            if (!x_1.HasValue || !y_1.HasValue || !x_2.HasValue || !y_2.HasValue || string.IsNullOrWhiteSpace(objectId))
+            {
+                return BadRequest();
+            }
+
+            HttpClient httpClient = httpClientFactory.CreateClient();
+
+            // Hand-matched to [FromQuery(Name = "...")] of OrtoAreaController.RemoveObjectAsync: an unknown name
+            // is silently ignored upstream, so these spellings are the contract.
+            UrlBuilder urlBuilder = new(Constants.Default.OrtoAreaObjectsUri);
+            urlBuilder = urlBuilder.AddParameter("x_1", x_1.Value);
+            urlBuilder = urlBuilder.AddParameter("y_1", y_1.Value);
+            urlBuilder = urlBuilder.AddParameter("x_2", x_2.Value);
+            urlBuilder = urlBuilder.AddParameter("y_2", y_2.Value);
+            urlBuilder = urlBuilder.AddParameter("objectid", objectId);
+
+            WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Delete, urlBuilder.ToString(), tokenString, cancellationToken);
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            return StatusCode(webAPIResponse.StatusCode);
+        }
+
+        /// <summary>
         /// Relays one object &#215; epoch label of a test area, forwarding the posted body verbatim and answering with the status the service mirrored.
         /// <para>The state stays the integer code the page sent (0 present, 1 absent, 2 indeterminate) because the body is relayed byte-identically; the interpreter and the observation dates are stamped server-side from the bearer token and the covering sheets, never read from the body.</para>
         /// </summary>

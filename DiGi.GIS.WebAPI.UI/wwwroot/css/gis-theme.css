@@ -1045,6 +1045,19 @@ body.ortodata-epoch-open {
     border-color: #d97706;
 }
 
+.ortodata-epoch-remove[aria-pressed="true"] {
+    background: #424242;
+    border-color: #424242;
+}
+
+/* A drawn polygon armed for removal: the next click on it removes it. */
+.ortodata-area-drawn.is-armed {
+    stroke: #ffffff;
+    stroke-width: 3;
+    stroke-dasharray: 6 4;
+    fill: rgba(0, 0, 0, 0.35);
+}
+
 .ortodata-epoch-viewport {
     position: relative;
     flex: 1 1 auto;
