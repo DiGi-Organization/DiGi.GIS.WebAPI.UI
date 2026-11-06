@@ -1060,6 +1060,19 @@ body.ortodata-epoch-open {
     border-color: #424242;
 }
 
+/* Q / "Hide polygons": the image alone, temporarily. The unfinished draft stays visible. */
+.ortodata-epoch-viewport.polygons-hidden .ortodata-area-footprint,
+.ortodata-epoch-viewport.polygons-hidden .ortodata-area-drawn,
+.ortodata-epoch-viewport.polygons-hidden .ortodata-area-cell {
+    display: none;
+}
+
+.ortodata-epoch-hide[aria-pressed="true"] {
+    background: #424242;
+    border-color: #424242;
+    color: #ffffff;
+}
+
 /* A drawn polygon armed for removal: the next click on it removes it. */
 .ortodata-area-drawn.is-armed {
     stroke: #ffffff;

@@ -1102,12 +1102,23 @@
         dialog.image.src = state.imageSources[year] || imageUrl(year);
 
         dialog.root.hidden = false;
+        setDialogPolygonsHidden(false);
         dialog.error = null;
         document.body.classList.add('ortodata-epoch-open');
         renderDialogOverlay();
         renderDialogBrushes();
         layoutDialogStage();
         dialog.root.querySelector('.ortodata-epoch-ok').focus();
+    }
+
+    /** Shows or hides every polygon of the dialog's overlay; the dialog opens with them shown. */
+    function setDialogPolygonsHidden(hidden) {
+        dialog.viewport.classList.toggle('polygons-hidden', hidden);
+        dialog.hideButton.setAttribute('aria-pressed', hidden ? 'true' : 'false');
+    }
+
+    function toggleDialogPolygons() {
+        setDialogPolygonsHidden(!dialog.viewport.classList.contains('polygons-hidden'));
     }
 
     function closeEpochDialog() {
@@ -1221,6 +1232,18 @@
             closeEpochDialog();
         });
 
+        const hide = document.createElement('button');
+        hide.type = 'button';
+        hide.className = 'gis-button gis-button-secondary ortodata-epoch-hide';
+        hide.textContent = 'Hide polygons (Q)';
+        hide.title = 'Temporarily hide all polygons to see the image (Q)';
+        hide.setAttribute('aria-pressed', 'false');
+        hide.addEventListener('click', function () {
+            toggleDialogPolygons();
+        });
+        dialog.hideButton = hide;
+
+        actions.appendChild(hide);
         actions.appendChild(fit);
         actions.appendChild(ok);
         header.appendChild(actions);
@@ -1305,6 +1328,8 @@
                 selectDialogTool(removeTool);
             } else if (event.key === '0') {
                 resetDialogZoom();
+            } else if ((event.key === 'q' || event.key === 'Q') && !event.ctrlKey && !event.metaKey && !event.altKey) {
+                toggleDialogPolygons();
             }
         });
 
