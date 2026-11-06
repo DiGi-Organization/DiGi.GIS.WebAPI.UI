@@ -1016,20 +1016,24 @@
             // a toggle away and back lands on the same area.
             history.replaceState(null, '', getResolvedUrl('/ortodata?mode=area&' + bboxQuery(bbox)));
 
-            const [yearsResult, itemsResult, labelsResult, buildingsResult] = await Promise.all([
+            // The area read comes first and alone: on a box's first sight it CREATES the area (cells,
+            // seed), and every other area route refuses a box that was never initialized with 400. Sent
+            // in parallel, the labels read reached the API before the area existed and the first load
+            // of every new box failed with "refused (status 400)".
+            const itemsResult = await requestJson(areaUrl('items', bbox), { method: 'GET' });
+            if (itemsResult.status !== 200 || itemsResult.data === null) {
+                showStatus(failureMessage('area items', itemsResult.status));
+                return;
+            }
+
+            const [yearsResult, labelsResult, buildingsResult] = await Promise.all([
                 requestJson(areaUrl('availableyears', bbox), { method: 'GET' }),
-                requestJson(areaUrl('items', bbox), { method: 'GET' }),
                 requestJson(areaUrl('labels', bbox), { method: 'GET' }),
                 requestJson(areaUrl('buildings', bbox), { method: 'GET' })
             ]);
 
             if (yearsResult.status !== 200 || !Array.isArray(yearsResult.data)) {
                 showStatus(failureMessage('epoch years', yearsResult.status));
-                return;
-            }
-
-            if (itemsResult.status !== 200 || itemsResult.data === null) {
-                showStatus(failureMessage('area items', itemsResult.status));
                 return;
             }
 
