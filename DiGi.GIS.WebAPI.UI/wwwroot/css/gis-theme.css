@@ -988,6 +988,14 @@ body.ortodata-epoch-open {
     overflow: hidden;
 }
 
+/* Above the sticky page header (.gis-header, 1000), the area toolbar (.ortodata-toolbar, 999) and
+   the layout toggles (up to 1100): at the shared .gis-modal-overlay level of 100 they covered the
+   dialog's header - title, state buttons and OK - on a tall-scaled display. Two classes, because the
+   shared .gis-modal-overlay rule comes later in this file and would win a single-class tie. */
+.gis-modal-overlay.ortodata-epoch-overlay {
+    z-index: 2000;
+}
+
 .ortodata-epoch-overlay[hidden] {
     display: none;
 }
@@ -996,6 +1004,8 @@ body.ortodata-epoch-open {
     width: 96vw;
     max-width: 96vw;
     height: 94vh;
+    /* dvh follows the visible viewport where browser chrome or zoom shrinks it; vh is the fallback. */
+    height: 94dvh;
     box-sizing: border-box;
     padding: 12px;
     display: flex;
