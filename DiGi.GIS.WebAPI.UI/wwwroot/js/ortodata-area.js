@@ -592,20 +592,39 @@
             return state.selection !== null && selectionIdentity(state.selection) === identity;
         };
 
+        // Footprints and drawn polygons are painted together, largest first, so a smaller object is
+        // always on top and reachable. In painting order a drawn polygon around a footprint - the old,
+        // larger building of a rebuilt plot - took every click inside it, and the footprint underneath
+        // could not be marked. BDOT10k footprints do not overlap one another (none did in P01 or P02),
+        // so among them the order changes nothing.
+        const items = [];
         for (const footprint of state.footprints) {
-            const identity = 'footprint:' + footprint.reference;
-            const className = 'ortodata-area-footprint' + stateClassFor(identity, year) + (isSelected(identity) ? ' selected' : '');
-            svg.appendChild(buildPolygon(className, footprint.points, `Footprint ${footprint.reference} - click to mark`, function (event) {
-                if (state.drawMode) {
-                    return; // the canvas handler below places the vertex; this click bubbles to it
-                }
-
-                event.stopPropagation();
-                onPick('footprint', footprint.reference, null);
-            }));
+            items.push({ kind: 'footprint', footprint: footprint, area: ringArea(footprint.points) });
         }
 
         for (const object of state.objects) {
+            items.push({ kind: 'drawn', object: object, area: ringArea(object.points) });
+        }
+
+        items.sort(function (left, right) { return right.area - left.area; });
+
+        for (const item of items) {
+            if (item.kind === 'footprint') {
+                const footprint = item.footprint;
+                const identity = 'footprint:' + footprint.reference;
+                const className = 'ortodata-area-footprint' + stateClassFor(identity, year) + (isSelected(identity) ? ' selected' : '');
+                svg.appendChild(buildPolygon(className, footprint.points, `Footprint ${footprint.reference} - click to mark`, function (event) {
+                    if (state.drawMode) {
+                        return; // the dialog's viewport handler places the corner; this click bubbles to it
+                    }
+
+                    event.stopPropagation();
+                    onPick('footprint', footprint.reference, null);
+                }));
+                continue;
+            }
+
+            const object = item.object;
             const identity = 'drawn:' + object.objectId;
             const cellText = object.cellIndex === null || object.cellIndex === undefined ? 'outside the sampled cells' : `cell ${object.cellIndex}`;
             const className = 'ortodata-area-drawn' + stateClassFor(identity, year) + (isSelected(identity) ? ' selected' : '');
@@ -622,6 +641,17 @@
         }
 
         return svg;
+    }
+
+    /** The area of a ring of [x, y] world points (shoelace), for the painting order only. */
+    function ringArea(points) {
+        let sum = 0;
+        for (let i = 0; i < points.length; i++) {
+            const next = points[(i + 1) % points.length];
+            sum += points[i][0] * next[1] - next[0] * points[i][1];
+        }
+
+        return Math.abs(sum) / 2;
     }
 
     /**
