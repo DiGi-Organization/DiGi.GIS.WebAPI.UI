@@ -482,8 +482,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             bool clip = administrativeArealType.Value >= AdministrativeArealType.Municipality;
             List<string> columnUniqueIds = Query.TypologySolveColumnUniqueIds(definition, columns, clip);
 
-            // A lambda rather than a method group: LogInformation is an extension method, which cannot convert to the Action<string> the fetch takes.
-            DiGi.Core.IO.Table.Classes.Table? table = await httpClient.BuildingDataTableAsync(countyParts, columnUniqueIds, message => this.logger.LogInformation(message), Constants.Default.BuildingSolveCeiling, cancellationToken: cancellationToken);
+            // A lambda rather than a method group: LogInformation is an extension method, which cannot convert to the Action<string> the fetch takes;
+            // the message goes in as a value, never as the template (CA2254).
+            DiGi.Core.IO.Table.Classes.Table? table = await httpClient.BuildingDataTableAsync(countyParts, columnUniqueIds, message => this.logger.LogInformation("{Message}", message), Constants.Default.BuildingSolveCeiling, cancellationToken: cancellationToken);
             if (table is null)
             {
                 return StatusCode(StatusCodes.Status503ServiceUnavailable);

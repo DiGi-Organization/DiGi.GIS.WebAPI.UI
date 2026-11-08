@@ -146,7 +146,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 SolarJob solarJob = new(Guid.NewGuid(), id, countyId, radius_Value, normals.Count, buildingModel, StationName(ePWFile), StationUrl(center), calculation, storage);
                 if (!solarJobQueue.TryEnqueue(solarJob))
                 {
-                    return Task.FromResult(QueueFull());
+                    return Task.FromResult<IActionResult>(QueueFull());
                 }
 
                 logger.LogInformation("Solar radiation job {JobId} queued for building {Id} (county {CountyId}): radius {Radius} m, {ReceiverCount} receivers, {CasterTriangleCount} caster triangles.", solarJob.Id, id, countyId, radius_Value, normals.Count, casterTriangleCount);
@@ -356,27 +356,27 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             return solarJob;
         }
 
-        private IActionResult JobNotFound(Guid jobId)
+        private NotFoundObjectResult JobNotFound(Guid jobId)
         {
             return NotFound(new List<string>() { string.Format(CultureInfo.InvariantCulture, "Job {0:D} is unknown or has expired: results are kept for {1} minutes after a job finishes, and jobs are lost when the server restarts.", jobId, Constants.Default.SolarJobResultRetentionMinutes) });
         }
 
-        private IActionResult PayloadTooLarge(string message)
+        private ObjectResult PayloadTooLarge(string message)
         {
             return StatusCode(StatusCodes.Status413PayloadTooLarge, new List<string>() { message });
         }
 
-        private IActionResult QueueFull()
+        private ObjectResult QueueFull()
         {
             return ServiceUnavailable(Constants.Default.SolarJobRetryAfterSeconds, string.Format(CultureInfo.InvariantCulture, "{0} background calculations are already waiting, the most the server queues. Try again in a few minutes.", Constants.Default.SolarJobQueueLengthMax));
         }
 
-        private IActionResult RadiusBadRequest()
+        private BadRequestObjectResult RadiusBadRequest()
         {
             return BadRequest(new List<string>() { string.Format(CultureInfo.InvariantCulture, "The neighbour radius must be a number above 0 and at most {0} metres.", Constants.Default.SolarSurroundingRadiusMax) });
         }
 
-        private IActionResult ServiceUnavailable(int retryAfterSeconds, string message)
+        private ObjectResult ServiceUnavailable(int retryAfterSeconds, string message)
         {
             Response.Headers.RetryAfter = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new List<string>() { message });
