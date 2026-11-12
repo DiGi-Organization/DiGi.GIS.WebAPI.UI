@@ -35,6 +35,7 @@
     }
 
     const elements = {
+        page: document.querySelector('.buildingshape-page'),
         ordinal: document.getElementById('buildingshape-ordinal'),
         county: document.getElementById('buildingshape-county'),
         reference: document.getElementById('buildingshape-reference'),
@@ -62,6 +63,8 @@
     // The history entry on screen after Back, or null while showing a fresh (unlabelled) item.
     let historyIndex = null;
     let busy = false;
+    // The object URL of the orthophoto on screen, revoked when the next one loads.
+    let imageObjectUrl = null;
 
     // ---- helpers ---------------------------------------------------------------------------
 
@@ -211,28 +214,69 @@
         elements.dimensions.textContent = `Footprint, about ${width.toFixed(1)} m × ${height.toFixed(1)} m (north up)`;
     }
 
-    function loadImage(item) {
+    /**
+     * Loads the newest orthophoto through the session-gated relay. Only a 404 means the footprint has no photo; any
+     * other failure names its status, so an outage never reads as "No orthophoto" (Coding - WebAPI Contracts, section 3).
+     */
+    async function loadImage(item) {
         elements.image.hidden = true;
         elements.noImage.hidden = false;
         elements.noImage.textContent = 'Loading orthophoto…';
         elements.image.removeAttribute('src');
+        if (imageObjectUrl !== null) {
+            URL.revokeObjectURL(imageObjectUrl);
+            imageObjectUrl = null;
+        }
 
         const query = 'countyid=' + encodeURIComponent(item.countyId) + '&reference=' + encodeURIComponent(item.reference);
         const reference = item.reference;
+
+        function isCurrent() {
+            return current !== null && current.reference === reference;
+        }
+
+        function showNoImage(message) {
+            if (isCurrent()) {
+                elements.image.hidden = true;
+                elements.noImage.hidden = false;
+                elements.noImage.textContent = message;
+            }
+        }
+
+        let response;
+        try {
+            response = await digiUser.fetchWithAuth(getResolvedUrl('/buildingshape/image?' + query), { method: 'GET' });
+        } catch (error) {
+            showNoImage('Orthophoto unavailable: the service could not be reached.');
+            return;
+        }
+
+        if (response.status === 404) {
+            showNoImage('No orthophoto');
+            return;
+        }
+
+        if (!response.ok) {
+            showNoImage(response.status === 503 ? 'Orthophoto unavailable: the service could not be reached.' : `Orthophoto unavailable (status ${response.status}).`);
+            return;
+        }
+
+        const blob = await response.blob();
+        if (!isCurrent()) {
+            return;
+        }
+
+        imageObjectUrl = URL.createObjectURL(blob);
         elements.image.onload = function () {
-            if (current !== null && current.reference === reference) {
+            if (isCurrent()) {
                 elements.image.hidden = false;
                 elements.noImage.hidden = true;
             }
         };
         elements.image.onerror = function () {
-            if (current !== null && current.reference === reference) {
-                elements.image.hidden = true;
-                elements.noImage.hidden = false;
-                elements.noImage.textContent = 'No orthophoto';
-            }
+            showNoImage('Orthophoto unavailable: the image could not be decoded.');
         };
-        elements.image.src = getResolvedUrl('/buildingshape/image?' + query);
+        elements.image.src = imageObjectUrl;
     }
 
     function setPressed(shape) {
@@ -278,11 +322,12 @@
 
     // ---- requests ----------------------------------------------------------------------------
 
+    /** Reads and shows the progress; answers { labelled, total }, or { status } when it could not be read. */
     async function loadProgress() {
         const result = await getJson('/buildingshape/progress');
         if (result.data === null) {
             elements.progressText.textContent = 'progress unavailable';
-            return;
+            return { status: result.status };
         }
 
         const labelled = Number(pick(result.data, ['Labelled', 'labelled'])) || 0;
@@ -290,6 +335,7 @@
         elements.progress.max = Math.max(total, 1);
         elements.progress.value = labelled;
         elements.progressText.textContent = `${labelled} / ${total} labelled by you`;
+        return { labelled: labelled, total: total };
     }
 
     async function loadNext(afterOrdinal) {
@@ -302,6 +348,21 @@
 
         const reference = pick(result.data, ['Reference', 'reference']);
         if (reference === null || reference === undefined) {
+            // "No next item" is also what a sample that was never loaded, or a service without the route, answers;
+            // the progress tells them apart, so only a real end of the sample shows the finished state.
+            const progress = await loadProgress();
+            if (progress.total === undefined) {
+                showStatus(failureMessage('Reading the progress', progress.status));
+                return;
+            }
+
+            if (progress.total === 0) {
+                current = null;
+                elements.workspace.hidden = true;
+                showStatus(`The sample ${(elements.page && elements.page.dataset.sampleKey) || ''} has not been loaded yet. Nothing can be labelled.`);
+                return;
+            }
+
             showFinished();
             return;
         }

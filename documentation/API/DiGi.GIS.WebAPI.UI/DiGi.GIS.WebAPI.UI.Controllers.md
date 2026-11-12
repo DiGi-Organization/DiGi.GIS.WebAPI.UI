@@ -1223,7 +1223,7 @@ The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/do
 
 Reads the newest orthophoto of a footprint as JPEG bytes, the context drawn under the outline\.
 
-The photo years are read first (with the reference fallback) and the newest one is fetched; a footprint without photos answers 404, which the page turns into an outline on a plain background.
+The photo years are read first (with the reference fallback) and the newest one is fetched; a footprint without photos answers 404, which the page turns into an outline on a plain background. Both reads keep the upstream status (Coding - WebAPI Contracts, section 3), so an outage is never shown as "no orthophoto": a service that answered nothing is 503, a body that is not a year list or a photo without bytes is 502, and any other failure status is mirrored.
 
 ```csharp
 public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetImageAsync(System.Nullable<int> countyId, string? reference, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
@@ -1250,7 +1250,7 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 
 #### Returns
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
-An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the image, 404 when there is none, 400 without a reference, or 401 without a session\.
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the image, 404 when there is none, 400 without a reference, 401 without a session, 502 for an unreadable upstream answer, 503 when the service answered nothing at all, or the failure status the service answered with\.
 
 <a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetLabelsAsync(System.Threading.CancellationToken)'></a>
 

@@ -150,12 +150,12 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
 
         /// <summary>
         /// Reads the newest orthophoto of a footprint as JPEG bytes, the context drawn under the outline.
-        /// <para>The photo years are read first (with the reference fallback) and the newest one is fetched; a footprint without photos answers 404, which the page turns into an outline on a plain background.</para>
+        /// <para>The photo years are read first (with the reference fallback) and the newest one is fetched; a footprint without photos answers 404, which the page turns into an outline on a plain background. Both reads keep the upstream status (Coding - WebAPI Contracts, section 3), so an outage is never shown as "no orthophoto": a service that answered nothing is 503, a body that is not a year list or a photo without bytes is 502, and any other failure status is mirrored.</para>
         /// </summary>
         /// <param name="countyId">The county part the footprint is filed under, or null when the query carries none.</param>
         /// <param name="reference">The reference of the footprint.</param>
         /// <param name="cancellationToken">A cancellation token that can be used by the caller to cancel the asynchronous operation.</param>
-        /// <returns>An <see cref="IActionResult"/> holding the image, 404 when there is none, 400 without a reference, or 401 without a session.</returns>
+        /// <returns>An <see cref="IActionResult"/> holding the image, 404 when there is none, 400 without a reference, 401 without a session, 502 for an unreadable upstream answer, 503 when the service answered nothing at all, or the failure status the service answered with.</returns>
         [HttpGet("image")]
         public async Task<IActionResult> GetImageAsync([FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "reference")] string? reference, CancellationToken cancellationToken = default)
         {
@@ -181,7 +181,17 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             urlBuilder_Years = urlBuilder_Years.AddParameter("fallbackbyreference", true);
 
             WebAPIResponse? webAPIResponse = await httpClient.ResponseAsync(HttpMethod.Get, urlBuilder_Years.ToString(), tokenString, cancellationToken);
-            if (webAPIResponse?.StatusCode != StatusCodes.Status200OK || string.IsNullOrWhiteSpace(webAPIResponse.Json))
+            if (webAPIResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIResponse.StatusCode);
+            }
+
+            if (string.IsNullOrWhiteSpace(webAPIResponse.Json))
             {
                 return NotFound();
             }
@@ -193,7 +203,8 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
             catch (JsonException)
             {
-                return NotFound();
+                // A 200 whose body is not a year list is a content fault, never "no photo".
+                return StatusCode(StatusCodes.Status502BadGateway);
             }
 
             if (years is null || years.Count == 0)
@@ -210,10 +221,27 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             }
             urlBuilder_Image = urlBuilder_Image.AddParameter("fallbackbyreference", true);
 
-            byte[]? bytes = await httpClient.BytesAsync(urlBuilder_Image.ToString(), cancellationToken);
-            if (bytes is null || bytes.Length == 0)
+            WebAPIBytesResponse? webAPIBytesResponse = await httpClient.ResponseBytesAsync(urlBuilder_Image.ToString(), tokenString, cancellationToken);
+            if (webAPIBytesResponse is null)
+            {
+                return StatusCode(StatusCodes.Status503ServiceUnavailable);
+            }
+
+            if (webAPIBytesResponse.StatusCode == StatusCodes.Status404NotFound)
             {
                 return NotFound();
+            }
+
+            if (webAPIBytesResponse.StatusCode != StatusCodes.Status200OK)
+            {
+                return StatusCode(webAPIBytesResponse.StatusCode);
+            }
+
+            byte[]? bytes = webAPIBytesResponse.Bytes;
+            if (bytes is null || bytes.Length == 0)
+            {
+                // A 200 that carried no bytes is a content fault of the relay, not a missing photo.
+                return StatusCode(StatusCodes.Status502BadGateway);
             }
 
             return File(bytes, "image/jpeg");
