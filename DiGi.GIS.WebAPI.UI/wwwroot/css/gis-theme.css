@@ -1212,9 +1212,204 @@ body.ortodata-epoch-open {
     display: none;
 }
 
+/* Building Shape labelling page (DiGi.GIS.WebAPI.UI#86). Reuses the Orto Data toolbar, status and
+   empty-state rules; adds the outline/photo panels and the class buttons. */
+.buildingshape-progress {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9em;
+    color: var(--text-muted);
+}
+
+.buildingshape-progress progress {
+    width: 160px;
+    height: 10px;
+    accent-color: var(--primary-color);
+}
+
+.buildingshape-reference {
+    font-weight: 400;
+    font-size: 0.9em;
+    color: var(--text-muted);
+    overflow-wrap: anywhere;
+}
+
+.buildingshape-workspace {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(260px, 1fr);
+    gap: 15px;
+    align-items: start;
+}
+
+.buildingshape-workspace[hidden] {
+    display: none;
+}
+
+.buildingshape-panels {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 15px;
+}
+
+.buildingshape-panel {
+    margin: 0;
+    border: 1px solid var(--border-color-light);
+    border-radius: 8px;
+    background: var(--bg-card);
+    box-shadow: var(--shadow-small);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.buildingshape-svg,
+.buildingshape-image,
+.buildingshape-noimage {
+    display: block;
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    background: #f7f9fb;
+}
+
+.buildingshape-image {
+    object-fit: contain;
+}
+
+.buildingshape-image[hidden],
+.buildingshape-noimage[hidden] {
+    display: none;
+}
+
+.buildingshape-noimage {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-gray-light);
+    font-size: 0.9em;
+}
+
+.buildingshape-outline {
+    fill: var(--primary-light);
+    stroke: var(--primary-color);
+    stroke-width: 6;
+    stroke-linejoin: round;
+}
+
+.buildingshape-svg-missing {
+    fill: var(--text-gray-light);
+    font-size: 40px;
+    font-family: var(--font-sans);
+}
+
+.buildingshape-caption {
+    padding: 8px;
+    border-top: 1px solid var(--border-color-light);
+    background: #f8f9fa;
+    font-size: 0.85em;
+    color: var(--text-muted);
+    text-align: center;
+}
+
+.buildingshape-classes {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-light);
+    border-radius: 8px;
+    box-shadow: var(--shadow-small);
+    padding: 12px;
+}
+
+.buildingshape-hint {
+    margin: 0 0 10px;
+    font-size: 0.85em;
+    color: var(--text-muted);
+}
+
+.buildingshape-buttons {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.buildingshape-class {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 6px;
+    padding: 10px 10px;
+    min-height: 44px;
+    cursor: pointer;
+    font-weight: 600;
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    color: var(--text-dark);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.buildingshape-class:hover {
+    background: var(--bg-table-hover);
+    border-color: var(--primary-color);
+}
+
+.buildingshape-class[aria-pressed="true"] {
+    border: 2px solid var(--primary-color);
+    background: var(--primary-light);
+}
+
+.buildingshape-class kbd {
+    font-family: var(--font-mono);
+    font-size: 0.75em;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color-light);
+    border-radius: 3px;
+    padding: 0 4px;
+}
+
+.buildingshape-class-undefined {
+    grid-column: 1 / -1;
+    color: var(--text-muted);
+}
+
+.buildingshape-note {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-top: 12px;
+}
+
+.buildingshape-note input {
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    font-family: var(--font-sans);
+}
+
+@media (max-width: 900px) {
+    .buildingshape-workspace {
+        grid-template-columns: 1fr;
+    }
+}
+
 @media (max-width: 768px) {
     .ortodata-grid {
         grid-template-columns: 1fr;
+    }
+
+    .buildingshape-panels {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    .buildingshape-progress progress {
+        width: 100px;
+    }
+
+    /* Key hints are for a keyboard; on a phone they only crowd the labels. */
+    .buildingshape-class kbd {
+        display: none;
     }
 
     .ortodata-area-fields {

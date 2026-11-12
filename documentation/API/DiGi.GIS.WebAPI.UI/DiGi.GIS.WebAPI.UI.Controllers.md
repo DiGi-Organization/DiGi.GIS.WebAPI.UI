@@ -1182,6 +1182,236 @@ The building\.
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')  
 The reference text, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when the building carries none\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController'></a>
+
+## BuildingShapeController Class
+
+Provides the Building Shape labelling page \(DiGi\.GIS\.WebAPI\.UI\#86\) and the endpoints it uses, each relaying to `gis/buildingshape` of the GIS Web API with the visitor's session presented as a bearer token\.
+
+The page is part of the Building Shape Accuracy feature (DiGi.GIS#12): a signed-in annotator labels the footprints of the fixed sample [BuildingShapeSampleKey](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeSampleKey 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.BuildingShapeSampleKey') one by one, blind to the solver's answer. The page action redirects an anonymous visitor to the sign-in page, and every other action answers 401, which the page script answers with one refresh attempt and then a sign-out (`wwwroot/js/user.js`).
+
+The relays store nothing and reinterpret nothing but one status: an upstream 404 of the next-item read means the annotator has labelled every item, answered here as the empty object `{}` so the page shows its finished state instead of an error. Every other status passes through; a service that answered nothing at all is 503.
+
+```csharp
+public class BuildingShapeController : Microsoft.AspNetCore.Mvc.Controller
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → [Microsoft\.AspNetCore\.Mvc\.ControllerBase](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controllerbase 'Microsoft\.AspNetCore\.Mvc\.ControllerBase') → [Microsoft\.AspNetCore\.Mvc\.Controller](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.controller 'Microsoft\.AspNetCore\.Mvc\.Controller') → BuildingShapeController
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.BuildingShapeController(System.Net.Http.IHttpClientFactory)'></a>
+
+## BuildingShapeController\(IHttpClientFactory\) Constructor
+
+Initializes a new instance of the [BuildingShapeController](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingShapeController') class\.
+
+```csharp
+public BuildingShapeController(System.Net.Http.IHttpClientFactory httpClientFactory);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.BuildingShapeController(System.Net.Http.IHttpClientFactory).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory') used to create HTTP clients\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetImageAsync(System.Nullable_int_,string,System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.GetImageAsync\(Nullable\<int\>, string, CancellationToken\) Method
+
+Reads the newest orthophoto of a footprint as JPEG bytes, the context drawn under the outline\.
+
+The photo years are read first (with the reference fallback) and the newest one is fetched; a footprint without photos answers 404, which the page turns into an outline on a plain background.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetImageAsync(System.Nullable<int> countyId, string? reference, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetImageAsync(System.Nullable_int_,string,System.Threading.CancellationToken).countyId'></a>
+
+`countyId` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The county part the footprint is filed under, or null when the query carries none\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetImageAsync(System.Nullable_int_,string,System.Threading.CancellationToken).reference'></a>
+
+`reference` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The reference of the footprint\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetImageAsync(System.Nullable_int_,string,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the image, 404 when there is none, 400 without a reference, or 401 without a session\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetLabelsAsync(System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.GetLabelsAsync\(CancellationToken\) Method
+
+Relays every label of the sample, by every annotator, for the export\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetLabelsAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetLabelsAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the labels as the service answered them, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetNextAsync(System.Nullable_int_,System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.GetNextAsync\(Nullable\<int\>, CancellationToken\) Method
+
+Relays the annotator's next unlabelled footprint of the sample, without the solver shape\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetNextAsync(System.Nullable<int> afterOrdinal, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetNextAsync(System.Nullable_int_,System.Threading.CancellationToken).afterOrdinal'></a>
+
+`afterOrdinal` [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
+
+The ordinal of the item last seen or skipped, so the search starts after it and wraps around; omitted to start from the beginning\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetNextAsync(System.Nullable_int_,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the item as the service answered it, `{}` when every item is labelled, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetProgressAsync(System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.GetProgressAsync\(CancellationToken\) Method
+
+Relays the annotator's progress through the sample as `{ Labelled, Total }`\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetProgressAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetProgressAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the counts, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetSampleItemsAsync(System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.GetSampleItemsAsync\(CancellationToken\) Method
+
+Relays every item of the sample with its solver shape, for the export only; the page never reads it while labelling\.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> GetSampleItemsAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.GetSampleItemsAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the items as the service answered them, 401 without a session, 503 when the service answered nothing at all, or the status the service answered with\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.RelayGetAsync(string,bool,System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.RelayGetAsync\(string, bool, CancellationToken\) Method
+
+Relays one session\-gated GET to the GIS Web API and answers its JSON body verbatim with its status\.
+
+```csharp
+private System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> RelayGetAsync(string requestUri, bool notFoundAsEmpty, System.Threading.CancellationToken cancellationToken);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.RelayGetAsync(string,bool,System.Threading.CancellationToken).requestUri'></a>
+
+`requestUri` [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+The GIS Web API URL to relay to\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.RelayGetAsync(string,bool,System.Threading.CancellationToken).notFoundAsEmpty'></a>
+
+`notFoundAsEmpty` [System\.Boolean](https://learn.microsoft.com/en-us/dotnet/api/system.boolean 'System\.Boolean')
+
+True to answer an upstream 404 as the empty object `{}` \(the next\-item read's "every item labelled"\)\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.RelayGetAsync(string,bool,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The relayed answer: the body on 200, `{}` on a 404 when [notFoundAsEmpty](DiGi.GIS.WebAPI.UI.Controllers.md#DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.RelayGetAsync(string,bool,System.Threading.CancellationToken).notFoundAsEmpty 'DiGi\.GIS\.WebAPI\.UI\.Controllers\.BuildingShapeController\.RelayGetAsync\(string, bool, System\.Threading\.CancellationToken\)\.notFoundAsEmpty') is set, 401 without a session, 503 when the service answered nothing at all, otherwise the upstream status\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.SetLabelAsync(System.Threading.CancellationToken)'></a>
+
+## BuildingShapeController\.SetLabelAsync\(CancellationToken\) Method
+
+Relays the annotator's label of one sample item, forwarding the posted body verbatim and answering with the status the service mirrored\.
+
+The interpreter and the timestamp are stamped by the service from the bearer token and its clock, never read from the body.
+
+```csharp
+public System.Threading.Tasks.Task<Microsoft.AspNetCore.Mvc.IActionResult> SetLabelAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.SetLabelAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+A cancellation token that can be used by the caller to cancel the asynchronous operation\.
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') that is empty on success or carries the status the service answered with; 400 for an empty body, 401 without a session, 503 when the service answered nothing at all\.
+
+<a name='DiGi.GIS.WebAPI.UI.Controllers.BuildingShapeController.Start()'></a>
+
+## BuildingShapeController\.Start\(\) Method
+
+Returns the Building Shape labelling page, or redirects an anonymous visitor to the sign\-in page\.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Start();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the labelling view, or a redirect to the sign\-in page\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.CommunicationController'></a>
 
 ## CommunicationController Class

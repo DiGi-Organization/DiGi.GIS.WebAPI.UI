@@ -1,0 +1,71 @@
+@{
+    ViewData["Title"] = "Building Shape";
+    ViewData["Description"] = "Label building footprints with their morphological shape class to measure the shape solver's accuracy.";
+    ViewData["Robots"] = "noindex, nofollow";
+}
+
+<div class="buildingshape-page" data-sample-key="@DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeSampleKey">
+    <div class="ortodata-toolbar buildingshape-toolbar">
+        <div class="ortodata-toolbar-row">
+            <div class="ortodata-identity">
+                <span>Item: <span id="buildingshape-ordinal">&ndash;</span></span>
+                <span class="buildingshape-reference">County ID: <span id="buildingshape-county">&ndash;</span> &middot; Reference: <span id="buildingshape-reference">&ndash;</span></span>
+            </div>
+            <div class="buildingshape-progress">
+                <progress id="buildingshape-progress" max="1" value="0"></progress>
+                <span id="buildingshape-progress-text">&ndash;</span>
+            </div>
+            <div class="ortodata-toolbar-actions">
+                <button type="button" id="buildingshape-back" class="gis-button gis-button-secondary" title="Back (B)" disabled>Back</button>
+                <button type="button" id="buildingshape-skip" class="gis-button gis-button-secondary" title="Skip (Space)">Skip</button>
+                <button type="button" id="buildingshape-details" class="gis-button gis-button-secondary">Details</button>
+                <button type="button" id="buildingshape-export" class="gis-button gis-button-secondary">Export CSV</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="buildingshape-status" class="ortodata-status" role="status" aria-live="polite" hidden></div>
+
+    <div id="buildingshape-finished" class="ortodata-empty" hidden>
+        <p class="ortodata-empty-title">Every item is labelled</p>
+        <p class="ortodata-empty-text">You have labelled the whole sample. Use Back to revise a label, or Export CSV for the results.</p>
+    </div>
+
+    <div id="buildingshape-workspace" class="buildingshape-workspace">
+        <div class="buildingshape-panels">
+            <figure class="buildingshape-panel">
+                <svg id="buildingshape-svg" class="buildingshape-svg" viewBox="0 0 1000 1000" role="img" aria-label="Building footprint"></svg>
+                <figcaption id="buildingshape-dimensions" class="buildingshape-caption">Footprint</figcaption>
+            </figure>
+            <figure class="buildingshape-panel">
+                <img id="buildingshape-image" class="buildingshape-image" alt="Newest orthophoto of the building" hidden>
+                <div id="buildingshape-noimage" class="buildingshape-noimage">No orthophoto</div>
+                <figcaption class="buildingshape-caption">Newest orthophoto</figcaption>
+            </figure>
+        </div>
+
+        <div class="buildingshape-classes">
+            <p class="buildingshape-hint">Pick the shape of the outline; the choice is saved and the next footprint is shown.</p>
+            <div id="buildingshape-buttons" class="buildingshape-buttons">
+                <button type="button" class="buildingshape-class" data-shape="1" data-key="s">Square <kbd>S</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="2" data-key="r">Rectangular <kbd>R</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="3" data-key="c">Circular <kbd>C</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="4" data-key="l">L <kbd>L</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="5" data-key="h">H <kbd>H</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="6" data-key="u">U <kbd>U</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="7" data-key="o">O <kbd>O</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="8" data-key="e">E <kbd>E</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="9" data-key="f">F <kbd>F</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="10" data-key="t">T <kbd>T</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="11" data-key="x">X <kbd>X</kbd></button>
+                <button type="button" class="buildingshape-class" data-shape="12" data-key="q">Other <kbd>Q</kbd></button>
+                <button type="button" class="buildingshape-class buildingshape-class-undefined" data-shape="0" data-key="n">Cannot classify <kbd>N</kbd></button>
+            </div>
+            <label class="gis-field-label buildingshape-note">Note (optional)<input id="buildingshape-note" type="text" maxlength="500" autocomplete="off"></label>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/building-shape.js" asp-append-version="true"></script>
+}

@@ -104,6 +104,7 @@
                     @if (signedIn)
                     {
                         <a href="~/ortodata" role="menuitem" class="gis-nav-link @(currentPath == "/ortodata" || currentPath.StartsWith("/ortodata/", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Orto Data</a>
+                        <a href="~/buildingshape" role="menuitem" class="gis-nav-link @(string.Equals(currentPath, "/buildingshape", StringComparison.OrdinalIgnoreCase) || currentPath.StartsWith("/buildingshape/", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Building Shape</a>
                     }
                     <a href="~/communication" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/communication", StringComparison.OrdinalIgnoreCase) ? "active" : "")">Communication</a>
                     <a href="~/buildingmodel" role="menuitem" class="gis-nav-link @(currentPath.StartsWith("/buildingmodel", StringComparison.OrdinalIgnoreCase) ? "active" : "")">3D Viewer</a>

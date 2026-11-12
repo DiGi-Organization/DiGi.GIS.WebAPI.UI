@@ -212,6 +212,41 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string OrtoDataImageByReferenceUri = GISWebAPIUri + "/gis/ortodatas/imagebyreference";
 
         /// <summary>
+        /// The sample the Building Shape labelling page works on (DiGi.GIS#12): the stratified footprint sample loaded once through <c>gis/buildingshape/sample</c>.
+        /// </summary>
+        public const string BuildingShapeSampleKey = "gis12-2026";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering the signed-in annotator's next unlabelled footprint of a sample, without the solver shape (DiGi.GIS.WebAPI#80).
+        /// <para>Requires a signed-in session. Query names: <c>samplekey</c>, <c>afterordinal</c>.</para>
+        /// </summary>
+        public const string BuildingShapeNextSampleUri = GISWebAPIUri + "/gis/buildingshape/nextsample";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering the signed-in annotator's progress through a sample as <c>{ Labelled, Total }</c>.
+        /// <para>Requires a signed-in session. Query name: <c>samplekey</c>.</para>
+        /// </summary>
+        public const string BuildingShapeProgressUri = GISWebAPIUri + "/gis/buildingshape/progress";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint storing the signed-in annotator's building shape label of one sample item.
+        /// <para>Requires a signed-in session; the body is relayed verbatim.</para>
+        /// </summary>
+        public const string BuildingShapeLabelUri = GISWebAPIUri + "/gis/buildingshape/label";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering every label of a sample, by every annotator.
+        /// <para>Requires a signed-in session. Query name: <c>samplekey</c>.</para>
+        /// </summary>
+        public const string BuildingShapeLabelsUri = GISWebAPIUri + "/gis/buildingshape/labels";
+
+        /// <summary>
+        /// URI of the GIS Web API endpoint answering every item of a sample with its solver shape - the export side only, never read while labelling.
+        /// <para>Requires a signed-in session. Query name: <c>samplekey</c>.</para>
+        /// </summary>
+        public const string BuildingShapeSampleItemsUri = GISWebAPIUri + "/gis/buildingshape/sampleitems";
+
+        /// <summary>
         /// The fewest points a reduced outline is allowed to keep, for an administrative area with no rule of its own and for a building footprint.
         /// </summary>
         public const int PolygonMinimumPointCount = 100;

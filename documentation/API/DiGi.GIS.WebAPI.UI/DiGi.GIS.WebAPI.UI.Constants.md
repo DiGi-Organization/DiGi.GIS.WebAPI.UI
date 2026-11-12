@@ -375,6 +375,94 @@ public const double BuildingSearchTolerance = 5;
 #### Field Value
 [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeLabelsUri'></a>
+
+## Default\.BuildingShapeLabelsUri Field
+
+URI of the GIS Web API endpoint answering every label of a sample, by every annotator\.
+
+Requires a signed-in session. Query name: `samplekey`.
+
+```csharp
+public const string BuildingShapeLabelsUri = "https://api.digiproject.uk/gis/buildingshape/labels";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeLabelUri'></a>
+
+## Default\.BuildingShapeLabelUri Field
+
+URI of the GIS Web API endpoint storing the signed\-in annotator's building shape label of one sample item\.
+
+Requires a signed-in session; the body is relayed verbatim.
+
+```csharp
+public const string BuildingShapeLabelUri = "https://api.digiproject.uk/gis/buildingshape/label";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeNextSampleUri'></a>
+
+## Default\.BuildingShapeNextSampleUri Field
+
+URI of the GIS Web API endpoint answering the signed\-in annotator's next unlabelled footprint of a sample, without the solver shape \(DiGi\.GIS\.WebAPI\#80\)\.
+
+Requires a signed-in session. Query names: `samplekey`, `afterordinal`.
+
+```csharp
+public const string BuildingShapeNextSampleUri = "https://api.digiproject.uk/gis/buildingshape/nextsample";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeProgressUri'></a>
+
+## Default\.BuildingShapeProgressUri Field
+
+URI of the GIS Web API endpoint answering the signed\-in annotator's progress through a sample as `{ Labelled, Total }`\.
+
+Requires a signed-in session. Query name: `samplekey`.
+
+```csharp
+public const string BuildingShapeProgressUri = "https://api.digiproject.uk/gis/buildingshape/progress";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeSampleItemsUri'></a>
+
+## Default\.BuildingShapeSampleItemsUri Field
+
+URI of the GIS Web API endpoint answering every item of a sample with its solver shape \- the export side only, never read while labelling\.
+
+Requires a signed-in session. Query name: `samplekey`.
+
+```csharp
+public const string BuildingShapeSampleItemsUri = "https://api.digiproject.uk/gis/buildingshape/sampleitems";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingShapeSampleKey'></a>
+
+## Default\.BuildingShapeSampleKey Field
+
+The sample the Building Shape labelling page works on \(DiGi\.GIS\#12\): the stratified footprint sample loaded once through `gis/buildingshape/sample`\.
+
+```csharp
+public const string BuildingShapeSampleKey = "gis12-2026";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.BuildingSolarRadiationSetUri'></a>
 
 ## Default\.BuildingSolarRadiationSetUri Field
