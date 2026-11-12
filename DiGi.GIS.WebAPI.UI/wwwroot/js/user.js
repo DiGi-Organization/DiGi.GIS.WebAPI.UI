@@ -289,10 +289,103 @@ const digiUser = (function () {
         });
     }
 
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', setupHeader);
-    } else {
+    // Sliding session. The service issues a token that lives one hour and can only be exchanged while it is
+    // still valid, so waiting for the first 401 (fetchWithAuth) makes the one hour a hard limit from sign-in.
+    // Instead the token is exchanged shortly before it expires, but only for a visitor who has been active
+    // recently: an abandoned tab is allowed to run out. Both values are milliseconds.
+    const refreshLeadTime = 10 * 60 * 1000;
+    const activeWindow = 30 * 60 * 1000;
+    let lastActivity = Date.now();
+    let refreshTimer = null;
+    let expiresAt = null;
+
+    /**
+     * Reads when the current token expires, from the server's introspection of the session cookie.
+     *
+     * @returns {Promise<number|null>} The expiry as milliseconds since the epoch, or null when there is no readable session.
+     */
+    async function readExpiresAt() {
+        try {
+            const response = await fetch(`${baseUrl()}/user/session`, { method: 'GET' });
+            if (response.status === 204 || !response.ok) {
+                return null;
+            }
+
+            let data = await response.json();
+            data = Array.isArray(data) ? data[0] : data;
+            const value = data ? (data.ExpiresAt || data.expiresAt) : null;
+            const time = value ? Date.parse(value) : NaN;
+            return Number.isNaN(time) ? null : time;
+        } catch (error) {
+            return null;
+        }
+    }
+
+    /**
+     * Exchanges the token when it is within the lead time of expiring and the visitor has been active, then
+     * schedules the next check. A refused exchange is left to fetchWithAuth, which signs out on the next 401.
+     */
+    async function keepAlive() {
+        if (!isLoggedIn()) {
+            return;
+        }
+
+        if (expiresAt === null) {
+            expiresAt = await readExpiresAt();
+        }
+
+        if (expiresAt === null) {
+            return;
+        }
+
+        const due = expiresAt - refreshLeadTime;
+        const active = Date.now() - lastActivity < activeWindow;
+
+        if (Date.now() >= due && active && Date.now() < expiresAt) {
+            if (await refresh()) {
+                expiresAt = await readExpiresAt();
+            } else {
+                return;
+            }
+        }
+
+        scheduleKeepAlive();
+    }
+
+    function scheduleKeepAlive() {
+        window.clearTimeout(refreshTimer);
+
+        if (expiresAt === null) {
+            return;
+        }
+
+        // Wake at the refresh point, or again in a minute when that has passed without the visitor being active,
+        // so that returning to the tab inside the token's last minutes still renews it.
+        const wait = Math.max(expiresAt - refreshLeadTime - Date.now(), 60 * 1000);
+        refreshTimer = window.setTimeout(keepAlive, wait);
+    }
+
+    function setupKeepAlive() {
+        const markActive = function () {
+            lastActivity = Date.now();
+        };
+
+        ['pointerdown', 'keydown', 'scroll', 'visibilitychange'].forEach(function (name) {
+            window.addEventListener(name, markActive, { passive: true });
+        });
+
+        keepAlive();
+    }
+
+    function setup() {
         setupHeader();
+        setupKeepAlive();
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', setup);
+    } else {
+        setup();
     }
 
     return {
