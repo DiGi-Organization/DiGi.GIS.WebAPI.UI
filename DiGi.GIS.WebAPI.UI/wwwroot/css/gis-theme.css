@@ -4181,3 +4181,302 @@ body.ortodata-epoch-open {
     padding-top: 12px;
     border-top: 1px solid var(--border-color-light);
 }
+
+/* ==========================================================================
+   Phone layout and touch ergonomics. Keep this block LAST in gis-theme.css:
+   several rules win by source order over equally specific rules above.
+   ========================================================================== */
+
+/* 100vh is taller than the visible area while a mobile browser shows its toolbar, which pushes the
+   footer below the fold of a body that never scrolls. dvh tracks the visible area; vh is the fallback. */
+.gis-app-body {
+    height: 100vh;
+    height: 100dvh;
+}
+
+/* A landscape phone is ~375px tall: the dropdown must scroll inside itself, the body never does. */
+.gis-nav-menu {
+    max-height: calc(100vh - 90px);
+    max-height: calc(100dvh - 90px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+}
+
+@media (max-width: 768px) {
+    /* --- Footer: one compact row of a known height, so the collapse offset below can match it. --- */
+    .gis-footer {
+        height: 64px;
+        padding: 0;
+    }
+
+    .gis-footer-container {
+        flex-direction: row;
+        gap: 12px;
+        text-align: left;
+    }
+
+    .gis-footer-left {
+        flex: 0 0 auto;
+    }
+
+    .gis-footer-center {
+        flex: 1 1 auto;
+        min-width: 0;
+        justify-content: flex-start;
+        text-align: left;
+        font-size: 0.75rem;
+    }
+
+    .gis-footer-right {
+        display: none;
+    }
+
+    .gis-footer-logo {
+        height: 28px;
+    }
+
+    .gis-layout-collapsed .gis-footer {
+        margin-bottom: -64px;
+    }
+
+    /* --- Cards and tables: max-width % plus padding in a content-box overflowed the viewport. --- */
+    .gis-table-container,
+    .gis-table-container.margin-large {
+        box-sizing: border-box;
+        max-width: none;
+        margin: 12px;
+        padding: 12px;
+    }
+
+    .gis-panel,
+    .gis-panel.gis-panel-full {
+        width: auto;
+        max-width: none;
+        margin: 12px;
+    }
+
+    .gis-card {
+        padding: 16px;
+    }
+
+    .gis-about-card {
+        padding: 24px 16px;
+        box-sizing: border-box;
+    }
+
+    /* --- Details header: info beside a rigid 320px drawing becomes info above the drawing. --- */
+    .gis-main-content {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 16px;
+    }
+
+    .gis-visual-side {
+        flex: 0 0 auto;
+    }
+
+    #svg-wrapper {
+        box-sizing: border-box;
+        width: 100%;
+        max-width: 320px;
+        height: auto;
+        aspect-ratio: 1;
+    }
+
+    #mainCanvas {
+        width: 100% !important;
+        height: 100% !important;
+    }
+
+    /* --- Property tables: 360px + 400px column minimums made every table 808px wide. --- */
+    .gis-property-table td {
+        padding: 8px;
+    }
+
+    .gis-property-table td.property-label {
+        width: 40%;
+        min-width: 0;
+    }
+
+    .gis-property-table td:not(.property-label) {
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .gis-table thead th,
+    .gis-table td {
+        padding: 8px;
+    }
+
+    .coverage-wrapper {
+        width: 96px;
+    }
+
+    .orto-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+    }
+
+    /* --- Buildings master/detail: a fixed 450px list left the details 40px wide. Stack them:
+           the list keeps its own scroll, the details flow with the page. --- */
+    .master-detail-wrapper {
+        flex: 0 0 auto;
+        flex-direction: column;
+    }
+
+    #listSide {
+        flex: 0 0 auto;
+        width: auto;
+        max-width: none;
+        height: 45vh;
+        height: 45dvh;
+    }
+
+    #detailsSide {
+        flex: 0 0 auto;
+        overflow: visible;
+        min-height: 160px;
+    }
+
+    /* --- 3D / communication / terrain scenes: a 340px docked panel left the canvas 0px wide.
+           Stack: canvas first, panels beneath at full width. !important beats the inline
+           flex-basis the resizer persists from a desktop session (gltf-side-panel-width). --- */
+    .gltf-layout,
+    .gltf-layout.gltf-layout-toolbar,
+    .gis-layout-collapsed .gltf-layout,
+    .gis-layout-collapsed .gltf-layout.gltf-layout-toolbar {
+        flex-direction: column;
+        gap: 12px;
+        height: auto;
+        min-height: 0;
+    }
+
+    #gltf-viewer-container {
+        order: -1;
+        flex: 0 0 auto;
+        height: 60vh;
+        height: 60dvh;
+        min-height: 320px;
+    }
+
+    .gltf-side-panel,
+    .gltf-left-panel {
+        flex: 0 0 auto !important;
+        height: auto;
+        overflow: visible;
+    }
+
+    .gltf-resizer {
+        display: none;
+    }
+
+    /* --- Wide dialogs --- */
+    .gis-modal.gis-modal-wide {
+        height: 85vh;
+        height: 85dvh;
+    }
+}
+
+/* Touch devices only: the 28px "height 3" control rhythm is a mouse rhythm. Desktop is untouched. */
+@media (pointer: coarse) {
+    .gis-nav-toggle {
+        width: 48px;
+        height: 48px;
+    }
+
+    .gis-nav-menu .gis-nav-link {
+        display: flex;
+        align-items: center;
+        min-height: 48px;
+        box-sizing: border-box;
+    }
+
+    /* The collapse tab stays a slim 24px visual; the tap area grows around it. */
+    .gis-layout-toggle::before {
+        content: '';
+        position: absolute;
+        inset: -4px -8px -20px -8px;
+    }
+
+    .gis-button,
+    .ortodata-bound {
+        min-height: 48px;
+        box-sizing: border-box;
+        justify-content: center;
+    }
+
+    a.ortodata-bound {
+        line-height: 38px;
+    }
+
+    .btn-buildings {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 48px;
+        min-height: 48px;
+        box-sizing: border-box;
+    }
+
+    /* The list link stays a block so its ellipsis keeps working; line-height centres the label. */
+    .btn-buildings.building-link {
+        display: block;
+        padding-top: 0;
+        padding-bottom: 0;
+        line-height: 46px;
+    }
+
+    /* 16px is the threshold below which iOS Safari zooms the page on focus. */
+    .gis-select,
+    .gis-inline-form input,
+    .gis-field-label input,
+    .communication-modal-label input,
+    .communication-modal-label select,
+    .gis-column-filter,
+    .gltf-slider-label input[type="date"] {
+        height: 48px;
+        min-height: 48px;
+        font-size: 16px;
+    }
+
+    .gis-column-item {
+        min-height: 48px;
+        display: flex;
+        align-items: center;
+        box-sizing: border-box;
+    }
+
+    .gltf-panel-toggle,
+    .gltf-left-panel-toggle {
+        width: 48px;
+        height: 48px;
+    }
+
+    .gltf-card-toggle {
+        width: 48px;
+        height: 48px;
+        margin: -11px -11px -11px 0;
+    }
+
+    .back-button {
+        margin-top: 16px;
+        padding: 14px 0;
+    }
+
+    .gis-logo-link {
+        min-height: 48px;
+    }
+
+    .gis-button.gis-button-icon {
+        min-width: 48px;
+    }
+
+    .typology-panel-toggle {
+        width: 48px;
+        height: 48px;
+    }
+
+    .coverage-text {
+        font-size: 0.75rem;
+    }
+}

@@ -18,8 +18,9 @@ function getResolvedUrl(path) {
  *
  * @param {string} url - Detail endpoint URL.
  * @param {HTMLElement} clickedElement - Anchor link element that triggered the fetch.
+ * @param {boolean} [reveal=false] - Scroll the details into view once loaded, where they sit below the list.
  */
-async function loadBuildingDetails(url, clickedElement) {
+async function loadBuildingDetails(url, clickedElement, reveal = false) {
     const contentContainer = document.getElementById('detailsContent');
     const loader = document.getElementById('detailsLoader');
 
@@ -60,6 +61,13 @@ async function loadBuildingDetails(url, clickedElement) {
             const currentRow = clickedElement.closest('tr');
             if (currentRow) currentRow.classList.add('active-selection');
         }
+
+        // On a phone the details are stacked below the list (gis-theme.css, max-width: 768px), so a tap
+        // would otherwise change nothing on screen. Same breakpoint as the stylesheet.
+        if (reveal && window.matchMedia('(max-width: 768px)').matches) {
+            const detailsSide = document.getElementById('detailsSide');
+            if (detailsSide) detailsSide.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
     } catch (error) {
         console.error('Error:', error);
         contentContainer.innerHTML = `<div style="padding: 20px; color: #d9534f; text-align: center;"><strong>Error:</strong> Could not load building details.</div>`;
@@ -80,7 +88,9 @@ function initBuildingReferencesView() {
             if (link) {
                 e.preventDefault();
                 const url = link.getAttribute('href');
-                loadBuildingDetails(url, link);
+                // The auto-start below clicks the first link from script (isTrusted is false): it loads
+                // the details but must not scroll the page away from the list on entry.
+                loadBuildingDetails(url, link, e.isTrusted);
             }
         });
     }
