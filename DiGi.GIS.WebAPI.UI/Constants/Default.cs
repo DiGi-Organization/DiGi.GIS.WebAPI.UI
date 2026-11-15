@@ -309,12 +309,6 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string BuildingSolarRadiationSetUri = GISWebAPIUri + "/gis/buildingsolarradiation/setsolarradiation";
 
         /// <summary>
-        /// The angular tolerance, in radians, below which the solar radiation calculation groups sun directions into one shading solve (<c>ShadingSolverOptions.AngleTolerance</c>); 2°, twice the solver default.
-        /// <para>Measured over a full EPW year (DiGi-Organization/DiGi.Solar#7, comment 5831808537): it halves the direction groups (615 → 295) and the solve time, and changes the annual per-surface irradiation by at most 2.06 %. #7 measured on a 16-thread machine, not on this host; the relative saving holds on any machine.</para>
-        /// </summary>
-        public const double SolarAngleTolerance = Core.Constants.Tolerance.Angle;
-
-        /// <summary>
         /// The upper bound, in metres, of the neighbour radius a solar radiation request may ask for; a larger one is refused with a 400.
         /// <para>Headroom above <see cref="SolarSurroundingRadius"/> for tall distant casters in low winter sun, which the measured buildings do not cover; 200 m cost up to twice the solve time for no measured gain (DiGi-Organization/DiGi.Solar#7, comment 5831808537).</para>
         /// </summary>
@@ -349,27 +343,6 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         /// <para>Measured on this host, a 4-core Intel N150 with 16 GB, whole requests in central Warsaw at the default radius took about 1.7 s per receiver: 42 s at 25 receivers, 56 s at 34, 65 s at 37 and 51–159 s at 43–48, repeated runs of one building varying up to 2.5 times (DiGi.GIS.WebAPI.UI#59). At 30 receivers a typical request stays near one minute, well under the ~135 s at which the front end answered 503. DiGi-Organization/DiGi.Solar#7 proposed 100, but measured a 16-thread machine, not this host. Refine it from the per-request log of <c>SolarController</c> (<c>logs\log-yyyyMMdd.txt</c>). Larger buildings are calculated as background jobs, up to <see cref="SolarJobReceiverCountMax"/> (DiGi.GIS.WebAPI.UI#60).</para>
         /// </summary>
         public const int SolarReceiverCountMax = 30;
-
-        /// <summary>
-        /// The year every EPW record is mapped to before the sun position is calculated. Typical meteorological years mix calendar years month by month, and the last record of the year rolls into the next one, so one fixed year keeps the time series monotonic.
-        /// <para>A non-leap year, so the 8 760 hours of an EPW year map one to one; a 29 February record is skipped.</para>
-        /// </summary>
-        public const int SolarReferenceYear = 2025;
-
-        /// <summary>
-        /// The number of hours of the solar reference year (<see cref="SolarReferenceYear"/>, 365 days): the length of every surface's stored shading factors, index = hour of the year.
-        /// </summary>
-        public const int SolarReferenceHourCount = 8760;
-
-        /// <summary>
-        /// The precision, in decimal places, to which the neighbour radius is rounded before it is solved, looked up and stored: one, so 0.1 m. The radius is part of the stored key and compared exactly, so it is rounded once (<see cref="Query.SolarRadiusKey(double)"/>) and every layer then uses the same value.
-        /// </summary>
-        public const int SolarRadiusDecimals = 1;
-
-        /// <summary>
-        /// The version of the solar radiation solve - the shading solver, <c>SolarController.SolarShadingSolverOptions()</c> and the hourly aggregation - that stored results are keyed by. Bump it whenever any of them changes: every result stored under an older version is then a miss and is solved again (DiGi.GIS.WebAPI.UI#73).
-        /// </summary>
-        public const int SolarSolverVersion = 1;
 
         /// <summary>
         /// The dependency injection key of the <see cref="System.Threading.SemaphoreSlim"/> of <see cref="SolarConcurrentSolveCount"/> slots that gates every solar radiation solve on this host.

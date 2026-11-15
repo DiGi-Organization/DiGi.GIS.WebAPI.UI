@@ -6,6 +6,7 @@ using DiGi.Core.Interfaces;
 using DiGi.EPW.Classes;
 using DiGi.Geometry.Planar.Classes;
 using DiGi.Geometry.Spatial.Classes;
+using DiGi.GIS.Analytical.Solar;
 using DiGi.GIS.WebAPI.UI.Classes;
 using DiGi.GIS.WebAPI.UI.Enums;
 using DiGi.GIS.WebAPI.UI.ViewModels;
@@ -29,7 +30,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
     /// Solar calculations for the 3D viewers: the sun position for the Lighting panel, and the annual solar radiation on the external walls and roofs of one building, calculated on this host's CPU with DiGi.Solar over one EPW year, with the building itself and its neighbours casting shade.
     /// <para>The radiation is shown by the "Solar radiation" panel of the Building Viewer (DiGi.GIS.WebAPI.UI#66): <see cref="GetViewByBuildingModelIdAsync(long, int?, double?, CancellationToken)"/> and <see cref="GetJobView(Guid)"/> answer a <see cref="SolarRadiationViewModel"/> that recolours the receiving surfaces of the scene already loaded, so no scene of its own is streamed.</para>
     /// <para>The radiation routes answer the same refusals: 400 for a neighbour radius outside (0, <see cref="Constants.Default.SolarSurroundingRadiusMax"/>], 204 when the building or its weather file is not found, 422 when the building cannot be located or has no closed external envelope, 413 above <see cref="Constants.Default.SolarReceiverCountMax"/> receiving surfaces or <see cref="Constants.Default.SolarCasterTriangleCountMax"/> caster triangles, 502 when the neighbours cannot be read, 503 with <c>Retry-After</c> when the solve gate stays busy for <see cref="Constants.Default.SolarSolveGateWaitSeconds"/> seconds, and 499 / 504 / 500 for a client cancel, an upstream timeout and any other failure.</para>
-    /// <para><b>Stored results</b> (DiGi.GIS.WebAPI.UI#73): before any neighbour is fetched, the routes read the result stored for the building model, the rounded radius (<see cref="Query.SolarRadiusKey(double)"/>) and <see cref="Constants.Default.SolarSolverVersion"/>. A summary stored for the same EPW file is answered as it is; one for another weather source is rebuilt from its stored shading factors; either way nothing is solved and no ceiling applies, and the job route answers 200 with the view instead of queuing a job. Otherwise the building is solved as before and, when the request carries the <see cref="Constants.Default.UserTokenCookieName"/> cookie, its result is stored on behalf of that user; a failed save is logged and never fails the response. The view says which of these happened (<see cref="SolarRadiationViewModel.Source"/>, <see cref="SolarRadiationViewModel.Saved"/>).</para>
+    /// <para><b>Stored results</b> (DiGi.GIS.WebAPI.UI#73): before any neighbour is fetched, the routes read the result stored for the building model, the rounded radius (<see cref="GIS.Analytical.Solar.Query.SolarRadiusKey(double)"/>) and <see cref="GIS.Analytical.Solar.Constants.Default.SolarSolverVersion"/>. A summary stored for the same EPW file is answered as it is; one for another weather source is rebuilt from its stored shading factors; either way nothing is solved and no ceiling applies, and the job route answers 200 with the view instead of queuing a job. Otherwise the building is solved as before and, when the request carries the <see cref="Constants.Default.UserTokenCookieName"/> cookie, its result is stored on behalf of that user; a failed save is logged and never fails the response. The view says which of these happened (<see cref="SolarRadiationViewModel.Source"/>, <see cref="SolarRadiationViewModel.Saved"/>).</para>
     /// <para>Buildings above those ceilings are calculated as background jobs (<c>solar/jobs</c>, DiGi.GIS.WebAPI.UI#60): the POST runs the same checks with the job ceilings (<see cref="Constants.Default.SolarJobReceiverCountMax"/>, <see cref="Constants.Default.SolarJobCasterTriangleCountMax"/>), queues the prepared calculation and answers 202, or 503 with <c>Retry-After</c> when <see cref="Constants.Default.SolarJobQueueLengthMax"/> jobs are already waiting. The job routes answer 404 for an unknown or expired job and 409 for results of a job that has not completed.</para>
     /// </summary>
     [Route("[controller]")]
@@ -106,7 +107,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         public async Task<IActionResult> PostJobAsync([FromQuery(Name = "id")] long id, [FromQuery(Name = "countyid")] int? countyId, [FromQuery(Name = "radius")] double? radius, CancellationToken cancellationToken = default)
         {
             double radius_Requested = radius ?? Constants.Default.SolarSurroundingRadius;
-            double radius_Value = Query.SolarRadiusKey(radius_Requested);
+            double radius_Value = GIS.Analytical.Solar.Query.SolarRadiusKey(radius_Requested);
             if (!IsValidRadius(radius_Requested) || !IsValidRadius(radius_Value))
             {
                 return RadiusBadRequest();
@@ -130,7 +131,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 List<GIS.Classes.SurfaceSolarRadiation>? surfaceSolarRadiations = null;
                 Func<List<SurfaceSolarRadiationResult>?> calculation = () =>
                 {
-                    surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
+                    surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, GIS.Analytical.Solar.Create.SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
                     return Create.SurfaceSolarRadiationResults(surfaceSolarRadiations);
                 };
 
@@ -382,14 +383,6 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
             return StatusCode(StatusCodes.Status503ServiceUnavailable, new List<string>() { message });
         }
 
-        private static ShadingSolverOptions SolarShadingSolverOptions()
-        {
-            return new ShadingSolverOptions()
-            {
-                AngleTolerance = Constants.Default.SolarAngleTolerance,
-            };
-        }
-
         // The pipeline shared by the synchronous routes and the job route, up to the solve: fetch and stamp the building,
         // fetch its weather, answer from a stored result when one exists (respondStored, without any ceiling, neighbour or
         // solve - a stored building is answered whatever its size), and otherwise refuse what the ceilings do not cover
@@ -504,7 +497,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         }
 
         // A stored result for the building, answered through respondStored, or null to solve (DiGi.GIS.WebAPI.UI#73). The
-        // key is the county part, the building model id derived from the model's Guid (Query.SolarBuildingModelId), the
+        // key is the county part, the building model id derived from the model's Guid (GIS.Analytical.Solar.Query.SolarBuildingModelId), the
         // rounded radius and the solver version; the weather is not part of it. A stored summary for this EPW file is
         // answered as it is; one for another weather source is rebuilt from the stored shading factors and, for a
         // signed-in visitor, stored again. A request without a county part or without the EPW id (an older GIS Web API)
@@ -588,7 +581,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
         private async Task<IActionResult> SolveAsync(long id, int? countyId, double? radius, Func<BuildingModel, List<SurfaceSolarRadiationResult>, double, EPWFile, Point2D, SolarRadiationOrigin, IActionResult> respond, CancellationToken cancellationToken)
         {
             double radius_Requested = radius ?? Constants.Default.SolarSurroundingRadius;
-            double radius_Value = Query.SolarRadiusKey(radius_Requested);
+            double radius_Value = GIS.Analytical.Solar.Query.SolarRadiusKey(radius_Requested);
             if (!IsValidRadius(radius_Requested) || !IsValidRadius(radius_Value))
             {
                 return RadiusBadRequest();
@@ -610,7 +603,7 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                 List<GIS.Classes.SurfaceSolarRadiation>? surfaceSolarRadiations;
                 try
                 {
-                    surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
+                    surfaceSolarRadiations = shadingModel.SurfaceSolarRadiations(normals, ePWFile, GIS.Analytical.Solar.Create.SolarShadingSolverOptions(), message => logger.LogInformation("{Message}", message));
                 }
                 finally
                 {
