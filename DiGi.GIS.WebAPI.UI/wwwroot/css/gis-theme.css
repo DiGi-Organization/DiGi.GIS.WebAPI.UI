@@ -4255,6 +4255,19 @@ body.ortodata-epoch-open {
         margin: 12px;
     }
 
+    /* The results list is a centred flex item, which sizes to its content: a table wider than the
+       phone hung off both edges and its own overflow-x: auto never engaged. Stretched to the column,
+       the card is as wide as the screen and the table scrolls sideways inside it. */
+    .gis-results-container {
+        align-items: stretch;
+    }
+
+        .gis-results-container > .gis-table-container {
+            min-width: 0;
+            margin-left: 0;
+            margin-right: 0;
+        }
+
     .gis-card {
         padding: 16px;
     }
