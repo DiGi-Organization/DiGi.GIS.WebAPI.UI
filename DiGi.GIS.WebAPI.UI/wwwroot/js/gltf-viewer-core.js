@@ -1006,6 +1006,7 @@ export class GltfViewer {
         this.container.appendChild(this.marquee);
 
         this.marqueeStart = null;
+        this.marqueeTouch = false;
         this.marqueeCurrent = null;
         this.marqueePreviewIds = new Set();
         this.marqueeBounds = null;
@@ -2217,7 +2218,11 @@ export class GltfViewer {
                 return;
             }
             if (this.marqueeStart) {
-                this.updateMarquee(event);
+                // A finger drag is camera navigation (OrbitControls: one finger orbits, two pinch):
+                // no marquee is drawn for it, and pointerup below leaves the selection alone.
+                if (!this.marqueeTouch) {
+                    this.updateMarquee(event);
+                }
                 return;
             }
             this.updatePointer(event);
@@ -2228,6 +2233,14 @@ export class GltfViewer {
             if (event.button !== 0 || this.scopeBoxDrag) {
                 return;
             }
+            // Touch has no spare button for navigation, so the same finger that taps to select also
+            // drags to orbit. Only a tap selects; a second finger down means a pinch, which is
+            // never a selection - dropping the start makes both fingers' pointerup inert.
+            if (event.pointerType === 'touch' && this.marqueeStart) {
+                this.marqueeStart = null;
+                return;
+            }
+            this.marqueeTouch = event.pointerType === 'touch';
             this.marqueeStart = this.containerPosition(event);
             this.marqueeCurrent = null;
             this.marqueeBounds = null;
@@ -2263,6 +2276,13 @@ export class GltfViewer {
                 this.updatePointer(event);
                 const id = this.pick();
                 this.select(id === null ? [] : [id]);
+                return;
+            }
+
+            if (this.marqueeTouch) {
+                // A finger drag orbited the camera; it must not also replace the selection.
+                this.updateMarqueePreview([]);
+                this.marqueeBounds = null;
                 return;
             }
 

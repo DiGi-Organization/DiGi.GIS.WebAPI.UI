@@ -4377,6 +4377,69 @@ body.ortodata-epoch-open {
     }
 }
 
+/* A landscape phone is wider than the stacking breakpoint but only ~375px tall: the desktop row layout
+   applies, and its 480px minimum made the scene twice the height of the area it sits in, while two
+   docked panels left the communication canvas 120px wide. Drop the minimum and slim the panels. */
+@media (max-height: 500px) and (min-width: 769px) and (pointer: coarse) {
+    .gltf-layout {
+        min-height: 0;
+    }
+
+    .gltf-side-panel {
+        flex-basis: 240px;
+    }
+
+    .gltf-left-panel {
+        flex-basis: 200px;
+    }
+}
+
+/* Signed-in pages (Orto Data, Building Shape) and the profile menu. */
+
+/* width: 100% plus padding in a content-box ran the year strip 16px past its card. */
+.ortodata-year,
+.orto-footer {
+    box-sizing: border-box;
+}
+
+/* A long name or e-mail (nowrap) pushed the profile menu past the left edge of a phone. */
+.gis-nav-menu {
+    max-width: calc(100vw - 40px);
+    box-sizing: border-box;
+}
+
+.gis-nav-menu-identity {
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+@media (max-width: 768px) {
+    /* The area toolbar - four stacked coordinate fields - was a sticky 476px, 70% of the content area.
+       It scrolls away with the page instead (marking happens in the epoch dialog), and the fields
+       pair up two by two. */
+    .ortodata-toolbar:has(.ortodata-area-panel) {
+        position: static;
+    }
+
+    .ortodata-area-fields {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        align-items: end;
+    }
+
+    .ortodata-area-buttons {
+        grid-column: 1 / -1;
+    }
+}
+
+/* On a landscape phone any sticky toolbar covers most of the ~235px content area (53-81%) and hides
+   the cards it controls. */
+@media (max-height: 500px) and (pointer: coarse) {
+    .ortodata-toolbar {
+        position: static;
+    }
+}
+
 /* Touch devices only: the 28px "height 3" control rhythm is a mouse rhythm. Desktop is untouched. */
 @media (pointer: coarse) {
     .gis-nav-toggle {
@@ -4478,5 +4541,8 @@ body.ortodata-epoch-open {
 
     .coverage-text {
         font-size: 0.75rem;
+    }
+    .buildingshape-class {
+        min-height: 48px;
     }
 }

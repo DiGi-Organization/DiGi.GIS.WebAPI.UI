@@ -1410,16 +1410,80 @@
             layoutDialogStage();
         }, { passive: false });
 
+        // The click that follows a pan or a pinch must not mark the building the pointer was released over.
+        const swallowNextClick = function () {
+            const swallow = function (clickEvent) {
+                clickEvent.stopPropagation();
+                clickEvent.preventDefault();
+            };
+            window.addEventListener('click', swallow, { capture: true, once: true });
+            setTimeout(function () {
+                window.removeEventListener('click', swallow, { capture: true });
+            }, 0);
+        };
+
+        // Two fingers zoom: a touch screen has no wheel, and the viewport's touch-action: none keeps the
+        // browser's own pinch out. The fingers down are tracked by pointer id; while two are down the
+        // image point under their midpoint at the start stays under their midpoint, so one gesture both
+        // zooms and pans.
+        const touches = new Map();
+        let pinch = null;
+
+        const pinchGeometry = function () {
+            const rect = viewport.getBoundingClientRect();
+            const points = Array.from(touches.values());
+            return {
+                distance: Math.hypot(points[1].x - points[0].x, points[1].y - points[0].y),
+                x: (points[0].x + points[1].x) / 2 - rect.left,
+                y: (points[0].y + points[1].y) / 2 - rect.top
+            };
+        };
+
         let drag = null;
         viewport.addEventListener('pointerdown', function (event) {
             if (event.button !== 0) {
                 return;
             }
 
+            if (event.pointerType === 'touch') {
+                touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+                if (touches.size === 2) {
+                    if (drag !== null && drag.moved) {
+                        viewport.classList.remove('is-panning');
+                    }
+
+                    drag = null;
+                    const geometry = pinchGeometry();
+                    pinch = { distance: Math.max(geometry.distance, 1), x: geometry.x, y: geometry.y, scale: dialog.scale, stageX: dialog.x, stageY: dialog.y };
+                    return;
+                }
+
+                if (touches.size > 2) {
+                    return;
+                }
+            }
+
             drag = { startX: event.clientX, startY: event.clientY, x: dialog.x, y: dialog.y, moved: false, id: event.pointerId };
         });
 
         viewport.addEventListener('pointermove', function (event) {
+            if (touches.has(event.pointerId)) {
+                touches.set(event.pointerId, { x: event.clientX, y: event.clientY });
+            }
+
+            if (pinch !== null) {
+                if (touches.size === 2) {
+                    const geometry = pinchGeometry();
+                    const next = Math.min(dialogMaximumScale, Math.max(1, pinch.scale * geometry.distance / pinch.distance));
+                    dialog.x = geometry.x - (pinch.x - pinch.stageX) * next / pinch.scale;
+                    dialog.y = geometry.y - (pinch.y - pinch.stageY) * next / pinch.scale;
+                    dialog.scale = next;
+                    layoutDialogStage();
+                }
+
+                return;
+            }
+
             if (drag === null || drag.id !== event.pointerId) {
                 return;
             }
@@ -1442,21 +1506,26 @@
         });
 
         const endDrag = function (event) {
+            touches.delete(event.pointerId);
+
+            if (pinch !== null) {
+                // The pinch ends with its first finger up; the one still down does not turn into a pan
+                // or a click.
+                if (touches.size === 0) {
+                    pinch = null;
+                }
+
+                swallowNextClick();
+                return;
+            }
+
             if (drag === null || drag.id !== event.pointerId) {
                 return;
             }
 
             if (drag.moved) {
                 viewport.classList.remove('is-panning');
-                // The click that follows a pan must not mark the building the pointer was released over.
-                const swallow = function (clickEvent) {
-                    clickEvent.stopPropagation();
-                    clickEvent.preventDefault();
-                };
-                window.addEventListener('click', swallow, { capture: true, once: true });
-                setTimeout(function () {
-                    window.removeEventListener('click', swallow, { capture: true });
-                }, 0);
+                swallowNextClick();
             }
 
             drag = null;
