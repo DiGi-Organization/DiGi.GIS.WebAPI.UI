@@ -416,8 +416,9 @@ namespace DiGi.GIS.WebAPI.UI.Controllers
                     return UnprocessableEntity(new List<string>() { $"Building {id} has no closed external envelope (a degenerate model), so its walls and roofs have no outward side to receive the sun." });
                 }
 
-                // The neighbour circle is centred on the footprint and reaches the radius beyond its farthest corner.
-                Circle2D? circle2D = buildingModel.TerrainCircle(radius, 0);
+                // The neighbour circle is centred on the footprint and reaches the radius beyond its farthest corner; a
+                // batch solve takes it from the same place (DiGi-Organization/DiGi.GIS.PostgreSQL#136).
+                Circle2D? circle2D = buildingModel.SolarNeighbourCircle(radius);
                 if (circle2D?.Center is not Point2D center)
                 {
                     return UnprocessableEntity(new List<string>() { $"Building {id} has no geometry." });

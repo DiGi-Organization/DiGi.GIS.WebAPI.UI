@@ -2076,35 +2076,6 @@ A cancellation token that can be used by the caller to cancel the asynchronous o
 [System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Byte](https://learn.microsoft.com/en-us/dotnet/api/system.byte 'System\.Byte')[\[\]](https://learn.microsoft.com/en-us/dotnet/api/system.array 'System\.Array')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
 The response body, or [null](https://docs.microsoft.com/en-us/dotnet/csharp/language-reference/keywords/null 'https://docs\.microsoft\.com/en\-us/dotnet/csharp/language\-reference/keywords/null') when there is none\.
 
-<a name='DiGi.GIS.WebAPI.UI.Query.CasterTriangleCount(thisDiGi.Solar.Classes.ShadingModel,double)'></a>
-
-## Query\.CasterTriangleCount\(this ShadingModel, double\) Method
-
-Counts the triangles of the shading\-only elements of a shading model \- the neighbours and the analysed building's own non\-receiving components \- which every receiver is solved against\.
-
-The elements are triangulated exactly as [DiGi\.Solar\.Classes\.ShadingSolver\.Solve](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingsolver.solve 'DiGi\.Solar\.Classes\.ShadingSolver\.Solve') triangulates its casters, so the count is the quantity [SolarCasterTriangleCountMax](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.SolarCasterTriangleCountMax 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.SolarCasterTriangleCountMax') was measured on (DiGi-Organization/DiGi.Solar#7). The receivers' own triangles are not counted.
-
-```csharp
-public static int CasterTriangleCount(this DiGi.Solar.Classes.ShadingModel? shadingModel, double tolerance=1E-06);
-```
-#### Parameters
-
-<a name='DiGi.GIS.WebAPI.UI.Query.CasterTriangleCount(thisDiGi.Solar.Classes.ShadingModel,double).shadingModel'></a>
-
-`shadingModel` [DiGi\.Solar\.Classes\.ShadingModel](https://learn.microsoft.com/en-us/dotnet/api/digi.solar.classes.shadingmodel 'DiGi\.Solar\.Classes\.ShadingModel')
-
-The shading model\. This value can be null\.
-
-<a name='DiGi.GIS.WebAPI.UI.Query.CasterTriangleCount(thisDiGi.Solar.Classes.ShadingModel,double).tolerance'></a>
-
-`tolerance` [System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')
-
-The distance tolerance used by the triangulation\.
-
-#### Returns
-[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')  
-The number of triangles, or 0 when the model is null or has no shading\-only element\.
-
 <a name='DiGi.GIS.WebAPI.UI.Query.ChildAreasAsync(thisSystem.Net.Http.HttpClient,string,DiGi.GIS.PostgreSQL.Enums.AdministrativeArealType,System.Threading.CancellationToken)'></a>
 
 ## Query\.ChildAreasAsync\(this HttpClient, string, AdministrativeArealType, CancellationToken\) Method
