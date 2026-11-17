@@ -494,6 +494,33 @@ namespace DiGi.GIS.WebAPI.UI.Constants
         public const string UserSessionUri = UserWebAPIUri + "/user/session";
 
         /// <summary>
+        /// URI of the OpenAPI document of the GIS prefix of the Web API: the AI assistant's index of callable endpoints.
+        /// <para>The per-prefix document, not the full one: it lists only the <c>/gis/</c> endpoints (Coding - Deployed WebAPI.md §1).</para>
+        /// </summary>
+        public const string GISSwaggerUri = GISWebAPIUri + "/swagger/gis/swagger.json";
+
+        /// <summary>
+        /// The path prefix the AI assistant may call on <see cref="GISWebAPIUri"/>; anything else is refused by its tools.
+        /// </summary>
+        public const string HarnessPathPrefix = "/gis/";
+
+        /// <summary>
+        /// The committed file listing the POST endpoints the AI assistant may call (read-only queries only), as path templates of <see cref="GISSwaggerUri"/>.
+        /// </summary>
+        public const string HarnessGISFileName = "Harness_GIS.json";
+
+        /// <summary>
+        /// The committed file holding the GIS part of the AI assistant's system prompt (domain rules and how to use the tools).
+        /// </summary>
+        public const string HarnessGISPromptFileName = "Harness_GIS_Prompt.md";
+
+        /// <summary>
+        /// How long the AI assistant keeps a fetched <see cref="GISSwaggerUri"/> document before fetching it again, in minutes.
+        /// <para>The document only changes when the Web API is deployed; refetching it per message would add a 750 KB download to every turn and change the cached prompt prefix between turns.</para>
+        /// </summary>
+        public const int HarnessSwaggerRefreshMinutes = 60;
+
+        /// <summary>
         /// The name of the cookie this application keeps a visitor's session token in.
         /// <para>The token never reaches the browser as a value: the cookie is written HttpOnly by the server and read back by it on every relayed request, so a script on the page cannot read, copy or leak it. See <see cref="Create.UserTokenCookieOptions"/>.</para>
         /// </summary>

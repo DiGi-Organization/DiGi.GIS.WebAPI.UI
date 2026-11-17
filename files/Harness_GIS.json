@@ -1,0 +1,29 @@
+{
+  "PostPathTemplates": [
+    "/gis/administrativeareal2d/administrativeareal2dreferencepathsbynameparameter",
+    "/gis/administrativeareal2d/administrativeareal2dreferencesbynameparameter",
+    "/gis/administrativeareal2d/administrativeareal2dreferencesbyids",
+    "/gis/building/containsbyreferences",
+    "/gis/building/itemsbyreferences",
+    "/gis/building2d/building2dreferencesbypagingparameter",
+    "/gis/buildingdata/columnsbycategories",
+    "/gis/buildingdata/columnsbycategoriesparameter",
+    "/gis/buildingdata/columnuniqueids",
+    "/gis/buildingdata/histogramsummary",
+    "/gis/buildingdata/aggregatesummary/multivalue",
+    "/gis/buildingdata/aggregatesummary/singlevalue",
+    "/gis/buildingdata/aggregatesummary/batch",
+    "/gis/buildingdata/tablebybuildingdatabypagingparameter",
+    "/gis/buildingdata/tablebybuildingdatabyreferencesparameter",
+    "/gis/buildingdata/tablebybuildingdatabysubdivisionidsparameter",
+    "/gis/buildingdata/tablebyfiltergroup",
+    "/gis/buildingdata/countbyfiltergroup",
+    "/gis/buildingdata/countbyadministrativeareal2did",
+    "/gis/buildingdata/uniquevaluesbycolumnuniqueidparameter",
+    "/gis/ortodatas/containsbyreferences",
+    "/gis/ortodatas/estimatedcoveragefactors",
+    "/gis/ortodatas/ortodatasreferencesbyreferences",
+    "/gis/ortodatas/ortodatasreferencesbybuilding2dreferences",
+    "/gis/yearbuiltdata/itemsbyreferences"
+  ]
+}

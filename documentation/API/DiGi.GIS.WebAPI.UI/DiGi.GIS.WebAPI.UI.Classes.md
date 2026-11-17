@@ -200,6 +200,148 @@ public System.Nullable<double> RelativePermittivity { get; set; }
 #### Property Value
 [System\.Nullable&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')[System\.Double](https://learn.microsoft.com/en-us/dotnet/api/system.double 'System\.Double')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.nullable-1 'System\.Nullable\`1')
 
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost'></a>
+
+## GISHarnessHost Class
+
+The GIS side of the AI assistant \(DiGi\.GIS\.WebAPI\.UI\#88\): who the user is, the GIS Web API tools bound to that user's token, and the GIS system prompt\. Registered as a singleton\.
+
+The user is the email of the session behind the `digi_user_token` cookie, checked on every request against [UserSessionUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.UserSessionUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.UserSessionUri'), so a cookie the user service no longer accepts gets no chat. The tools call [GISWebAPIUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISWebAPIUri') with that same token, so the assistant can read only what the user could read.
+
+The tools see a filtered copy of [GISSwaggerUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISSwaggerUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISSwaggerUri'): `/gis/` paths only, every GET, and only the POST endpoints listed in [HarnessGISFileName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HarnessGISFileName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HarnessGISFileName') (read-only queries). The document is fetched on first use and refreshed after [HarnessSwaggerRefreshMinutes](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HarnessSwaggerRefreshMinutes 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HarnessSwaggerRefreshMinutes'); a failed refresh keeps the previous copy.
+
+```csharp
+public sealed class GISHarnessHost : DiGi.Harness.WebAPI.Interfaces.IHarnessHost, DiGi.Harness.WebAPI.Interfaces.IHarnessWebAPIObject, DiGi.Core.Interfaces.IObject, System.IDisposable
+```
+
+Inheritance [System\.Object](https://learn.microsoft.com/en-us/dotnet/api/system.object 'System\.Object') → GISHarnessHost
+
+Implements [DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessHost](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.interfaces.iharnesshost 'DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessHost'), [DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessWebAPIObject](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.interfaces.iharnesswebapiobject 'DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessWebAPIObject'), [DiGi\.Core\.Interfaces\.IObject](https://learn.microsoft.com/en-us/dotnet/api/digi.core.interfaces.iobject 'DiGi\.Core\.Interfaces\.IObject'), [System\.IDisposable](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable 'System\.IDisposable')
+### Constructors
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.GISHarnessHost(System.Net.Http.IHttpClientFactory,System.TimeProvider)'></a>
+
+## GISHarnessHost\(IHttpClientFactory, TimeProvider\) Constructor
+
+Initializes a new instance of the [GISHarnessHost](DiGi.GIS.WebAPI.UI.Classes.md#DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost 'DiGi\.GIS\.WebAPI\.UI\.Classes\.GISHarnessHost') class\.
+
+```csharp
+public GISHarnessHost(System.Net.Http.IHttpClientFactory httpClientFactory, System.TimeProvider timeProvider);
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.GISHarnessHost(System.Net.Http.IHttpClientFactory,System.TimeProvider).httpClientFactory'></a>
+
+`httpClientFactory` [System\.Net\.Http\.IHttpClientFactory](https://learn.microsoft.com/en-us/dotnet/api/system.net.http.ihttpclientfactory 'System\.Net\.Http\.IHttpClientFactory')
+
+The factory of the HTTP clients used for the user check, the swagger and the tool calls\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.GISHarnessHost(System.Net.Http.IHttpClientFactory,System.TimeProvider).timeProvider'></a>
+
+`timeProvider` [System\.TimeProvider](https://learn.microsoft.com/en-us/dotnet/api/system.timeprovider 'System\.TimeProvider')
+
+The clock deciding when the swagger is refreshed\.
+### Methods
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.Dispose()'></a>
+
+## GISHarnessHost\.Dispose\(\) Method
+
+Releases the lock guarding the swagger refresh; called by the service provider when the host shuts down\.
+
+```csharp
+public void Dispose();
+```
+
+Implements [Dispose\(\)](https://learn.microsoft.com/en-us/dotnet/api/system.idisposable.dispose 'System\.IDisposable\.Dispose')
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.SystemPromptAsync(System.Threading.CancellationToken)'></a>
+
+## GISHarnessHost\.SystemPromptAsync\(CancellationToken\) Method
+
+Builds the system prompt: the GIS rules from [HarnessGISPromptFileName](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.HarnessGISPromptFileName 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.HarnessGISPromptFileName') followed by the index of the callable endpoints\.
+
+```csharp
+public System.Threading.Tasks.Task<string?> SystemPromptAsync(System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.SystemPromptAsync(System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The token that cancels the build\.
+
+Implements [SystemPromptAsync\(CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.interfaces.iharnesshost.systempromptasync#digi-harness-webapi-interfaces-iharnesshost-systempromptasync(system-threading-cancellationtoken) 'DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessHost\.SystemPromptAsync\(System\.Threading\.CancellationToken\)')
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The system prompt\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.ToolsAsync(Microsoft.AspNetCore.Http.HttpContext,DiGi.Harness.WebAPI.Classes.HarnessUser,System.Threading.CancellationToken)'></a>
+
+## GISHarnessHost\.ToolsAsync\(HttpContext, HarnessUser, CancellationToken\) Method
+
+Creates the GIS tools for one turn: `describe_endpoint` and `call_endpoint` on the filtered GIS document, calling with the user's token\.
+
+```csharp
+public System.Threading.Tasks.Task<System.Collections.Generic.IReadOnlyList<DiGi.Harness.Interfaces.ITool>> ToolsAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, DiGi.Harness.WebAPI.Classes.HarnessUser harnessUser, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.ToolsAsync(Microsoft.AspNetCore.Http.HttpContext,DiGi.Harness.WebAPI.Classes.HarnessUser,System.Threading.CancellationToken).httpContext'></a>
+
+`httpContext` [Microsoft\.AspNetCore\.Http\.HttpContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httpcontext 'Microsoft\.AspNetCore\.Http\.HttpContext')
+
+The request\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.ToolsAsync(Microsoft.AspNetCore.Http.HttpContext,DiGi.Harness.WebAPI.Classes.HarnessUser,System.Threading.CancellationToken).harnessUser'></a>
+
+`harnessUser` [DiGi\.Harness\.WebAPI\.Classes\.HarnessUser](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.classes.harnessuser 'DiGi\.Harness\.WebAPI\.Classes\.HarnessUser')
+
+The signed\-in user; [DiGi\.Harness\.WebAPI\.Classes\.HarnessUser\.Credential](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.classes.harnessuser.credential 'DiGi\.Harness\.WebAPI\.Classes\.HarnessUser\.Credential') is the bearer token of the tool calls\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.ToolsAsync(Microsoft.AspNetCore.Http.HttpContext,DiGi.Harness.WebAPI.Classes.HarnessUser,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The token that cancels the setup\.
+
+Implements [ToolsAsync\(HttpContext, HarnessUser, CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.interfaces.iharnesshost.toolsasync#digi-harness-webapi-interfaces-iharnesshost-toolsasync(microsoft-aspnetcore-http-httpcontext-digi-harness-webapi-classes-harnessuser-system-threading-cancellationtoken) 'DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessHost\.ToolsAsync\(Microsoft\.AspNetCore\.Http\.HttpContext,DiGi\.Harness\.WebAPI\.Classes\.HarnessUser,System\.Threading\.CancellationToken\)')
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[System\.Collections\.Generic\.IReadOnlyList&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[DiGi\.Harness\.Interfaces\.ITool](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.interfaces.itool 'DiGi\.Harness\.Interfaces\.ITool')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.collections.generic.ireadonlylist-1 'System\.Collections\.Generic\.IReadOnlyList\`1')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The two tools\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.UserAsync(Microsoft.AspNetCore.Http.HttpContext,System.Threading.CancellationToken)'></a>
+
+## GISHarnessHost\.UserAsync\(HttpContext, CancellationToken\) Method
+
+Resolves the signed\-in user from the `digi_user_token` cookie by asking the user service for the session behind it\.
+
+```csharp
+public System.Threading.Tasks.Task<DiGi.Harness.WebAPI.Classes.HarnessUser?> UserAsync(Microsoft.AspNetCore.Http.HttpContext httpContext, System.Threading.CancellationToken cancellationToken=default(System.Threading.CancellationToken));
+```
+#### Parameters
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.UserAsync(Microsoft.AspNetCore.Http.HttpContext,System.Threading.CancellationToken).httpContext'></a>
+
+`httpContext` [Microsoft\.AspNetCore\.Http\.HttpContext](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.http.httpcontext 'Microsoft\.AspNetCore\.Http\.HttpContext')
+
+The request\.
+
+<a name='DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost.UserAsync(Microsoft.AspNetCore.Http.HttpContext,System.Threading.CancellationToken).cancellationToken'></a>
+
+`cancellationToken` [System\.Threading\.CancellationToken](https://learn.microsoft.com/en-us/dotnet/api/system.threading.cancellationtoken 'System\.Threading\.CancellationToken')
+
+The token that cancels the lookup\.
+
+Implements [UserAsync\(HttpContext, CancellationToken\)](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.interfaces.iharnesshost.userasync#digi-harness-webapi-interfaces-iharnesshost-userasync(microsoft-aspnetcore-http-httpcontext-system-threading-cancellationtoken) 'DiGi\.Harness\.WebAPI\.Interfaces\.IHarnessHost\.UserAsync\(Microsoft\.AspNetCore\.Http\.HttpContext,System\.Threading\.CancellationToken\)')
+
+#### Returns
+[System\.Threading\.Tasks\.Task&lt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')[DiGi\.Harness\.WebAPI\.Classes\.HarnessUser](https://learn.microsoft.com/en-us/dotnet/api/digi.harness.webapi.classes.harnessuser 'DiGi\.Harness\.WebAPI\.Classes\.HarnessUser')[&gt;](https://learn.microsoft.com/en-us/dotnet/api/system.threading.tasks.task-1 'System\.Threading\.Tasks\.Task\`1')  
+The user \(id and display name are the session email, the credential is the token\), or null when there is no cookie or the service does not accept it\.
+
 <a name='DiGi.GIS.WebAPI.UI.Classes.OrtoDataBuildingResponse'></a>
 
 ## OrtoDataBuildingResponse Class

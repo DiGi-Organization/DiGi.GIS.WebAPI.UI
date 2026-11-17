@@ -1,0 +1,66 @@
+{
+  "Enabled": false,
+  "DefaultProviderName": "anthropic",
+  "MaxToolIterations": 12,
+  "MaxToolResultCharacters": 20000,
+  "RequestTimeoutSeconds": 300,
+  "AllowedUserIds": [],
+  "Providers": [
+    {
+      "Name": "anthropic",
+      "DisplayName": "Claude Opus 5.5",
+      "Protocol": "Anthropic",
+      "BaseUri": "https://api.anthropic.com",
+      "Model": "claude-opus-5-5",
+      "Key": "",
+      "KeyEnvironmentVariable": "ANTHROPIC_API_KEY",
+      "MaxTokens": 32000,
+      "Effort": "medium",
+      "Thinking": true,
+      "ReplayReasoning": false,
+      "AnthropicFallbacks": true,
+      "Enabled": true
+    },
+    {
+      "Name": "deepseek",
+      "DisplayName": "DeepSeek",
+      "Protocol": "OpenAI",
+      "BaseUri": "https://api.deepseek.com/v1",
+      "Model": "deepseek-chat",
+      "Key": "",
+      "KeyEnvironmentVariable": "DEEPSEEK_API_KEY",
+      "MaxTokens": 8000,
+      "ReplayReasoning": true,
+      "Enabled": false
+    },
+    {
+      "Name": "mimo",
+      "DisplayName": "Xiaomi MiMo",
+      "Protocol": "OpenAI",
+      "BaseUri": "https://api.xiaomimimo.com/v1",
+      "Model": "mimo-v2-flash",
+      "Key": "",
+      "KeyEnvironmentVariable": "MIMO_API_KEY",
+      "MaxTokens": 8000,
+      "Enabled": false
+    },
+    {
+      "Name": "lmstudio",
+      "DisplayName": "LM Studio (local)",
+      "Protocol": "OpenAI",
+      "BaseUri": "http://localhost:1234/v1",
+      "Model": "qwen/qwen3-32b",
+      "MaxTokens": 8000,
+      "Enabled": false
+    },
+    {
+      "Name": "strata",
+      "DisplayName": "Strata (local)",
+      "Protocol": "OpenAI",
+      "BaseUri": "http://localhost:8000/v1",
+      "Model": "local-model",
+      "MaxTokens": 8000,
+      "Enabled": false
+    }
+  ]
+}

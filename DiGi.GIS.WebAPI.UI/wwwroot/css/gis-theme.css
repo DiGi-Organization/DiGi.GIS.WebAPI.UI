@@ -5080,3 +5080,481 @@ body.ortodata-epoch-open {
         min-height: 48px;
     }
 }
+
+/* ==========================================================================
+   AI assistant (DiGi.GIS.WebAPI.UI#88) - the floating button, the non-modal panel and the DiGi.Harness chat
+   widget (harness-chat-core.js builds the harness-chat-* elements; this section gives them the GIS look).
+   Above the 3D panels (1000/1100) and below the ortodata epoch overlay (2000); full screen on a phone.
+   ========================================================================== */
+.gis-harness-toggle {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1200;
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    border: 1px solid var(--primary-color);
+    background-color: var(--primary-color);
+    color: #fff;
+    box-shadow: var(--shadow-default);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s, transform 0.2s;
+}
+
+    .gis-harness-toggle:hover {
+        background-color: var(--primary-hover);
+    }
+
+    .gis-harness-toggle:focus-visible {
+        outline: 3px solid var(--primary-light);
+        outline-offset: 2px;
+    }
+
+    .gis-harness-toggle[hidden],
+    .gis-harness-open .gis-harness-toggle {
+        display: none;
+    }
+
+.gis-harness-panel {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 1200;
+    width: min(440px, calc(100vw - 40px));
+    height: min(680px, calc(100vh - 110px));
+    height: min(680px, calc(100dvh - 110px));
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-card);
+    border-radius: 8px;
+    box-shadow: var(--shadow-default);
+    font-family: var(--font-sans);
+    color: var(--text-dark);
+    overflow: hidden;
+}
+
+    .gis-harness-panel[hidden] {
+        display: none;
+    }
+
+.gis-harness-close {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 28px;
+    height: 28px;
+    border: none;
+    background: transparent;
+    color: var(--text-muted);
+    font-size: 1.4rem;
+    line-height: 1;
+    cursor: pointer;
+    border-radius: 4px;
+}
+
+    .gis-harness-close:hover {
+        background: var(--bg-light);
+        color: var(--text-dark);
+    }
+
+.gis-harness-chat {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.harness-chat-header {
+    padding: 10px 44px 10px 14px;
+    border-bottom: 1px solid var(--border-color-light);
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.harness-chat-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.harness-chat-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.8rem;
+}
+
+.harness-chat-field {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--text-muted);
+}
+
+    .harness-chat-field[hidden] {
+        display: none;
+    }
+
+.harness-chat-select {
+    font: inherit;
+    padding: 2px 4px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    background: var(--bg-card);
+    color: var(--text-dark);
+    max-width: 160px;
+}
+
+.harness-chat-new {
+    margin-left: auto;
+    font: inherit;
+    font-weight: 600;
+    padding: 2px 10px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: var(--bg-card);
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
+    .harness-chat-new:hover:not(:disabled) {
+        background: var(--primary-light);
+    }
+
+.harness-chat-log {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 12px 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background: var(--bg-light);
+}
+
+.harness-chat-empty {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    text-align: center;
+    margin: auto 12px;
+}
+
+.harness-chat-message {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    min-width: 0;
+}
+
+.harness-chat-message-user {
+    align-items: flex-end;
+}
+
+    .harness-chat-message-user .harness-chat-bubble {
+        max-width: 85%;
+        padding: 8px 12px;
+        border-radius: 12px 12px 2px 12px;
+        background: var(--primary-color);
+        color: #fff;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+.harness-chat-message-assistant {
+    align-items: stretch;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-light);
+    border-radius: 8px;
+    padding: 8px 12px;
+}
+
+.harness-chat-thinking,
+.harness-chat-tool {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+    .harness-chat-thinking[hidden],
+    .harness-chat-tools[hidden],
+    .harness-chat-answer[hidden] {
+        display: none;
+    }
+
+    .harness-chat-thinking > summary,
+    .harness-chat-tool > summary {
+        cursor: pointer;
+        user-select: none;
+    }
+
+.harness-chat-thinking-body {
+    margin-top: 4px;
+    padding-left: 10px;
+    border-left: 2px solid var(--border-color-light);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.harness-chat-thinking-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.harness-chat-thinking-line::before {
+    content: "· ";
+}
+
+.harness-chat-tools {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.harness-chat-tool {
+    border: 1px solid var(--border-color-light);
+    border-radius: 4px;
+    padding: 4px 8px;
+    background: var(--bg-table-alt);
+}
+
+    .harness-chat-tool > summary {
+        display: flex;
+        align-items: baseline;
+        gap: 6px;
+        min-width: 0;
+    }
+
+.harness-chat-tool-name {
+    font-weight: 600;
+    color: var(--text-dark);
+    flex: 0 0 auto;
+}
+
+.harness-chat-tool-label {
+    font-family: var(--font-mono);
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.harness-chat-tool-metrics {
+    flex: 0 0 auto;
+}
+
+.harness-chat-tool-running .harness-chat-tool-metrics {
+    color: var(--primary-color);
+}
+
+.harness-chat-tool-ok .harness-chat-tool-metrics {
+    color: var(--success-color);
+}
+
+.harness-chat-tool-error .harness-chat-tool-metrics {
+    color: var(--danger-color);
+}
+
+.harness-chat-tool-input {
+    margin: 6px 0 2px;
+    padding: 6px;
+    max-height: 200px;
+    overflow: auto;
+    background: var(--bg-card);
+    border: 1px solid var(--border-color-light);
+    border-radius: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+}
+
+.harness-chat-answer {
+    overflow-wrap: anywhere;
+    min-width: 0;
+}
+
+    .harness-chat-answer p,
+    .harness-chat-answer ul,
+    .harness-chat-answer ol,
+    .harness-chat-answer pre {
+        margin: 0 0 6px;
+    }
+
+        .harness-chat-answer p:last-child {
+            margin-bottom: 0;
+        }
+
+    .harness-chat-answer ul,
+    .harness-chat-answer ol {
+        padding-left: 20px;
+    }
+
+    .harness-chat-answer h3,
+    .harness-chat-answer h4,
+    .harness-chat-answer h5,
+    .harness-chat-answer h6 {
+        margin: 8px 0 4px;
+        font-size: 0.92rem;
+    }
+
+    .harness-chat-answer code {
+        font-family: var(--font-mono);
+        font-size: 0.82rem;
+        background: var(--bg-light);
+        padding: 0 3px;
+        border-radius: 3px;
+    }
+
+    .harness-chat-answer pre {
+        padding: 8px;
+        background: var(--bg-light);
+        border-radius: 4px;
+        overflow-x: auto;
+    }
+
+        .harness-chat-answer pre code {
+            padding: 0;
+            background: none;
+        }
+
+.harness-chat-table {
+    overflow-x: auto;
+    margin: 0 0 6px;
+}
+
+    .harness-chat-table table {
+        border-collapse: collapse;
+        font-size: 0.8rem;
+    }
+
+    .harness-chat-table th,
+    .harness-chat-table td {
+        border: 1px solid var(--border-color-light);
+        padding: 3px 6px;
+        text-align: left;
+    }
+
+    .harness-chat-table th {
+        background: var(--bg-table-zebra);
+    }
+
+.harness-chat-footer {
+    font-size: 0.72rem;
+    color: var(--text-gray-light);
+}
+
+    .harness-chat-footer:empty {
+        display: none;
+    }
+
+.harness-chat-error {
+    font-size: 0.8rem;
+    color: var(--danger-color);
+}
+
+.harness-chat-status {
+    min-height: 1.4em;
+    padding: 2px 14px;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border-color-light);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+    .harness-chat-status:empty {
+        display: none;
+    }
+
+.harness-chat-status-error {
+    color: var(--danger-color);
+}
+
+.harness-chat-composer {
+    display: flex;
+    gap: 8px;
+    padding: 10px 14px;
+    border-top: 1px solid var(--border-color-light);
+    background: var(--bg-card);
+}
+
+.harness-chat-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    resize: none;
+    font: inherit;
+    font-size: 0.88rem;
+    padding: 6px 8px;
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+}
+
+    .harness-chat-input:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 2px var(--primary-light);
+    }
+
+.harness-chat-send {
+    flex: 0 0 auto;
+    align-self: flex-end;
+    padding: 6px 16px;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: var(--primary-color);
+    color: #fff;
+    cursor: pointer;
+}
+
+    .harness-chat-send:hover {
+        background: var(--primary-hover);
+    }
+
+    .harness-chat-send.harness-chat-stop {
+        background: var(--danger-color);
+        border-color: var(--danger-color);
+    }
+
+@media (max-width: 768px) {
+    .gis-harness-toggle {
+        right: 16px;
+        bottom: 16px;
+    }
+
+    .gis-harness-panel {
+        inset: 0;
+        width: 100vw;
+        height: 100vh;
+        height: 100dvh;
+        border-radius: 0;
+        border: none;
+    }
+
+    .harness-chat-select {
+        max-width: 130px;
+    }
+}
+
+@media (pointer: coarse) {
+    .gis-harness-close {
+        width: 44px;
+        height: 44px;
+    }
+
+    .harness-chat-send {
+        min-height: 44px;
+    }
+}

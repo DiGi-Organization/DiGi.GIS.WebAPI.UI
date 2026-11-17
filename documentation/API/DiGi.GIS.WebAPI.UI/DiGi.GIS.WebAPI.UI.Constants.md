@@ -601,6 +601,21 @@ public const string EPWFileItemUri = "https://api.digiproject.uk/gis/epwfile/ite
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
 
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.GISSwaggerUri'></a>
+
+## Default\.GISSwaggerUri Field
+
+URI of the OpenAPI document of the GIS prefix of the Web API: the AI assistant's index of callable endpoints\.
+
+The per-prefix document, not the full one: it lists only the `/gis/` endpoints (Coding - Deployed WebAPI.md §1).
+
+```csharp
+public const string GISSwaggerUri = "https://api.digiproject.uk/swagger/gis/swagger.json";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri'></a>
 
 ## Default\.GISWebAPIUri Field
@@ -630,6 +645,60 @@ public const string GISWebAPIUri_Development = "https://api.digiproject.uk";
 
 #### Field Value
 [System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.HarnessGISFileName'></a>
+
+## Default\.HarnessGISFileName Field
+
+The committed file listing the POST endpoints the AI assistant may call \(read\-only queries only\), as path templates of [GISSwaggerUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISSwaggerUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISSwaggerUri')\.
+
+```csharp
+public const string HarnessGISFileName = "Harness_GIS.json";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.HarnessGISPromptFileName'></a>
+
+## Default\.HarnessGISPromptFileName Field
+
+The committed file holding the GIS part of the AI assistant's system prompt \(domain rules and how to use the tools\)\.
+
+```csharp
+public const string HarnessGISPromptFileName = "Harness_GIS_Prompt.md";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.HarnessPathPrefix'></a>
+
+## Default\.HarnessPathPrefix Field
+
+The path prefix the AI assistant may call on [GISWebAPIUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISWebAPIUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISWebAPIUri'); anything else is refused by its tools\.
+
+```csharp
+public const string HarnessPathPrefix = "/gis/";
+```
+
+#### Field Value
+[System\.String](https://learn.microsoft.com/en-us/dotnet/api/system.string 'System\.String')
+
+<a name='DiGi.GIS.WebAPI.UI.Constants.Default.HarnessSwaggerRefreshMinutes'></a>
+
+## Default\.HarnessSwaggerRefreshMinutes Field
+
+How long the AI assistant keeps a fetched [GISSwaggerUri](DiGi.GIS.WebAPI.UI.Constants.md#DiGi.GIS.WebAPI.UI.Constants.Default.GISSwaggerUri 'DiGi\.GIS\.WebAPI\.UI\.Constants\.Default\.GISSwaggerUri') document before fetching it again, in minutes\.
+
+The document only changes when the Web API is deployed; refetching it per message would add a 750 KB download to every turn and change the cached prompt prefix between turns.
+
+```csharp
+public const int HarnessSwaggerRefreshMinutes = 60;
+```
+
+#### Field Value
+[System\.Int32](https://learn.microsoft.com/en-us/dotnet/api/system.int32 'System\.Int32')
 
 <a name='DiGi.GIS.WebAPI.UI.Constants.Default.HistogramBucketCount'></a>
 

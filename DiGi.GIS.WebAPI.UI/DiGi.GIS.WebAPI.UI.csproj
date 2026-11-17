@@ -39,6 +39,11 @@
 
 	<!-- The generic 3D viewer engine is owned by the DiGi.GLTF.WebAPI repository; it is synchronized
 	     into this project's wwwroot at build time (the static-asset analogue of the HintPath references). -->
+	<!-- The chat widget is owned by DiGi.Harness.WebAPI and copied in the same way (edit it only there). -->
+	<Target Name="CopyHarnessChatCore" BeforeTargets="Build">
+		<Copy SourceFiles="$(ProjectDir)..\..\DiGi.Harness.WebAPI\DiGi.Harness.WebAPI\wwwroot\js\harness-chat-core.js" DestinationFolder="$(ProjectDir)wwwroot\js\" SkipUnchangedFiles="true" />
+	</Target>
+
 	<Target Name="CopyGLTFViewerCore" BeforeTargets="Build">
 		<Copy SourceFiles="$(ProjectDir)..\..\DiGi.GLTF.WebAPI\DiGi.GLTF.WebAPI\wwwroot\js\gltf-viewer-core.js" DestinationFolder="$(ProjectDir)wwwroot\js\" SkipUnchangedFiles="true" />
 	</Target>
@@ -51,6 +56,14 @@
 		<Message Text="Copying all files from directory..." Importance="high" />
 		<Copy SourceFiles="@(_Files)" DestinationFiles="@(_Files->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
 		<Copy SourceFiles="@(_WwwrootFiles)" DestinationFiles="@(_WwwrootFiles->'$(OutputPath)wwwroot\%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" />
+	</Target>
+
+	<!-- Machine-specific runtime inputs (Harness.json with the model provider keys) live in the git-ignored user files folder. -->
+	<Target Name="CopyUserFiles" AfterTargets="CopyFiles">
+		<ItemGroup>
+			<_UserFiles Include="$(ProjectDir)..\user files\**\*.*" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_UserFiles)" DestinationFiles="@(_UserFiles->'$(OutputPath)%(RecursiveDir)%(Filename)%(Extension)')" SkipUnchangedFiles="true" Condition="Exists('$(ProjectDir)..\user files')" />
 	</Target>
 
 	<ItemGroup>
@@ -117,6 +130,12 @@
 		</Reference>
 		<Reference Include="DiGi.GLTF.Analytical">
 			<HintPath>..\..\DiGi.GLTF.Analytical\bin\DiGi.GLTF.Analytical.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Harness">
+			<HintPath>..\..\DiGi.Harness\bin\DiGi.Harness.dll</HintPath>
+		</Reference>
+		<Reference Include="DiGi.Harness.WebAPI">
+			<HintPath>..\..\DiGi.Harness.WebAPI\bin\DiGi.Harness.WebAPI.dll</HintPath>
 		</Reference>
 		<Reference Include="DiGi.GIS.PostgreSQL">
 		  <HintPath>..\..\DiGi.GIS.PostgreSQL\bin\DiGi.GIS.PostgreSQL.dll</HintPath>

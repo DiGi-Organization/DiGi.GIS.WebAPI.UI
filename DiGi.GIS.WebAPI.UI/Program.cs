@@ -57,6 +57,14 @@ webApplicationBuilder.Services.AddSingleton(TimeProvider.System);
 webApplicationBuilder.Services.AddSingleton<DiGi.GIS.WebAPI.UI.Classes.SolarJobQueue>();
 webApplicationBuilder.Services.AddHostedService<DiGi.GIS.WebAPI.UI.HostedServices.SolarJobHostedService>();
 
+// AI assistant (DiGi.GIS.WebAPI.UI#88): the reusable chat endpoints of DiGi.Harness.WebAPI (harness/harnesschat),
+// configured by Harness.json - committed disabled in files/, the real one with the provider keys in user files/ - and
+// the GIS side of it: the signed-in user, the GIS Web API tools bound to that user's token, and the GIS prompt.
+// The chat streams text/event-stream, which stays out of the response compression MIME types below on purpose:
+// a compressing stream would buffer the events.
+await DiGi.Harness.WebAPI.Modify.InitializeAsync(webApplicationBuilder.Services);
+webApplicationBuilder.Services.AddSingleton<DiGi.Harness.WebAPI.Interfaces.IHarnessHost, DiGi.GIS.WebAPI.UI.Classes.GISHarnessHost>();
+
 // Compress streamed binary glTF payloads (their JSON chunk with object properties compresses very well).
 webApplicationBuilder.Services.AddResponseCompression(responseCompressionOptions =>
 {
