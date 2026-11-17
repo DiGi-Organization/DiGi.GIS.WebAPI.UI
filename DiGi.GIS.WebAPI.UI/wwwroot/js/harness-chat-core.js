@@ -9,6 +9,7 @@
  *   POST sessions { Provider }         -> { Id, ProviderName, DisplayName }
  *   GET  sessions/{id}?thinkingvisibility=  -> the transcript (a DiGi Conversation)
  *   DELETE sessions/{id}
+ *   GET  sessions/{id}/export?mode=Messages|Full -> a DiGi ConversationExport, as a file download (Content-Disposition)
  *   POST sessions/{id}/messages { Text, ThinkingVisibility } -> text/event-stream, one JSON event per data line
  *
  * Model text is never parsed as HTML: everything is built with createElement and textContent.
@@ -303,6 +304,7 @@
             thinkingVisibility: readStorage(global.localStorage, `${settings.storageKey}.thinking`) || 'Summary',
             abortController: null,
             running: false,
+            exporting: false,
         };
 
         if (!VISIBILITY_LABELS[state.thinkingVisibility]) {
@@ -338,9 +340,15 @@
         const newButton = element('button', 'harness-chat-new', 'New chat');
         newButton.type = 'button';
 
+        const exportButton = element('button', 'harness-chat-export', 'Export');
+        exportButton.type = 'button';
+        exportButton.title = 'Export this chat to a JSON file';
+        exportButton.disabled = true;
+
         controls.appendChild(providerLabel);
         controls.appendChild(visibilityLabel);
         controls.appendChild(newButton);
+        controls.appendChild(exportButton);
         header.appendChild(title);
         header.appendChild(controls);
 
@@ -362,10 +370,50 @@
         form.appendChild(input);
         form.appendChild(sendButton);
 
+        // Export dialog: the mode is asked every time and always starts on 'Messages only'.
+        const exportDialog = element('dialog', 'harness-chat-export-dialog');
+        exportDialog.setAttribute('aria-label', 'Export chat');
+        const exportForm = element('form', 'harness-chat-export-form');
+        exportForm.appendChild(element('div', 'harness-chat-export-title', 'Export chat'));
+        const exportOptions = element('fieldset', 'harness-chat-export-options');
+        exportOptions.appendChild(element('legend', 'harness-chat-export-legend', 'Include'));
+        const exportRadios = [
+            { value: 'Messages', label: 'Messages only', hint: 'Your questions and the assistant’s answers.' },
+            { value: 'Full', label: 'Full', hint: 'Also the complete thinking, tool calls and tool results — for sharing with an AI model to fix bugs or optimise the assistant.' },
+        ].map(option => {
+            const optionLabel = element('label', 'harness-chat-export-option');
+            const radio = element('input', 'harness-chat-export-radio');
+            radio.type = 'radio';
+            radio.name = 'harness-chat-export-mode';
+            radio.value = option.value;
+            const optionText = element('span', 'harness-chat-export-option-text');
+            optionText.appendChild(element('span', 'harness-chat-export-option-label', option.label));
+            optionText.appendChild(element('span', 'harness-chat-export-option-hint', option.hint));
+            optionLabel.appendChild(radio);
+            optionLabel.appendChild(optionText);
+            exportOptions.appendChild(optionLabel);
+            return radio;
+        });
+        exportForm.appendChild(exportOptions);
+        const exportError = element('div', 'harness-chat-export-error');
+        exportError.setAttribute('role', 'alert');
+        exportError.hidden = true;
+        exportForm.appendChild(exportError);
+        const exportActions = element('div', 'harness-chat-export-actions');
+        const exportCancelButton = element('button', 'harness-chat-export-cancel', 'Cancel');
+        exportCancelButton.type = 'button';
+        const exportConfirmButton = element('button', 'harness-chat-export-confirm', 'Export');
+        exportConfirmButton.type = 'submit';
+        exportActions.appendChild(exportCancelButton);
+        exportActions.appendChild(exportConfirmButton);
+        exportForm.appendChild(exportActions);
+        exportDialog.appendChild(exportForm);
+
         container.appendChild(header);
         container.appendChild(log);
         container.appendChild(status);
         container.appendChild(form);
+        container.appendChild(exportDialog);
 
         function setStatus(text, isError) {
             status.textContent = text || '';
@@ -396,6 +444,11 @@
             visibilitySelect.disabled = running;
             newButton.disabled = running;
             container.classList.toggle('harness-chat-running', running);
+            updateExportButton();
+        }
+
+        function updateExportButton() {
+            exportButton.disabled = !state.sessionId || state.running || state.exporting;
         }
 
         function appendUserMessage(text) {
@@ -666,6 +719,7 @@
             const session = await response.json();
             state.sessionId = session.Id;
             writeStorage(global.sessionStorage, `${settings.storageKey}.session`, state.sessionId);
+            updateExportButton();
             return session;
         }
 
@@ -686,6 +740,7 @@
             if (!response.ok) {
                 state.sessionId = null;
                 writeStorage(global.sessionStorage, `${settings.storageKey}.session`, null);
+                updateExportButton();
                 clearLog();
                 return;
             }
@@ -715,6 +770,7 @@
             const sessionId = state.sessionId;
             state.sessionId = null;
             writeStorage(global.sessionStorage, `${settings.storageKey}.session`, null);
+            updateExportButton();
             clearLog();
             setStatus('');
             if (sessionId) {
@@ -827,6 +883,69 @@
             }
         }
 
+        function fileName(contentDisposition) {
+            const match = /filename\*?=(?:UTF-8'')?"?([^";]+)"?/i.exec(contentDisposition || '');
+            return match ? decodeURIComponent(match[1]) : 'chat-export.json';
+        }
+
+        function exportStatusText(statusCode) {
+            switch (statusCode) {
+                case 404: return 'The chat has expired; start a new chat.';
+                case 409: return 'The assistant is still answering; export once the reply has finished.';
+                default: return statusText(statusCode);
+            }
+        }
+
+        function openExportDialog() {
+            if (!state.sessionId || state.running) {
+                return;
+            }
+
+            exportRadios.forEach(radio => {
+                radio.checked = radio.value === 'Messages';
+            });
+            exportError.hidden = true;
+            exportError.textContent = '';
+            exportConfirmButton.disabled = false;
+            exportDialog.showModal();
+            exportRadios[0].focus();
+        }
+
+        async function exportChat(mode) {
+            state.exporting = true;
+            updateExportButton();
+            exportConfirmButton.disabled = true;
+            exportError.hidden = true;
+
+            try {
+                const response = await request(`/sessions/${encodeURIComponent(state.sessionId)}/export?mode=${encodeURIComponent(mode)}`, { method: 'GET', headers: { Accept: 'application/json' } });
+                if (!response.ok) {
+                    exportError.textContent = exportStatusText(response.status);
+                    exportError.hidden = false;
+                    return;
+                }
+
+                const blob = await response.blob();
+                const url = global.URL.createObjectURL(blob);
+                const link = element('a');
+                link.href = url;
+                link.download = fileName(response.headers.get('Content-Disposition'));
+                link.hidden = true;
+                document.body.appendChild(link);
+                link.click();
+                link.remove();
+                global.setTimeout(() => global.URL.revokeObjectURL(url), 0);
+                exportDialog.close();
+            } catch (error) {
+                exportError.textContent = 'The chat could not be exported.';
+                exportError.hidden = false;
+            } finally {
+                state.exporting = false;
+                exportConfirmButton.disabled = false;
+                updateExportButton();
+            }
+        }
+
         function postMessage(text) {
             return request(`/sessions/${encodeURIComponent(state.sessionId)}/messages`, {
                 method: 'POST',
@@ -881,7 +1000,30 @@
             input.focus();
         });
 
+        exportButton.addEventListener('click', openExportDialog);
+
+        exportCancelButton.addEventListener('click', () => {
+            exportDialog.close();
+        });
+
+        exportForm.addEventListener('submit', event => {
+            event.preventDefault();
+            if (state.exporting || !state.sessionId) {
+                return;
+            }
+
+            const checked = exportRadios.find(radio => radio.checked);
+            exportChat(checked ? checked.value : 'Messages');
+        });
+
+        exportDialog.addEventListener('close', () => {
+            if (!exportButton.disabled) {
+                exportButton.focus();
+            }
+        });
+
         showEmpty();
+        updateExportButton();
 
         return {
             element: container,

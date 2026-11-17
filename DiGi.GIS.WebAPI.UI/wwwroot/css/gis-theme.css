@@ -5295,6 +5295,159 @@ body.ortodata-epoch-open {
         background: var(--primary-light);
     }
 
+/* Export (DiGi.Harness#3): right of New chat, which already pushes the pair to the right edge. */
+.harness-chat-export {
+    font: inherit;
+    font-weight: 600;
+    padding: 2px 10px;
+    border: 1px solid var(--primary-color);
+    border-radius: 4px;
+    background: var(--bg-card);
+    color: var(--primary-color);
+    cursor: pointer;
+}
+
+    .harness-chat-export:hover:not(:disabled) {
+        background: var(--primary-light);
+    }
+
+    .harness-chat-new:disabled,
+    .harness-chat-export:disabled {
+        border-color: var(--border-color);
+        color: var(--text-gray-light);
+        cursor: default;
+    }
+
+/* The export mode dialog: a native <dialog> opened with showModal(), so it sits in the top layer
+   above the assistant panel and the page overlay alike. */
+.harness-chat-export-dialog {
+    width: 440px;
+    max-width: calc(100vw - 32px);
+    box-sizing: border-box;
+    padding: 20px;
+    border: 1px solid var(--border-color-card);
+    border-radius: 8px;
+    background: var(--bg-card);
+    color: var(--text-dark);
+    font-family: var(--font-sans);
+    box-shadow: var(--shadow-default);
+}
+
+    .harness-chat-export-dialog::backdrop {
+        background: rgba(0, 0, 0, 0.45);
+    }
+
+.harness-chat-export-title {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 12px;
+}
+
+.harness-chat-export-options {
+    border: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.harness-chat-export-legend {
+    padding: 0;
+    margin-bottom: 4px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+.harness-chat-export-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 8px 10px;
+    border: 1px solid var(--border-color-light);
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+    .harness-chat-export-option:has(.harness-chat-export-radio:checked) {
+        border-color: var(--primary-color);
+        background: var(--primary-light);
+    }
+
+.harness-chat-export-radio {
+    margin: 3px 0 0 0;
+    flex: 0 0 auto;
+}
+
+.harness-chat-export-option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+}
+
+.harness-chat-export-option-label {
+    font-weight: 600;
+    font-size: 0.88rem;
+}
+
+.harness-chat-export-option-hint {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+.harness-chat-export-error {
+    margin-top: 10px;
+    font-size: 0.8rem;
+    color: var(--danger-color);
+}
+
+    .harness-chat-export-error[hidden] {
+        display: none;
+    }
+
+.harness-chat-export-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+}
+
+.harness-chat-export-cancel,
+.harness-chat-export-confirm {
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    padding: 6px 16px;
+    border-radius: 4px;
+    border: 1px solid var(--primary-color);
+    cursor: pointer;
+}
+
+.harness-chat-export-cancel {
+    background: var(--bg-card);
+    color: var(--primary-color);
+}
+
+    .harness-chat-export-cancel:hover {
+        background: var(--primary-light);
+    }
+
+.harness-chat-export-confirm {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+    .harness-chat-export-confirm:hover:not(:disabled) {
+        background: var(--primary-hover);
+    }
+
+    .harness-chat-export-confirm:disabled {
+        opacity: 0.6;
+        cursor: default;
+    }
+
 .harness-chat-log {
     flex: 1 1 auto;
     min-height: 0;
@@ -5628,7 +5781,9 @@ body.ortodata-epoch-open {
         padding-right: 108px;
     }
 
-    .harness-chat-send {
+    .harness-chat-send,
+    .harness-chat-export-cancel,
+    .harness-chat-export-confirm {
         min-height: 44px;
     }
 }
