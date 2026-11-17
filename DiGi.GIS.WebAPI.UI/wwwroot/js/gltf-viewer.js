@@ -6,6 +6,7 @@
 
 import { GltfViewer, GltfStatusTerminal, readSceneData, readGlbBytes, reportStatus, updateLastStatus, formatElapsed } from 'gltf-viewer-core';
 import { refusalMessage } from 'http-refusal';
+import { JsonTree } from 'json-tree';
 
 const DEFAULT_PROPERTIES_HINT = 'Click an object or drag a selection rectangle in the 3D view. Properties are displayed when exactly one object is selected.';
 
@@ -51,7 +52,11 @@ function appendPropertyRow(table, key, value) {
 }
 
 // The properties panel shows details only for exactly one selected object;
-// empty and multiple selections both reset it to the default state.
+// empty and multiple selections both reset it to the default state. The object's domain data
+// (glTF extras) is shown in the JSON inspector (json-tree.js); one inspector instance is kept for
+// the page, so expanded branches, search and view options carry over between selections.
+let propertiesTree = null;
+
 function fillProperties(viewer, references) {
     const panel = document.getElementById('gltf-properties');
     if (!panel) {
@@ -59,6 +64,7 @@ function fillProperties(viewer, references) {
     }
 
     if (!references || references.length !== 1) {
+        panel.classList.remove('gltf-properties-tree');
         panel.innerHTML = `<span class="gltf-muted">${DEFAULT_PROPERTIES_HINT}</span>`;
         return;
     }
@@ -66,21 +72,17 @@ function fillProperties(viewer, references) {
     const reference = references[0];
     const userData = viewer.getUserData(reference);
 
-    const table = document.createElement('table');
-    appendPropertyRow(table, 'Reference', reference || '-');
-
-    if (userData) {
-        for (const [key, value] of Object.entries(userData)) {
-            if (key === '_type') {
-                appendPropertyRow(table, 'Type', String(value).split(',')[0].split('.').pop());
-                continue;
-            }
-            appendPropertyRow(table, key, value);
-        }
+    propertiesTree ??= new JsonTree({ popOut: true });
+    if (userData === null || userData === undefined) {
+        propertiesTree.setEmpty('No properties are attached to this object.', reference || null);
+    } else {
+        propertiesTree.setData(userData, reference || null);
     }
 
-    panel.innerHTML = '';
-    panel.appendChild(table);
+    panel.classList.add('gltf-properties-tree');
+    if (propertiesTree.element.parentElement !== panel) {
+        panel.replaceChildren(propertiesTree.element);
+    }
 }
 
 function fillSceneInfo(referencePoint, objectCount) {
