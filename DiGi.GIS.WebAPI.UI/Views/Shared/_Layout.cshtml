@@ -218,18 +218,33 @@
     <script src="~/js/user.js" asp-append-version="true"></script>
     @* AI assistant (DiGi.GIS.WebAPI.UI#88): rendered for signed-in visitors only. The button stays hidden until
        harness/harnesschat/configuration confirms the assistant is enabled for this user, so a disabled harness
-       or a user outside its allowlist sees nothing. *@
+       or a user outside its allowlist sees nothing. The GIS Assistant page (Views/Home/Assistant.cshtml, #90)
+       is the assistant itself, so it gets the scripts but not the floating button and panel. *@
     @if (signedIn)
     {
-        <button type="button" id="gis-harness-toggle" class="gis-harness-toggle" aria-expanded="false" aria-controls="gis-harness-panel" aria-label="Open the assistant" title="Assistant" hidden>
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-            </svg>
-        </button>
-        <section id="gis-harness-panel" class="gis-harness-panel" role="dialog" aria-modal="false" aria-label="Assistant" hidden>
-            <button type="button" class="gis-harness-close" aria-label="Close the assistant" title="Close">&times;</button>
-            <div id="gis-harness-chat" class="gis-harness-chat"></div>
-        </section>
+        if (ViewData["HarnessStandalone"] is not true)
+        {
+            <button type="button" id="gis-harness-toggle" class="gis-harness-toggle" aria-expanded="false" aria-controls="gis-harness-panel" aria-label="Open the GIS Assistant" title="GIS Assistant" hidden>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+            </button>
+            <section id="gis-harness-panel" class="gis-harness-panel" role="dialog" aria-modal="false" aria-label="GIS Assistant" hidden>
+                @* Open in a new window, then close: the pop-out comes first so it is reached first by Tab. *@
+                <div class="gis-harness-actions">
+                    <button type="button" class="gis-harness-popout" aria-label="Open the GIS Assistant in a new window" title="Open in new window">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <path d="M15 3h6v6"></path>
+                            <path d="M10 14 21 3"></path>
+                            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path>
+                        </svg>
+                    </button>
+                    <button type="button" class="gis-harness-close" aria-label="Close the GIS Assistant" title="Close">&times;</button>
+                </div>
+                <p id="gis-harness-notice" class="gis-harness-notice" role="status" hidden></p>
+                <div id="gis-harness-chat" class="gis-harness-chat"></div>
+            </section>
+        }
         <script src="~/js/harness-chat-core.js" asp-append-version="true"></script>
         <script src="~/js/harness-chat.js" asp-append-version="true"></script>
     }

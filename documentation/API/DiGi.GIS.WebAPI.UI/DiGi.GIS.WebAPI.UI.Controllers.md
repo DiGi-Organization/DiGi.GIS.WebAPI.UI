@@ -1689,6 +1689,24 @@ public Microsoft.AspNetCore.Mvc.IActionResult About();
 [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
 An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') result\.
 
+<a name='DiGi.GIS.WebAPI.UI.Controllers.HomeController.Assistant()'></a>
+
+## HomeController\.Assistant\(\) Method
+
+Returns the view for the GIS Assistant page: the AI assistant on a page of its own, opened in a new window
+by the assistant panel and by the home page \(DiGi\.GIS\.WebAPI\.UI\#90\)\.
+
+The page carries no conversation of its own: its script continues the one whose id the opening window
+            left in session storage, which a browser copies into a window opened by script.
+
+```csharp
+public Microsoft.AspNetCore.Mvc.IActionResult Assistant();
+```
+
+#### Returns
+[Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult')  
+An [Microsoft\.AspNetCore\.Mvc\.IActionResult](https://learn.microsoft.com/en-us/dotnet/api/microsoft.aspnetcore.mvc.iactionresult 'Microsoft\.AspNetCore\.Mvc\.IActionResult') holding the assistant view, or a redirect to the sign\-in page for an anonymous visitor\.
+
 <a name='DiGi.GIS.WebAPI.UI.Controllers.HomeController.Start()'></a>
 
 ## HomeController\.Start\(\) Method

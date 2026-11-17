@@ -5142,12 +5142,21 @@ body.ortodata-epoch-open {
         display: none;
     }
 
-.gis-harness-close {
+/* Open in a new window, then close (#90): one row in the panel's top-right corner, over the header's padding. */
+.gis-harness-actions {
     position: absolute;
     top: 8px;
     right: 8px;
+    z-index: 1;
+    display: flex;
+    gap: 4px;
+}
+
+.gis-harness-popout,
+.gis-harness-close {
     width: 28px;
     height: 28px;
+    padding: 0;
     border: none;
     background: transparent;
     color: var(--text-muted);
@@ -5155,11 +5164,39 @@ body.ortodata-epoch-open {
     line-height: 1;
     cursor: pointer;
     border-radius: 4px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 }
 
+    .gis-harness-popout:hover,
     .gis-harness-close:hover {
         background: var(--bg-light);
         color: var(--text-dark);
+    }
+
+    .gis-harness-popout:focus-visible,
+    .gis-harness-close:focus-visible {
+        outline: 2px solid var(--primary-color);
+        outline-offset: 1px;
+    }
+
+    /* A turn in progress keeps its conversation here: harness-chat.js ignores the pop-out until it ends. */
+    .gis-harness-panel:has(.harness-chat-running) .gis-harness-popout {
+        opacity: 0.4;
+        cursor: not-allowed;
+    }
+
+.gis-harness-notice {
+    margin: 0;
+    padding: 8px 80px 8px 14px;
+    font-size: 0.85rem;
+    color: var(--danger-color);
+    border-bottom: 1px solid var(--border-color-light);
+}
+
+    .gis-harness-notice[hidden] {
+        display: none;
     }
 
 .gis-harness-chat {
@@ -5169,13 +5206,44 @@ body.ortodata-epoch-open {
     min-height: 0;
 }
 
+    .gis-harness-chat[hidden] {
+        display: none;
+    }
+
+/* The GIS Assistant page (Views/Home/Assistant.cshtml, #90): the chat fills the content area, the log scrolls. */
+.gis-harness-page {
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    max-width: 960px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-card);
+    border-left: 1px solid var(--border-color-card);
+    border-right: 1px solid var(--border-color-card);
+    box-sizing: border-box;
+    font-family: var(--font-sans);
+    color: var(--text-dark);
+    overflow: hidden;
+}
+
+    .gis-harness-page .gis-harness-notice {
+        padding-right: 14px;
+    }
+
 .harness-chat-header {
-    padding: 10px 44px 10px 14px;
+    padding: 10px 14px;
     border-bottom: 1px solid var(--border-color-light);
     display: flex;
     flex-direction: column;
     gap: 6px;
 }
+
+    /* Room for the two corner buttons of the panel (.gis-harness-actions); the page has none. */
+    .gis-harness-panel .harness-chat-header {
+        padding-right: 76px;
+    }
 
 .harness-chat-title {
     font-weight: 600;
@@ -5549,9 +5617,15 @@ body.ortodata-epoch-open {
 }
 
 @media (pointer: coarse) {
+    .gis-harness-popout,
     .gis-harness-close {
         width: 44px;
         height: 44px;
+    }
+
+    .gis-harness-panel .harness-chat-header,
+    .gis-harness-notice {
+        padding-right: 108px;
     }
 
     .harness-chat-send {

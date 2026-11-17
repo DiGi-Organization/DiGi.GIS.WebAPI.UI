@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "GIS Assistant";
+    ViewData["Description"] = "The DigiProject GIS Assistant: ask about buildings, counties, addresses and building data.";
+    ViewData["Robots"] = "noindex, nofollow";
+
+    // The assistant is this page: the layout leaves out its floating button and panel (DiGi.GIS.WebAPI.UI#90).
+    ViewData["HarnessStandalone"] = true;
+}
+
+@* Filled by wwwroot/js/harness-chat.js, which continues the conversation of the window that opened this one. *@
+<section class="gis-harness-page" aria-label="GIS Assistant">
+    <p id="gis-harness-notice" class="gis-harness-notice" role="status" hidden></p>
+    <div id="gis-harness-chat" class="gis-harness-chat" data-standalone="true"></div>
+</section>

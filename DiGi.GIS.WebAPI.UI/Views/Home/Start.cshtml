@@ -23,6 +23,12 @@
             <button class="gis-menu-btn" onclick="window.location.href='@Url.Content("~/buildingshape")'">
                 Building Shape
             </button>
+            @* Opens the assistant in a new window (DiGi.GIS.WebAPI.UI#90). Shown by wwwroot/js/harness-chat.js once
+               harness/harnesschat/configuration reports the assistant enabled for this user - the gate of the
+               floating button - so a user outside its allowlist never sees it. *@
+            <button type="button" id="gis-home-assistant" class="gis-menu-btn" hidden>
+                GIS Assistant
+            </button>
         }
         <button class="gis-menu-btn" onclick="window.location.href='@Url.Content("~/communication")'">
             Communication
