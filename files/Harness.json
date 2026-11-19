@@ -1,7 +1,7 @@
 {
   "Enabled": false,
   "DefaultProviderName": "anthropic",
-  "MaxToolIterations": 12,
+  "MaxToolIterations": 30,
   "MaxToolResultCharacters": 20000,
   "RequestTimeoutSeconds": 300,
   "AllowedUserIds": [],
