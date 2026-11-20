@@ -125,7 +125,12 @@
             }
 
             chat.restoreSession();
-            chat.focus();
+
+            // On a touch screen the focus would open the on-screen keyboard over the conversation the page
+            // has just restored: there the visitor taps the box when ready to type.
+            if (!window.matchMedia || !window.matchMedia('(pointer: coarse)').matches) {
+                chat.focus();
+            }
         });
     }
 

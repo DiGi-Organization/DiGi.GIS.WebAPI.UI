@@ -5233,24 +5233,33 @@ body.ortodata-epoch-open {
     }
 
 .harness-chat-header {
-    padding: 10px 14px;
+    padding: 8px 14px 10px;
     border-bottom: 1px solid var(--border-color-light);
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
 }
-
-    /* Room for the two corner buttons of the panel (.gis-harness-actions); the page has none. */
-    .gis-harness-panel .harness-chat-header {
-        padding-right: 76px;
-    }
 
 .harness-chat-title {
     font-weight: 600;
     font-size: 0.95rem;
+    min-height: 28px;
+    display: flex;
+    align-items: center;
 }
 
+    /* The panel's two corner buttons (.gis-harness-actions, top: 8px) share the title's row: only the title
+       makes room for them, so the controls below keep the full width. The page has no corner buttons. */
+    .gis-harness-panel .harness-chat-title {
+        padding-right: 68px;
+    }
+
+/* Model and Thinking share the free width (each at least 150px, at most 280px); New chat and Export stay
+   a pair at the right edge - on the same row when it fits, together on the next one when it does not.
+   Flex wraps item by item, so a narrow row (the panel, a phone) gives the two fields half the width each:
+   that sends both buttons to the next row together instead of leaving Export there alone. */
 .harness-chat-controls {
+    container-type: inline-size;
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -5259,9 +5268,12 @@ body.ortodata-epoch-open {
 }
 
 .harness-chat-field {
-    display: inline-flex;
+    display: flex;
     align-items: center;
-    gap: 4px;
+    gap: 6px;
+    flex: 1 1 150px;
+    min-width: 0;
+    max-width: 280px;
     color: var(--text-muted);
 }
 
@@ -5269,18 +5281,42 @@ body.ortodata-epoch-open {
         display: none;
     }
 
+/* After .harness-chat-field: same specificity, so it wins by source order. */
+@container (max-width: 520px) {
+    .harness-chat-field {
+        flex-basis: calc(50% - 4px);
+        max-width: none;
+    }
+
+    /* One model only (its field hidden): Thinking and the buttons fit one row. */
+    .harness-chat-field[hidden] + .harness-chat-field {
+        flex-basis: 120px;
+    }
+}
+
+.harness-chat-field-label {
+    flex: 0 0 auto;
+}
+
 .harness-chat-select {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 28px;
+    box-sizing: border-box;
     font: inherit;
     padding: 2px 4px;
     border: 1px solid var(--border-color);
     border-radius: 4px;
     background: var(--bg-card);
     color: var(--text-dark);
-    max-width: 160px;
+    text-overflow: ellipsis;
 }
 
 .harness-chat-new {
     margin-left: auto;
+    min-height: 28px;
+    box-sizing: border-box;
     font: inherit;
     font-weight: 600;
     padding: 2px 10px;
@@ -5297,6 +5333,8 @@ body.ortodata-epoch-open {
 
 /* Export (DiGi.Harness#3): right of New chat, which already pushes the pair to the right edge. */
 .harness-chat-export {
+    min-height: 28px;
+    box-sizing: border-box;
     font: inherit;
     font-weight: 600;
     padding: 2px 10px;
@@ -5509,11 +5547,39 @@ body.ortodata-epoch-open {
         display: none;
     }
 
+    /* One marker for Thinking and the tool calls: a flex <summary> (the tool row) loses the native
+       disclosure triangle, which left the tool calls looking like they could not be expanded. */
     .harness-chat-thinking > summary,
     .harness-chat-tool > summary {
         cursor: pointer;
         user-select: none;
+        list-style: none;
     }
+
+        .harness-chat-thinking > summary::-webkit-details-marker,
+        .harness-chat-tool > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .harness-chat-thinking > summary::before,
+        .harness-chat-tool > summary::before {
+            content: "";
+            display: inline-block;
+            flex: 0 0 auto;
+            width: 0;
+            height: 0;
+            margin-right: 6px;
+            border-style: solid;
+            border-width: 4px 0 4px 6px;
+            border-color: transparent transparent transparent currentColor;
+            vertical-align: 1px;
+            transition: transform 0.15s;
+        }
+
+        .harness-chat-thinking[open] > summary::before,
+        .harness-chat-tool[open] > summary::before {
+            transform: rotate(90deg);
+        }
 
 .harness-chat-thinking-body {
     margin-top: 4px;
@@ -5548,20 +5614,29 @@ body.ortodata-epoch-open {
 
     .harness-chat-tool > summary {
         display: flex;
-        align-items: baseline;
+        align-items: center;
         gap: 6px;
         min-width: 0;
     }
 
+        .harness-chat-tool > summary::before {
+            margin-right: 0;
+        }
+
+/* The name gives way (ellipsis) only after the label has: a long tool name never pushes the status off the row. */
 .harness-chat-tool-name {
     font-weight: 600;
     color: var(--text-dark);
-    flex: 0 0 auto;
+    flex: 0 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .harness-chat-tool-label {
     font-family: var(--font-mono);
-    flex: 1 1 auto;
+    flex: 1 1000 auto;
     min-width: 0;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -5657,11 +5732,15 @@ body.ortodata-epoch-open {
         font-size: 0.8rem;
     }
 
+    /* The answer breaks long tokens anywhere (overflow-wrap: anywhere), which inside a table shrank every
+       column to a few letters ("Coun|ty"); cells wrap between words only and the table scrolls instead. */
     .harness-chat-table th,
     .harness-chat-table td {
         border: 1px solid var(--border-color-light);
         padding: 3px 6px;
         text-align: left;
+        vertical-align: top;
+        overflow-wrap: normal;
     }
 
     .harness-chat-table th {
@@ -5749,7 +5828,9 @@ body.ortodata-epoch-open {
         border-color: var(--danger-color);
     }
 
-@media (max-width: 768px) {
+/* A phone, upright or on its side (a landscape phone is wider than 768px but only ~375px tall, where the
+   floating panel left the log under 90px): the panel takes the whole screen. */
+@media (max-width: 768px), (max-height: 520px) {
     .gis-harness-toggle {
         right: 16px;
         bottom: 16px;
@@ -5764,8 +5845,22 @@ body.ortodata-epoch-open {
         border: none;
     }
 
-    .harness-chat-select {
-        max-width: 130px;
+    /* The GIS Assistant page: the chat is the page, so the footer gives its height to the conversation. */
+    .gis-app-body:has(.gis-harness-page) .gis-footer {
+        display: none;
+    }
+
+    .gis-harness-page {
+        border-left: none;
+        border-right: none;
+    }
+}
+
+/* On a phone the footer text runs to the right edge, under the floating button: keep it clear of the button. */
+@media (max-width: 768px) {
+    .gis-app-body:has(.gis-harness-toggle:not([hidden])) .gis-footer-container {
+        padding-right: 60px;
+        box-sizing: border-box;
     }
 }
 
@@ -5776,9 +5871,30 @@ body.ortodata-epoch-open {
         height: 44px;
     }
 
-    .gis-harness-panel .harness-chat-header,
+    .gis-harness-panel .harness-chat-title {
+        min-height: 44px;
+        padding-right: 100px;
+    }
+
     .gis-harness-notice {
         padding-right: 108px;
+    }
+
+    /* iOS zooms into any field under 16px when it is focused, and never zooms back out. */
+    .harness-chat-select,
+    .harness-chat-input {
+        font-size: 16px;
+    }
+
+    .harness-chat-select,
+    .harness-chat-new,
+    .harness-chat-export {
+        min-height: 40px;
+    }
+
+    .harness-chat-new,
+    .harness-chat-export {
+        padding: 2px 14px;
     }
 
     .harness-chat-send,
